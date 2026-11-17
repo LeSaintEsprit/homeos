@@ -305,7 +305,7 @@ Chaque recommandation affiche une phrase complète (« *Acheter 2 bouteilles de 
 ## 13. Péremption, dépenses, tableau de bord, notifications
 
 ### 13.1 Péremption et anti-gaspillage (M1§7)
-Statuts par lot : périmé, aujourd'hui, urgent (≤ 2 j), bientôt (≤ 7 j), ok, date inconnue ; DLC vs DDM ; produits ouverts ; **produits oubliés** (aucun mouvement depuis N jours, plus court pour le réfrigérateur) ; « à consommer en priorité » ; tableau de bord anti-gaspillage (pertes en nombre et en valeur — valorisées uniquement avec les prix enregistrés —, produits les plus jetés, risque de gaspillage).
+Statuts par lot : périmé, aujourd'hui, urgent (≤ 2 j), bientôt (≤ 7 j), ok, date inconnue ; DLC vs DDM ; produits ouverts ; **produits oubliés** (aucun mouvement depuis N jours, plus court pour le réfrigérateur) ; « à consommer en priorité » ; tableau de bord anti-gaspillage (pertes en nombre et en valeur — valorisées uniquement avec les prix enregistrés —, motifs, produits les plus jetés, valeur des produits à sauver dans le délai « bientôt », risque de gaspillage). Une DDM dépassée est présentée comme « souvent encore consommable, à vérifier », une DLC dépassée comme à ne plus consommer. Les quantités « à risque » ne sont calculées qu'avec une consommation fiable. Le calendrier des ruptures ne contient que des produits à consommation fiable (ou à achats réguliers) : aucun produit sans données n'est extrapolé.
 
 ### 13.2 Dépenses et budget (M1§8, M3§6)
 Achats enregistrés (produit, quantité, prix, remise, magasin, date, membre, ticket). Dépenses **hebdomadaires, mensuelles, annuelles, par catégorie, par magasin** ; **évolution** des dépenses et des **prix** ; **produits les plus coûteux** ; **budget mensuel** défini, **projection** de fin de mois au rythme réel ; **budget moyen** (mois) et **panier moyen** ; **comparaison des prix** unitaires (€/kg, €/L, €/unité) par magasin ; **coût estimé des prochains achats**. Distinction systématique **prix connu / estimé / inconnu**. **Aucun prix inventé.** Dépenses inhabituelles détectées.
@@ -362,6 +362,7 @@ Détection (sans correction automatique) : quantité négative ; Σ mouvements �
 - Mode courses spécialement optimisé pour le magasin ; scanner fluide (§8.5).
 - Formulaires minimaux, questions uniquement nécessaires, valeurs par défaut intelligentes, annulation possible, messages d'erreur clairs en français.
 - Accessibilité : contrastes suffisants, cibles tactiles ≥ 44 px, textes lisibles.
+- Les notifications éphémères ne masquent jamais une action : quand une fiche ou le mode courses est ouvert, elles s'affichent en haut de l'écran.
 - **Chaque bouton fonctionne** ; chaque modification est enregistrée (vérifié par tests E2E).
 
 ---

@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 17/11/2026 — fin de la phase 5 (liste de courses, mode courses, réception, magasins).
+> Dernière mise à jour : 17/11/2026 — fin de la phase 6 (prévisions, péremption, pertes).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 5)** : 144 tests unitaires/intégration (dont décodage réel de codes-barres) et 18 parcours de bout en bout (dont 6 pour les courses, à deux navigateurs). Restent à construire dans l'interface : prévisions, tableau de bord, dépenses, OCR, inventaire guidé, écrans de données.
+**Constat global (fin de phase 6)** : 150 tests unitaires/intégration et 20 parcours de bout en bout. Restent à construire dans l'interface : tableau de bord et centre de notifications, inventaire guidé, dépenses, OCR, écrans de données.
 
 ---
 
@@ -271,38 +271,38 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| ENG-01 | Quantités disponibles | Utilisable vs périmé | M1§4 | P0 | STK-01 | En développement | D ✅ · C ❌ | — |
-| ENG-02 | Stocks faibles | Seuil minimal | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
-| ENG-03 | Ruptures | — | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
-| ENG-04 | Jours d'autonomie | — | M1§4 | P0 | ENG-05 | En développement | D ✅ · C ❌ | — |
-| ENG-05 | Analyse de la consommation | Pondérée, ruptures exclues | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
-| ENG-06 | Produits achetés régulièrement | Cadence | M1§4 | P1 | — | En développement | D ✅ · C ❌ | — |
-| ENG-07 | Prévision des réapprovisionnements | Date conseillée | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
-| ENG-08 | Quantités recommandées | Idéale, couverture, conditionnement | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
-| ENG-09 | Bientôt périmés, risque de gaspillage | — | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
+| ENG-01 | Quantités disponibles | Utilisable vs périmé | M1§4 | P0 | STK-01 | Testé et validé | D ✅ · C ✅ stock utilisable (lots périmés exclus) dans les explications et la vue Péremption · `e2e/forecast.spec.ts` | — |
+| ENG-02 | Stocks faibles | Seuil minimal | M1§4 | P0 | — | Testé et validé | D ✅ · C ✅ « il reste 2 rouleaux, sous le seuil minimal de 4 rouleaux » · `e2e/forecast.spec.ts` | — |
+| ENG-03 | Ruptures | — | M1§4 | P0 | — | Testé et validé | D ✅ · C ✅ « le stock est épuisé », à acheter maintenant · `e2e/forecast.spec.ts` | — |
+| ENG-04 | Jours d'autonomie | — | M1§4 | P0 | ENG-05 | Testé et validé | D ✅ · C ✅ « épuisé dans environ 4 jours », calendrier « rupture prévue dans n j » · `e2e/forecast.spec.ts` | — |
+| ENG-05 | Analyse de la consommation | Pondérée, ruptures exclues | M1§4 | P0 | — | Testé et validé | D ✅ engine.test · C ✅ consommation affichée avec sa source et sa confiance (« Pourquoi ? ») · `e2e/forecast.spec.ts` | — |
+| ENG-06 | Produits achetés régulièrement | Cadence | M1§4 | P1 | — | Développé | D ✅ engine.test (cadence) · C ✅ groupe « Achats habituels à prévoir » et « achat habituel attendu » dans le calendrier — non couvert E2E (il faut plusieurs semaines d’achats) | — |
+| ENG-07 | Prévision des réapprovisionnements | Date conseillée | M1§4 | P0 | — | Testé et validé | D ✅ · C ✅ « d’ici le … » et calendrier des ruptures par semaine (6 semaines) · overview.test · `e2e/forecast.spec.ts` | — |
+| ENG-08 | Quantités recommandées | Idéale, couverture, conditionnement | M1§4 | P0 | — | Testé et validé | D ✅ · C ✅ « Acheter 6 bouteilles… », arrondi au conditionnement · `e2e/forecast.spec.ts` | — |
+| ENG-09 | Bientôt périmés, risque de gaspillage | — | M1§4 | P0 | — | Testé et validé | D ✅ overview.test (quantités à risque seulement si consommation fiable) · C ✅ vue Péremption (sections par urgence, « risque de gaspillage ») · `e2e/forecast.spec.ts` | — |
 | ENG-10 | Éviter les achats en double | Liste déduite, « déjà prévu » | M1§4 | P0 | — | Testé et validé | D ✅ quantité déjà prévue déduite des recommandations · C ✅ la recommandation disparaît une fois l’article dans la liste ; fiche produit « Dans la liste de courses : … » · `e2e/shopping.spec.ts` | — |
-| ENG-11 | Adaptation aux habitudes réelles | Pondération récente | M1§4 | P0 | — | En développement | D ✅ | — |
-| ENG-12 | Explication compréhensible | Phrase + détail | M1§4 | P0 | — | En développement | D ✅ (texte de l'exemple vérifié) · C ❌ | — |
-| ENG-13 | Niveaux de confiance | — | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
-| ENG-14 | Repli sur les seuils | Sans historique suffisant | M1§4 | P0 | — | En développement | D ✅ | — |
-| ENG-15 | Jamais de consommation inventée | — | M1§4 | P0 | — | En développement | D ✅ | — |
-| ENG-16 | Qualité des données prise en compte | — | M3§8 | P0 | REL-01 | En développement | D ✅ | — |
-| ENG-17 | Coût estimé des recommandations | Prix connu/estimé/inconnu | M3§6 | P1 | BUD-14 | En développement | D ✅ · C ❌ | — |
+| ENG-11 | Adaptation aux habitudes réelles | Pondération récente | M1§4 | P0 | — | Testé et validé | D ✅ engine.test (pondération récente, ruptures exclues) ; pas d’écran propre, effet visible dans les recommandations | — |
+| ENG-12 | Explication compréhensible | Phrase + détail | M1§4 | P0 | — | Testé et validé | D ✅ · C ✅ phrase + « Pourquoi ? » (objectif, stock et sa fiabilité, consommation dite une seule fois, base du prix) · `e2e/forecast.spec.ts` | — |
+| ENG-13 | Niveaux de confiance | — | M1§4 | P0 | — | Testé et validé | D ✅ · C ✅ badge Fiable / Assez fiable / Indicatif / Sans données sur chaque recommandation et événement du calendrier · `e2e/forecast.spec.ts` | — |
+| ENG-14 | Repli sur les seuils | Sans historique suffisant | M1§4 | P0 | — | Testé et validé | D ✅ · C ✅ produit sans historique : seuil utilisé et dit (« Pas assez d’historique : seuils du foyer utilisés ») · `e2e/forecast.spec.ts` | — |
+| ENG-15 | Jamais de consommation inventée | — | M1§4 | P0 | — | Testé et validé | D ✅ · C ✅ produit sans seuil ni historique : aucune recommandation, absent du calendrier, signalé dans « Pour des prévisions plus justes » · `e2e/forecast.spec.ts` | — |
+| ENG-16 | Qualité des données prise en compte | — | M3§8 | P0 | REL-01 | Testé et validé | D ✅ engine.test (quantité approximative → confiance abaissée et signalée) · C ✅ fiabilité du stock dans « Pourquoi ? » | — |
+| ENG-17 | Coût estimé des recommandations | Prix connu/estimé/inconnu | M3§6 | P1 | BUD-14 | Testé et validé | D ✅ · C ✅ « ≈ 2,40 € » d’après un achat enregistré, « prix inconnu » sinon, total estimé + nombre sans prix · `e2e/forecast.spec.ts` | — |
 | ENG-18 | Calcul côté serveur | Pour notifications et récapitulatifs | M3§9 | P1 | NOTIF-12 | Testé et validé | S ✅ services.test (récapitulatifs calculés côté serveur) | Intégration |
 
 ## 17. Péremption et anti-gaspillage
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| EXP-01 | Surveillance des dates | Statuts par lot | M1§7 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| EXP-02 | Bientôt périmés | — | M1§7 | P0 | — | En développement | D ✅ · C ❌ | — |
-| EXP-03 | À consommer rapidement | Priorité FEFO | M1§7 | P0 | — | En développement | D ✅ · C ❌ | — |
-| EXP-04 | Périmés | — | M1§7 | P0 | — | En développement | D ✅ · C ❌ | — |
-| EXP-05 | Produits ouverts | Conservation après ouverture | M1§7, M1§10 | P0 | — | En développement | D ✅ · C ❌ | — |
-| EXP-06 | Produits oubliés | Sans mouvement depuis N jours | M1§7 | P1 | — | En développement | D 🟡 (calculé, non testé) · C ❌ | Unitaires |
+| EXP-01 | Surveillance des dates | Statuts par lot | M1§7 | P0 | — | Testé et validé | D ✅ · C ✅ vue Péremption : date dépassée, aujourd’hui, urgent, bientôt · overview.test · `e2e/forecast.spec.ts` | E2E |
+| EXP-02 | Bientôt périmés | — | M1§7 | P0 | — | Testé et validé | C ✅ section « D’ici n jours » · `e2e/forecast.spec.ts` | — |
+| EXP-03 | À consommer rapidement | Priorité FEFO | M1§7 | P0 | — | Testé et validé | C ✅ « à consommer bientôt, dont n en urgence », Consommer depuis la vue · `e2e/forecast.spec.ts` | — |
+| EXP-04 | Périmés | — | M1§7 | P0 | — | Testé et validé | C ✅ section « Date dépassée » (DLC : ne plus consommer ; DDM : vérifier) · `e2e/forecast.spec.ts` | — |
+| EXP-05 | Produits ouverts | Conservation après ouverture | M1§7, M1§10 | P0 | — | Développé | D ✅ overview.test (date effective = ouverture + conservation) · C ✅ badge « Ouvert … », section « Autres produits ouverts » (sans doublon avec les sections par date) — non couvert E2E | — |
+| EXP-06 | Produits oubliés | Sans mouvement depuis N jours | M1§7 | P1 | — | Développé | D ✅ overview.test (sans mouvement depuis 90 j, 10 j au réfrigérateur) · C ✅ section « Peut-être oubliés » — non couvert E2E | Unitaires |
 | EXP-07 | Lots à date proche prioritaires | FEFO | M1§7 | P0 | STK-07 | En développement | D ✅ | — |
-| EXP-08 | Tableau de bord anti-gaspillage | Pertes, valeur, produits jetés | M1§7 | P1 | — | En développement | D ✅ statistiques · C ❌ | E2E |
-| EXP-09 | Distinction DLC / DDM | — | M2§4 | P1 | — | En développement | D ✅ · C ❌ | — |
+| EXP-08 | Tableau de bord anti-gaspillage | Pertes, valeur, produits jetés | M1§7 | P1 | — | Testé et validé | D ✅ overview.test (motifs, valorisation aux prix connus) · C ✅ onglet Pertes : nombre, valeur jetée, valeur à sauver, produits les plus jetés, motifs, 30 j / 3 mois / 12 mois · `e2e/forecast.spec.ts` | E2E |
+| EXP-09 | Distinction DLC / DDM | — | M2§4 | P1 | — | Testé et validé | C ✅ DLC / DDM sur chaque lot, DDM dépassée « souvent encore consommable » · `e2e/forecast.spec.ts` | — |
 
 ## 18. Dépenses et budget
 
@@ -361,11 +361,11 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| REL-01 | Fiabilité des quantités | Comptée, scannée, saisie, approximative, calculée | M3§8 | P0 | — | En développement | D ✅ · C 🟡 « ≈ », source de la quantité et date de comptage par lot ; à étendre au tableau de bord | — |
-| REL-02 | Fiabilité des dates | GS1, saisie, OCR confirmée, estimée, inconnue | M3§8 | P0 | — | En développement | D ✅ · C 🟡 source de la date par lot (lue, saisie, reconnue, estimée) ; DLC/DDM | — |
-| REL-03 | Fiabilité de la consommation | Observée / achats / manuelle / aucune + confiance | M3§8 | P0 | — | En développement | D ✅ · C ❌ | — |
-| REL-04 | Fiabilité des prix | Connu / estimé / inconnu | M3§6 | P0 | — | En développement | D ✅ · C ❌ | — |
-| REL-05 | Affichage clair des incertitudes | Jamais une estimation présentée comme exacte | M3§8 | P0 | C | À développer | C ❌ | E2E + revue |
+| REL-01 | Fiabilité des quantités | Comptée, scannée, saisie, approximative, calculée | M3§8 | P0 | — | En développement | D ✅ · C 🟡 « ≈ », source de la quantité, date de comptage par lot, fiabilité du stock dans les explications ; à étendre au tableau de bord (phase 7) | — |
+| REL-02 | Fiabilité des dates | GS1, saisie, OCR confirmée, estimée, inconnue | M3§8 | P0 | — | En développement | D ✅ · C 🟡 source de la date par lot, date « estimée » signalée, DLC/DDM ; à étendre au tableau de bord (phase 7) | — |
+| REL-03 | Fiabilité de la consommation | Observée / achats / manuelle / aucune + confiance | M3§8 | P0 | — | Testé et validé | D ✅ · C ✅ « (observé, confiance élevée) », badges de confiance · `e2e/forecast.spec.ts` | — |
+| REL-04 | Fiabilité des prix | Connu / estimé / inconnu | M3§6 | P0 | — | Testé et validé | D ✅ · C ✅ prix connu (saisi) / « ≈ » estimé (base indiquée) / « prix inconnu », dans Courses et Prévisions · `e2e/shopping.spec.ts` · `e2e/forecast.spec.ts` | — |
+| REL-05 | Affichage clair des incertitudes | Jamais une estimation présentée comme exacte | M3§8 | P0 | C | Développé | C ✅ composants communs (`ui/Reliability.tsx`) : confiance, date estimée, prix estimé ; « ≈ » pour les quantités approximatives — à appliquer au tableau de bord (phase 7) | E2E + revue |
 | REL-06 | Moteur tenant compte de la qualité | — | M3§8 | P0 | — | En développement | D ✅ | — |
 | AUD-01 | Quantité négative, Σ mouvements ≠ lot, arithmétique | — | M3§7 | P0 | — | En développement | D ✅ · S 🟡 · C ❌ | — |
 | AUD-02 | Produit ajouté deux fois / doublons | — | M3§7 | P0 | — | En développement | D ✅ | — |
@@ -402,7 +402,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | UX-04 | Graphiques interactifs | — | M1§11 | P1 | — | À développer | ❌ | E2E |
 | UX-05 | Mode clair et sombre | — | M1§11 | P0 | — | En développement | C ✅ thème clair/sombre/auto (captures vérifiées) ; à étendre aux modules suivants | Captures |
 | UX-06 | Optimisation téléphone | — | M1§11 | P0 | — | En développement | C 🟡 mobile d’abord (onglets, feuilles, cibles ≥ 44 px) — en cours | E2E mobile |
-| UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | En développement | C ✅ navigation 6 rubriques + Scanner ; Inventaire et Courses complets, Prévisions en construction | E2E |
+| UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | En développement | C ✅ navigation 6 rubriques + Scanner ; Inventaire, Courses et Prévisions complets, Accueil (tableau de bord) en phase 7 | E2E |
 | UX-08 | Mode courses optimisé magasin | — | M1§11 | P0 | SHOP-12 | Testé et validé | Voir SHOP-12 · `e2e/shopping.spec.ts` | E2E mobile |
 | UX-09 | Scanner accessible partout | — | M2 | P0 | SCAN-01 | Développé | C ✅ bouton Scanner (téléphone : bouton flottant ; ordinateur : barre latérale) | E2E |
 | UX-10 | Accessibilité | Contrastes, cibles ≥ 44 px | AUD | P1 | — | En développement | C 🟡 libellés désormais reliés aux champs (défaut trouvé par les tests) ; audit complet à faire | Audit axe |
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 109 |
-| Développé | 54 |
-| En développement | 107 |
-| À développer | 22 |
+| Testé et validé | 132 |
+| Développé | 58 |
+| En développement | 81 |
+| À développer | 21 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |

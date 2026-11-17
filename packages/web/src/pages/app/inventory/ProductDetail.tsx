@@ -4,7 +4,7 @@ import {
   Archive, ArrowLeft, Barcode, Box, Check, CircleSlash, Combine, Edit3, MapPin, Minus, PackageOpen, Plus, ScanLine, Tag, Trash2, Undo2, Wrench, ShoppingCart, CalendarClock, Info,
 } from 'lucide-react';
 import {
-  ADJUST_REASON_LABELS, CONFIDENCE_LABELS, MOVEMENT_LABELS, consumptionText, formatQty, newId, normalizeName, similarity,
+  ADJUST_REASON_LABELS, CONFIDENCE_LABELS, MOVEMENT_LABELS, WASTE_REASON_LABELS, type WasteReason, consumptionText, formatQty, newId, normalizeName, similarity,
   type AdjustReason, type Lot, type Movement, type Product, type ProductInsight,
 } from '@homeos/shared';
 import { useCatalog, useForecast, useMembers } from '../../../lib/hooks';
@@ -95,7 +95,7 @@ function MovementRow({ m, product, onUndo, canWrite }: { m: Movement; product: P
   const members = useMembers();
   const who = members.get(m.userId);
   const sign = m.delta > 0 ? '+' : m.delta < 0 ? '−' : '';
-  const reason = m.type === 'adjust' && m.reason ? ADJUST_REASON_LABELS[m.reason as AdjustReason] : m.type === 'waste' && m.reason ? { expired: 'périmé', spoiled: 'abîmé', other: 'autre' }[m.reason] : null;
+  const reason = m.type === 'adjust' && m.reason ? ADJUST_REASON_LABELS[m.reason as AdjustReason] : m.type === 'waste' && m.reason ? WASTE_REASON_LABELS[m.reason as WasteReason]?.toLowerCase() : null;
   const undoable = canWrite && !m.revertedBy && m.type !== 'revert' && (m.delta !== 0 || m.type === 'open' || m.type === 'move') && !m.opId.startsWith('server');
   const label = m.type === 'open' ? `Ouverture${product.unit !== 'g' && product.unit !== 'ml' ? ` d'${formatQty(1, product.unit).replace(/^1\s/, 'une ')}` : ''}` : MOVEMENT_LABELS[m.type];
   return (

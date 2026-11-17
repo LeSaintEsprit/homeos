@@ -11,11 +11,11 @@ import { Shell } from './pages/app/Shell';
 import { HomePage } from './pages/app/Home';
 import { FamilyPage } from './pages/app/Family';
 import { SettingsPage } from './pages/app/Settings';
-import { Placeholder } from './pages/app/Placeholder';
 import { InventoryPage } from './pages/app/inventory/InventoryPage';
 import { NewProductPage, ProductDetailPage } from './pages/app/inventory/ProductDetail';
 import { ScannerPage } from './pages/app/scanner/ScannerPage';
 import { ShoppingPage } from './pages/app/shopping/ShoppingPage';
+import { ForecastPage } from './pages/app/forecast/ForecastPage';
 import { ShoppingModePage } from './pages/app/shopping/ShoppingMode';
 import { StoreDetailPage, StoresPage } from './pages/app/shopping/Stores';
 
@@ -79,7 +79,7 @@ export function App() {
           <Route path="courses/magasin" element={<ShoppingModePage />} />
           <Route path="courses/magasins" element={<StoresPage />} />
           <Route path="courses/magasins/:id" element={<StoreDetailPage />} />
-          <Route path="previsions/*" element={<Placeholder title="Prévisions" phase={6} />} />
+          <Route path="previsions" element={<ForecastPage />} />
           <Route path="scanner" element={<ScannerPage />} />
           <Route path="famille" element={<FamilyPage />} />
           <Route path="parametres" element={<SettingsPage />} />

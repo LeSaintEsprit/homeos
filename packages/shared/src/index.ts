@@ -17,6 +17,7 @@ export { HANDLERS } from './commands/handlers';
 export * from './engine/engine';
 export * from './engine/prices';
 export * from './engine/stats';
+export * from './engine/overview';
 export * from './engine/audit';
 export * from './engine/notifications';
 export * from './scan/gs1';

@@ -315,6 +315,8 @@ export const ADJUST_REASON_LABELS: Record<AdjustReason, string> = {
 export type MovementSource = 'manual' | 'scan' | 'shopping' | 'receipt' | 'inventory' | 'recipe' | 'import' | 'system';
 export type WasteReason = 'expired' | 'spoiled' | 'other';
 
+export const WASTE_REASON_LABELS: Record<WasteReason, string> = { expired: 'Périmé', spoiled: 'Abîmé', other: 'Autre' };
+
 export interface Movement extends BaseEntity {
   productId: string;
   lotId: string | null;

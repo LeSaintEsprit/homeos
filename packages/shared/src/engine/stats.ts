@@ -238,14 +238,18 @@ export interface WasteStats {
   /** Mouvements sans prix connu (non valorisés). */
   unvaluedCount: number;
   byProduct: { productId: string; qty: number; valueCents: number; count: number }[];
+  /** Nombre de pertes par motif (périmé, abîmé, autre). */
+  byReason: Record<string, number>;
 }
 
 export function wasteStats(movements: Movement[], lots: Map<string, Lot>, from: string): WasteStats {
-  const out: WasteStats = { count: 0, valueCents: 0, unvaluedCount: 0, byProduct: [] };
+  const out: WasteStats = { count: 0, valueCents: 0, unvaluedCount: 0, byProduct: [], byReason: {} };
   const m = new Map<string, { productId: string; qty: number; valueCents: number; count: number }>();
   for (const mv of movements) {
     if (mv.type !== 'waste' || mv.revertedBy || mv.occurredAt.slice(0, 10) < from) continue;
     out.count++;
+    const reason = mv.reason ?? 'other';
+    out.byReason[reason] = (out.byReason[reason] ?? 0) + 1;
     const lot = mv.lotId ? lots.get(mv.lotId) : undefined;
     const qty = -mv.delta;
     const row = m.get(mv.productId) ?? { productId: mv.productId, qty: 0, valueCents: 0, count: 0 };

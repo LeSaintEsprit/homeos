@@ -188,3 +188,46 @@
 @media (prefers-reduced-motion: reduce) {
   .progress > span, .big-check, .shop-row .check { transition: none; }
 }
+
+/* ───────── Prévisions ───────── */
+.summary-card { margin-bottom: 4px; }
+.reco { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.reco:last-child { border-bottom: 0; }
+.reco .why {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: var(--fs-xs);
+  font-weight: 750;
+}
+.reco .why svg { transition: transform var(--t-fast); }
+.date-chip {
+  flex: none;
+  width: 46px;
+  height: 50px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  line-height: 1.1;
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+  text-transform: capitalize;
+}
+.date-chip strong { font-size: var(--fs-lg); color: var(--text); }
+.lot-line { align-items: flex-start; }
+.bar { height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; margin-top: 4px; }
+.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.tabs-scroll { overflow-x: auto; scrollbar-width: none; margin: 0 -4px; padding: 0 4px; }
+.tabs-scroll::-webkit-scrollbar { display: none; }
+.tabs-scroll .segmented { width: max-content; }
+@media (max-width: 520px) {
+  .tabs-scroll .segmented button { padding: 8px 10px; }
+  .tabs-scroll .segmented .count-dot { margin-left: 4px; }
+}

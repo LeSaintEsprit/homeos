@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.5 — 17/11/2026 — phases 1 à 5 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.6 — 17/11/2026 — phases 1 à 6 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -157,11 +157,16 @@ Défauts trouvés et corrigés : **une synchronisation en arrière-plan (confirm
 Limites : écran maintenu allumé non vérifiable sans téléphone réel ; produits habituels d'un magasin couverts par les tests unitaires seulement.
 **Dépend de** : Phase 3 (Phase 4 souhaitable pour la réception par scan).
 
-### Phase 6 — Prévisions, péremption et anti-gaspillage ← **prochaine étape**
+### Phase 6 — Prévisions, péremption et anti-gaspillage ✅ (17/11/2026)
 **Contenu** : page Prévisions (recommandations par urgence avec explications, confiance, coût estimé, « tout ajouter ») ; calendrier des ruptures ; achats réguliers ; produits sans données (inviter à définir des seuils) ; péremption (statuts, ouverts, oubliés, à consommer en priorité) ; tableau de bord anti-gaspillage ; affichage des **niveaux de fiabilité** partout.
 **Sortie** : ENG-*, EXP-*, REL-* « Testé et validé ».
 
-### Phase 7 — Tableau de bord et centre de notifications
+**Bilan de la phase 6** : page Prévisions en quatre vues — **À prévoir** (recommandations groupées « maintenant / avant les prochaines courses / achats habituels », phrase d'explication, badge de fiabilité, échéance, coût estimé « ≈ » ou « prix inconnu », « Pourquoi ? » détaillé, ajout unitaire ou groupé, produits déjà couverts par la liste, section « Pour des prévisions plus justes » listant les produits sans seuil ni historique, les stocks à vérifier et approximatifs), **Calendrier** (ruptures prévues par semaine sur 6 semaines, consommation fiable uniquement), **Péremption** (date dépassée avec distinction DLC/DDM, aujourd'hui, urgent, bientôt, risque de gaspillage, ouverts, peut-être oubliés, lots sans date ; Consommer / Jeter sur place) et **Pertes** (nombre, valeur jetée aux prix réels, valeur à sauver, produits les plus jetés, motifs, sur 30 j / 3 mois / 12 mois). Composants communs d'affichage de la fiabilité (`ui/Reliability.tsx`).
+Vérifié : 6 tests unitaires (`overview.test` : vue péremption, risque seulement avec consommation fiable, calendrier, lacunes de données, pertes par motif) ; 2 parcours de bout en bout avec un historique réaliste de 45 jours.
+Défauts trouvés et corrigés : consommation répétée deux fois dans « Pourquoi ? » ; **notifications masquant les boutons du bas d'une fiche pendant 6 s** (désormais affichées en haut quand une fiche ou le mode courses est ouvert — trouvé en mesurant la durée de chaque étape des tests ; aucune autre étape lente dans les 20 parcours) ; lot ouvert listé deux fois ; onglets débordant sur téléphone.
+Limites : achats réguliers (cadence) et produits oubliés vérifiés par les tests unitaires seulement (plusieurs semaines d'historique nécessaires).
+
+### Phase 7 — Tableau de bord et centre de notifications ← **prochaine étape**
 **Contenu** : page d'accueil (indicateurs, « Ce que votre maison doit prévoir », liste, derniers mouvements, dépenses du mois, prévisions) ; personnalisation des widgets ; centre de notifications (alertes calculées, préférences par membre, masquage, fil d'activité).
 **Sortie** : DASH-*, NOTIF-01..11/14 « Testé et validé ».
 
