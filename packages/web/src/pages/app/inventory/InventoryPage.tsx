@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Minus, Package, Plus, ScanLine, Search, X } from 'lucide-react';
 import { defaultStep, formatQty, normalizeName, unitDef, type ProductInsight } from '@homeos/shared';
 import { useCatalog, useForecast, useHousehold, photoUrl } from '../../../lib/hooks';
@@ -77,7 +77,9 @@ export function InventoryPage() {
   const canWrite = useCan('catalog.write');
   const { categories, locations, location, category } = useCatalog();
   const [q, setQ] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
+  const [params] = useSearchParams();
+  // Filtre initial depuis un lien (tableau de bord, notifications).
+  const [filter, setFilter] = useState<Filter>(() => (({ faibles: 'low', epuises: 'out', peremption: 'expiring', ouverts: 'opened' }) as Record<string, Filter>)[params.get('filtre') ?? ''] ?? 'all');
   const [group, setGroup] = useState<'location' | 'category'>('location');
 
   const codesByProduct = useMemo(() => {

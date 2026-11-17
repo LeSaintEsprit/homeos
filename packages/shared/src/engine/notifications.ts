@@ -68,9 +68,9 @@ export function computeAlerts(input: AlertInput): Alert[] {
           kind: 'expiring',
           severity: li.status === 'expired' ? 'critical' : 'warning',
           title: `${p.name} : ${when}`,
-          body: `${formatQty(li.lot.quantity, p.unit)} concerné${li.lot.quantity > 1 ? 's' : ''}${li.lot.expiryKind === 'ddm' ? ' (DDM : encore consommable après la date si bien conservé)' : ''}.`,
+          body: `Quantité concernée : ${formatQty(li.lot.quantity, p.unit)}.${li.lot.expiryKind === 'ddm' && li.status === 'expired' ? ' DDM : souvent encore consommable après la date, à vérifier.' : ''}`,
           productId: p.id,
-          link: `/inventaire/${p.id}`,
+          link: '/previsions?vue=peremption',
           at: now,
         });
       }
@@ -89,7 +89,7 @@ export function computeAlerts(input: AlertInput): Alert[] {
   }
   for (const s of c.inventorySession.values()) {
     if (s.status === 'open' && daysBetweenInstants(s.updatedAt, now) > 3) {
-      out.push({ key: `inventory_open:${s.id}`, kind: 'inventory_check', severity: 'info', title: `Inventaire « ${s.title} » en attente`, body: 'Reprenez-le ou validez-le pour mettre le stock à jour.', link: `/inventaire/session/${s.id}`, at: now });
+      out.push({ key: `inventory_open:${s.id}`, kind: 'inventory_check', severity: 'info', title: `Inventaire « ${s.title} » en attente`, body: 'Reprenez-le ou validez-le pour mettre le stock à jour.', link: '/inventaire', at: now });
     }
   }
   const since = new Date(Date.parse(now) - 7 * 86_400_000).toISOString();
@@ -98,10 +98,10 @@ export function computeAlerts(input: AlertInput): Alert[] {
     const who = [...c.member.values()].find((m) => m.userId === a.userId)?.name ?? 'Un membre';
     out.push({ key: `act:${a.id}`, kind: 'important_change', severity: 'info', title: `${who} ${a.summary}`, body: '', at: a.at });
   }
-  for (const u of input.unusual) out.push({ key: `spend:${u.key}`, kind: 'unusual_spending', severity: 'warning', title: 'Dépense inhabituelle', body: u.message, link: '/previsions?tab=depenses', at: now });
+  for (const u of input.unusual) out.push({ key: `spend:${u.key}`, kind: 'unusual_spending', severity: 'warning', title: 'Dépense inhabituelle', body: u.message, link: '/courses?tab=historique', at: now });
   const errors = input.audit.filter((i) => i.severity !== 'info');
   if (errors.length) {
-    out.push({ key: `data_issue:${today}:${errors.length}`, kind: 'data_issue', severity: errors.some((e) => e.severity === 'error') ? 'critical' : 'warning', title: `${errors.length} incohérence${errors.length > 1 ? 's' : ''} à vérifier`, body: errors[0].message, link: '/parametres/donnees', at: now });
+    out.push({ key: `data_issue:${today}:${errors.length}`, kind: 'data_issue', severity: errors.some((e) => e.severity === 'error') ? 'critical' : 'warning', title: `${errors.length} incohérence${errors.length > 1 ? 's' : ''} à vérifier`, body: errors[0].message, link: '/parametres', at: now });
   }
   return out;
 }

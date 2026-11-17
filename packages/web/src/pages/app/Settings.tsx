@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Download, KeyRound, LogOut, Moon, Palette, Plus, Server, ShieldCheck, Sun, Trash2, User, Home, Monitor, Link2 } from 'lucide-react';
 import {
   CURRENCIES, DEFAULT_NOTIFICATION_PREFS, HOUSEHOLD_AVATARS, NOTIFICATION_KIND_LABELS, ROLE_LABELS, can, type Household, type Member, type NotificationKind,
@@ -208,7 +208,7 @@ function NotificationSection() {
     setPush('off');
   };
   return (
-    <Section icon={<Bell size={20} />} title="Mes notifications">
+    <Section icon={<Bell size={20} />} title="Mes notifications" id="notifications">
       <div className="row spread">
         <div>
           <div className="strong">Notifications sur cet appareil</div>
@@ -344,6 +344,13 @@ export function SettingsPage() {
   const theme = useObservable(themePref);
   const { ask, node } = useConfirm();
   const sync = useSync();
+  const { hash } = useLocation();
+  // Lien direct vers une section (ex. depuis le centre de notifications).
+  useEffect(() => {
+    if (!hash) return;
+    const t = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    return () => clearTimeout(t);
+  }, [hash]);
   const doLogout = async () => {
     if (sync.pending && !(await ask('Modifications non envoyées', `${sync.pending} modification(s) n'ont pas encore été envoyées au serveur. Si vous vous déconnectez maintenant, elles seront perdues.`, 'Se déconnecter quand même', true))) return;
     if (!sync.pending && !(await ask('Se déconnecter ?', 'Les données de vos foyers seront retirées de cet appareil (elles restent sur le serveur).', 'Se déconnecter'))) return;

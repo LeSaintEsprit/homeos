@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { Copy, Mail, QrCode, Share2, ShieldCheck, Trash2, UserPlus, Users, LogOut, History, Home } from 'lucide-react';
 import { ROLE_DESCRIPTIONS, ROLE_LABELS, can, type Member, type Role } from '@homeos/shared';
@@ -191,7 +192,8 @@ export function FamilyPage() {
   const [platformOpen, setPlatformOpen] = useState(false);
   const [invitations, setInvitations] = useState<Invitation[] | null>(null);
   const [editing, setEditing] = useState<Member | null>(null);
-  const [tab, setTab] = useState<'membres' | 'journal'>('membres');
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState<'membres' | 'journal'>(params.get('vue') === 'journal' ? 'journal' : 'membres');
   const { ask, node } = useConfirm();
 
   const members = useMemo(() => [...view.member.values()].filter((m) => m.active).sort((a, b) => (a.joinedAt < b.joinedAt ? -1 : 1)), [view.member]);

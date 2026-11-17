@@ -181,6 +181,8 @@ export const OP_SCHEMAS = {
           })
           .optional(),
         dismissed: z.record(z.string().max(160), z.string().max(10)).optional(),
+        /** Réafficher toutes les alertes masquées. */
+        clearDismissed: z.literal(true).optional(),
       })
       .optional(),
   }),

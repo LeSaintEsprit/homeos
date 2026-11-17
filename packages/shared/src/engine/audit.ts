@@ -1,7 +1,7 @@
 /** Contrôle de cohérence des données du foyer (aucune correction automatique). */
 import type { EntityCollections, Movement } from '../types';
 import { normalizeName, similarity } from '../text';
-import { daysBetween, daysBetweenInstants } from '../time';
+import { daysBetween, daysBetweenInstants, frDate } from '../time';
 import { roundQty } from '../units';
 
 export type IssueSeverity = 'error' | 'warning' | 'info';
@@ -50,10 +50,10 @@ export function auditHousehold(c: EntityCollections, now: string): AuditIssue[] 
       });
     }
     if (lot.expiryDate && lot.purchaseDate && lot.expiryDate < lot.purchaseDate) {
-      issues.push({ code: 'expiry_before_purchase', severity: 'warning', message: `« ${name(lot.productId)} » : date de péremption (${lot.expiryDate}) antérieure à la date d'achat (${lot.purchaseDate}).`, productId: lot.productId, lotId: lot.id });
+      issues.push({ code: 'expiry_before_purchase', severity: 'warning', message: `« ${name(lot.productId)} » : date de péremption (${frDate(lot.expiryDate!)}) antérieure à la date d'achat (${frDate(lot.purchaseDate!)}).`, productId: lot.productId, lotId: lot.id });
     }
     if (lot.expiryDate && daysBetween(lot.createdAt.slice(0, 10), lot.expiryDate) > 3650) {
-      issues.push({ code: 'expiry_far', severity: 'warning', message: `« ${name(lot.productId)} » : date de péremption à plus de 10 ans (${lot.expiryDate}).`, productId: lot.productId, lotId: lot.id });
+      issues.push({ code: 'expiry_far', severity: 'warning', message: `« ${name(lot.productId)} » : date de péremption à plus de 10 ans (${frDate(lot.expiryDate!)}).`, productId: lot.productId, lotId: lot.id });
     }
   }
 

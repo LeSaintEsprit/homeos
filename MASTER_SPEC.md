@@ -314,7 +314,7 @@ Achats enregistrés (produit, quantité, prix, remise, magasin, date, membre, ti
 Indicateurs (produits, stocks faibles, épuisés, à acheter, bientôt périmés), liste de courses actuelle, derniers mouvements, dépenses du mois et budget, prévisions d'approvisionnement, section centrale **« Ce que votre maison doit prévoir »** ; **personnalisable** (widgets affichables/masquables et réordonnables, par membre).
 
 ### 13.4 Notifications (M1§2, M3§9)
-**Centre de notifications** : stocks critiques, produits épuisés, bientôt périmés, à acheter, courses non terminées, modifications importantes, dépenses inhabituelles, inventaires à vérifier, anomalies de données ; fil d'activité partagé du foyer. **Personnalisation par membre** (types désactivés, alertes masquées). **Déduplication** par clé stable. **Récapitulatif quotidien ou hebdomadaire** (Web Push, heure choisie) plutôt que des alertes multiples ; alertes immédiates facultatives pour les événements importants. Strictement **par foyer**.
+**Centre de notifications** (cloche avec pastille : alertes critiques et avertissements en cours + modifications des autres membres non consultées) : stocks critiques, produits épuisés, bientôt périmés, à acheter, courses non terminées, modifications importantes, dépenses inhabituelles, inventaires à vérifier, anomalies de données ; fil d'activité partagé du foyer. **Personnalisation par membre** (types désactivés, alertes masquées). **Déduplication** par clé stable. **Récapitulatif quotidien ou hebdomadaire** (Web Push, heure choisie) plutôt que des alertes multiples ; alertes immédiates facultatives pour les événements importants. Strictement **par foyer**.
 
 ### 13.5 Niveaux de fiabilité (M3§8)
 | Information | Niveaux affichés |
@@ -335,6 +335,7 @@ Détection (sans correction automatique) : quantité négative ; Σ mouvements �
 
 ### 14.1 Synchronisation (M1§12, M4§7)
 - Outbox IndexedDB : une opération reste « en attente » **tant que le serveur ne l'a pas confirmée** ; indicateur visible (synchronisé / en attente (n) / hors ligne / problème).
+- Une action n'est **affichée qu'après son écriture dans la base locale** de l'appareil : ce que l'utilisateur voit ne peut pas être perdu par une fermeture ou un rechargement immédiat.
 - Idempotence par `opId` (résultat enregistré dans la même transaction que les écritures) ; ordre des opérations d'un appareil conservé.
 - Une opération restée hors ligne **plus de 150 jours** est refusée (message explicite) ; le journal d'idempotence est conservé 180 jours : une opération ne peut donc jamais être appliquée deux fois.
 - Pull incrémental paginé (curseur `seq`), temps réel par SSE, repli au retour au premier plan / en ligne / toutes les 60 s ; **époque** (`epoch`) : resynchronisation complète après restauration.
@@ -361,6 +362,7 @@ Détection (sans correction automatique) : quantité négative ; Σ mouvements �
 - Navigation : **Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres** ; **bouton Scanner** accessible partout ; sélecteur de foyer et nom du foyer actif toujours visibles.
 - Mode courses spécialement optimisé pour le magasin ; scanner fluide (§8.5).
 - Formulaires minimaux, questions uniquement nécessaires, valeurs par défaut intelligentes, annulation possible, messages d'erreur clairs en français.
+- Dates affichées au format français (« 19/11/2026 », « 19 nov. ») partout, y compris dans le journal et les messages ; jamais de date technique (AAAA-MM-JJ).
 - Accessibilité : contrastes suffisants, cibles tactiles ≥ 44 px, textes lisibles.
 - Les notifications éphémères ne masquent jamais une action : quand une fiche ou le mode courses est ouvert, elles s'affichent en haut de l'écran.
 - **Chaque bouton fonctionne** ; chaque modification est enregistrée (vérifié par tests E2E).

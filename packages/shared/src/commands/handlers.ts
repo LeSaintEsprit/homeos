@@ -24,7 +24,7 @@ import type { DataStore, ExecEnv, FieldConflict, Notice } from './context';
 import { DomainError } from './context';
 import type { OpPayload, OpType } from './schemas';
 import { deriveId } from '../ids';
-import { addDays, daysBetween } from '../time';
+import { addDays, daysBetween, frDate } from '../time';
 import { convert, formatQty, roundQty, toStockUnit, unitDef, type UnitCode } from '../units';
 import { deOf, normalizeName, similarity } from '../text';
 import { isActiveItem, isLotExpired, sortFefo, sumLots, effectiveExpiry } from '../domain';
@@ -252,13 +252,13 @@ interface NewLotInfo {
 function checkExpiry(ctx: Ctx, p: Product, expiry: string | null | undefined, purchaseDate: string | null | undefined, isReception: boolean) {
   if (!expiry) return;
   if (purchaseDate && expiry < purchaseDate) {
-    warn(ctx, 'expiry_before_purchase', `« ${p.name} » : la date de péremption (${expiry}) est antérieure à la date d'achat.`);
+    warn(ctx, 'expiry_before_purchase', `« ${p.name} » : la date de péremption (${frDate(expiry)}) est antérieure à la date d'achat.`);
   }
   if (daysBetween(ctx.today, expiry) > 3650) {
     throw new DomainError('expiry_incoherent', `Date de péremption incohérente pour « ${p.name} » (plus de 10 ans).`);
   }
   if (isReception && expiry < ctx.today) {
-    warn(ctx, 'expired_at_reception', `« ${p.name} » est déjà périmé (${expiry}) : vérifiez la date.`);
+    warn(ctx, 'expired_at_reception', `« ${p.name} » est déjà périmé (${frDate(expiry)}) : vérifiez la date.`);
   }
 }
 
@@ -272,7 +272,7 @@ function addStock(ctx: Ctx, p: Product, qty: number, info: NewLotInfo, mv: MoveI
   if (existing) {
     if (existing.productId !== p.id) throw new DomainError('lot_mismatch', 'Ce lot appartient à un autre produit.');
     if (info.expiryDate && existing.expiryDate && info.expiryDate !== existing.expiryDate) {
-      warn(ctx, 'lot_expiry_differs', `Date différente de celle du lot (${existing.expiryDate}) : la date du lot est conservée.`);
+      warn(ctx, 'lot_expiry_differs', `Date différente de celle du lot (${frDate(existing.expiryDate!)}) : la date du lot est conservée.`);
     }
     let unitPrice = existing.unitPriceCents;
     if (info.priceCents != null) {
@@ -594,6 +594,7 @@ const memberUpdateSelf: H<'member.updateSelf'> = (ctx, p) => {
   if (p.prefs?.dashboard) prefs.dashboard = p.prefs.dashboard;
   if (p.prefs?.notifReadAt) prefs.notifReadAt = p.prefs.notifReadAt;
   if (p.prefs?.notifications) prefs.notifications = { ...DEFAULT_NOTIFICATION_PREFS, ...p.prefs.notifications };
+  if (p.prefs?.clearDismissed) prefs.dismissed = {};
   if (p.prefs?.dismissed) {
     // Conserve au plus 300 alertes masquées, les plus récentes.
     const all = Object.entries({ ...(m.prefs.dismissed ?? {}), ...p.prefs.dismissed }).sort((a, b) => (a[1] < b[1] ? 1 : -1));
@@ -995,7 +996,7 @@ const stockOpen: H<'stock.open'> = (ctx, s) => {
     writeMovement(ctx, p, lot.id, 0, totalOf(ctx, p.id), { type: 'open', source: s.source });
   }
   const eff = p.openShelfLifeDays != null ? addDays(ctx.today, p.openShelfLifeDays) : null;
-  log(ctx, `a ouvert « ${p.name} »${eff ? ` (à consommer avant le ${eff})` : ''}`, 'product', p.id);
+  log(ctx, `a ouvert « ${p.name} »${eff ? ` (à consommer avant le ${frDate(eff)})` : ''}`, 'product', p.id);
 };
 
 const stockMove: H<'stock.move'> = (ctx, s) => {
@@ -1278,7 +1279,7 @@ const purchaseDelete: H<'purchase.delete'> = (ctx, { id }) => {
   const pu = must(ctx, 'purchase', id);
   ctx.writes += 1;
   ctx.store.remove('purchase', pu.id);
-  log(ctx, `a supprimé l'achat « ${pu.name} » du ${pu.date}`, 'purchase', id, true);
+  log(ctx, `a supprimé l'achat « ${pu.name} » du ${frDate(pu.date)}`, 'purchase', id, true);
 };
 
 const receiptApply: H<'receipt.apply'> = (ctx, r) => {

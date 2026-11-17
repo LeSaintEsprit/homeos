@@ -128,3 +128,32 @@ test('l\'application s\'ouvre sans réseau (PWA) avec les données de l\'apparei
   await expect(page.getByText('1 membre')).toBeVisible();
   await context.setOffline(false);
 });
+
+test("une action affichée est déjà enregistrée sur l'appareil : rechargement immédiat sans perte, envoi au retour du serveur", async ({ page, browser }) => {
+  await register(page, 'Nicolas', `${uniq('n')}@x.fr`);
+  await createHousehold(page, 'Maison fiable');
+  const code = await inviteCode(page);
+  // Le serveur refuse temporairement les envois : les actions restent en attente sur l'appareil.
+  await page.route('**/sync/push', (r) => r.abort());
+  await page.goto('/courses');
+  await page.getByTestId('add-item').fill('Piles AA');
+  await page.getByTestId('add-submit').click();
+  await expect(page.getByTestId('shop-item').filter({ hasText: 'Piles AA' })).toBeVisible();
+  // Rechargement immédiat dès que l'article est affiché.
+  await page.reload();
+  await expect(page.getByTestId('shop-item').filter({ hasText: 'Piles AA' })).toBeVisible();
+  await expect(page.getByTestId('sync-pill').first()).not.toHaveAttribute('data-status', 'synced');
+  // Un autre membre ne le voit pas encore : rien n'est considéré comme synchronisé.
+  const ctx = await browser.newContext();
+  const bob = await ctx.newPage();
+  await register(bob, 'Bob', `${uniq('bob')}@x.fr`, code);
+  await bob.goto('/courses');
+  await expect(bob.getByText('La liste est vide')).toBeVisible();
+  // Retour du serveur : envoi, confirmation, visible chez Bob.
+  await page.unroute('**/sync/push');
+  await page.locator('[data-testid=sync-pill]:visible').click();
+  await page.click('.sheet button:has-text("Synchroniser maintenant")');
+  await expect(page.getByTestId('sync-pill').first()).toHaveAttribute('data-status', 'synced', { timeout: 15000 });
+  await expect(bob.getByTestId('shop-item').filter({ hasText: 'Piles AA' })).toBeVisible();
+  await ctx.close();
+});

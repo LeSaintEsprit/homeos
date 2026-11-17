@@ -87,3 +87,9 @@ export function clampClientTime(clientTime: string | undefined, serverNow: strin
   if (t < now - 60 * DAY_MS) return new Date(now - 60 * DAY_MS).toISOString();
   return new Date(t).toISOString();
 }
+
+/** « 2026-11-19 » → « 19/11/2026 » (dates affichées dans les messages). */
+export function frDate(date: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : date;
+}

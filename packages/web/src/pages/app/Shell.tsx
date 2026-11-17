@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  AlertTriangle, Check, ChevronDown, CloudOff, House, KeyRound, LineChart, Package, Plus, RefreshCw, ScanLine, Settings, ShoppingCart, Users, CloudCheck, CloudUpload,
+  AlertTriangle, Bell, Check, ChevronDown, CloudOff, House, KeyRound, LineChart, Package, Plus, RefreshCw, ScanLine, Settings, ShoppingCart, Users, CloudCheck, CloudUpload,
 } from 'lucide-react';
 import { ROLE_LABELS } from '@homeos/shared';
 import { activeHousehold, session, setActiveHousehold, type SessionState } from '../../lib/session';
 import { useObservable } from '../../lib/store';
 import { useEngine, useSync } from '../../lib/sync/react';
 import { relativeTime } from '../../lib/format';
+import { useAlerts } from '../../lib/hooks';
 import { HouseholdAvatar } from '../../ui/Avatar';
 import { Logo } from '../../ui/Logo';
 import { Sheet } from '../../ui/Sheet';
@@ -133,6 +134,17 @@ export function HouseholdSwitcher({ s }: { s: SessionState }) {
   );
 }
 
+/** Cloche du centre de notifications, avec le nombre d'alertes importantes en cours. */
+export function BellButton() {
+  const { badge } = useAlerts();
+  return (
+    <NavLink to="/notifications" className="btn ghost icon bell" aria-label={badge ? `Notifications : ${badge} alerte${badge > 1 ? 's' : ''}` : 'Notifications'} data-testid="bell">
+      <Bell size={21} />
+      {badge > 0 && <span className="bell-dot num" data-testid="bell-count">{badge > 99 ? '99+' : badge}</span>}
+    </NavLink>
+  );
+}
+
 export function Shell() {
   const s = useObservable(session);
   const navigate = useNavigate();
@@ -159,6 +171,7 @@ export function Shell() {
           <HouseholdSwitcher s={s} />
           <div className="grow" />
           <div className="mobile-only"><SyncIndicator compact /></div>
+          <BellButton />
           <NavLink to="/parametres" className="btn ghost icon mobile-only" aria-label="Paramètres"><Settings size={21} /></NavLink>
         </header>
         {s.offline && (

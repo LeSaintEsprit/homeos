@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import {
-  DEFAULT_SETTINGS, analyzeHousehold, dateInTz, type Category, type Household, type HouseholdForecast, type Location, type Member, type Product, type Store,
+  DEFAULT_SETTINGS, alertBadgeCount, analyzeHousehold, auditHousehold, computeAlerts, dateInTz, detectUnusualSpending, visibleAlerts,
+  type Alert, type Category, type Household, type HouseholdForecast, type Location, type Member, type Product, type Purchase, type Store,
 } from '@homeos/shared';
 import { session, activeHousehold } from './session';
 import { useObservable } from './store';
@@ -75,4 +76,38 @@ export function parseQty(s: string): number | null {
 export function photoUrl(hid: string, photoId: string | null | undefined): string | null {
   if (!photoId) return null;
   return `/api/households/${hid}/photos/${photoId}`;
+}
+
+/** Membre courant dans le foyer actif. */
+export function useMe(): Member | undefined {
+  const view = useView();
+  const { userId } = useHousehold();
+  return useMemo(() => ([...view.member.values()] as Member[]).find((m) => m.userId === userId), [view.member, userId]);
+}
+
+/**
+ * Alertes du centre de notifications pour le membre courant (préférences et alertes
+ * masquées appliquées), calculées sur l'appareil à partir des données du foyer.
+ */
+export function useAlerts(): { all: Alert[]; visible: Alert[]; badge: number } {
+  const view = useView();
+  const forecast = useForecast();
+  const me = useMe();
+  const { settings } = useHousehold();
+  const today = useToday();
+  return useMemo(() => {
+    const now = new Date().toISOString();
+    const products = new Map([...view.product.values()].map((p) => [p.id, p as Product]));
+    const all = computeAlerts({
+      forecast,
+      collections: view,
+      audit: auditHousehold(view, now),
+      unusual: detectUnusualSpending([...view.purchase.values()] as Purchase[], products, today, settings.monthlyBudgetCents),
+      member: me,
+      now,
+      today,
+    });
+    const visible = visibleAlerts(all, me);
+    return { all, visible, badge: alertBadgeCount(visible, me?.prefs.notifReadAt) };
+  }, [view, forecast, me, settings.monthlyBudgetCents, today]);
 }

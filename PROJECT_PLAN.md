@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.6 — 17/11/2026 — phases 1 à 6 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.7 — 17/11/2026 — phases 1 à 7 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -166,11 +166,16 @@ Vérifié : 6 tests unitaires (`overview.test` : vue péremption, risque seuleme
 Défauts trouvés et corrigés : consommation répétée deux fois dans « Pourquoi ? » ; **notifications masquant les boutons du bas d'une fiche pendant 6 s** (désormais affichées en haut quand une fiche ou le mode courses est ouvert — trouvé en mesurant la durée de chaque étape des tests ; aucune autre étape lente dans les 20 parcours) ; lot ouvert listé deux fois ; onglets débordant sur téléphone.
 Limites : achats réguliers (cadence) et produits oubliés vérifiés par les tests unitaires seulement (plusieurs semaines d'historique nécessaires).
 
-### Phase 7 — Tableau de bord et centre de notifications ← **prochaine étape**
+### Phase 7 — Tableau de bord et centre de notifications ✅ (17/11/2026)
 **Contenu** : page d'accueil (indicateurs, « Ce que votre maison doit prévoir », liste, derniers mouvements, dépenses du mois, prévisions) ; personnalisation des widgets ; centre de notifications (alertes calculées, préférences par membre, masquage, fil d'activité).
 **Sortie** : DASH-*, NOTIF-01..11/14 « Testé et validé ».
 
-### Phase 8 — Inventaire initial guidé et inventaires correctifs
+**Bilan de la phase 7** : **Accueil** en blocs personnalisables (afficher, masquer, réordonner ; réglage propre à chaque membre et à chaque foyer, suivi sur tous ses appareils) : « Ce que votre maison doit prévoir » (achats à prévoir avec fiabilité et ajout direct, lots à consommer), indicateurs cliquables vers les vues filtrées, liste de courses (coût estimé, mode courses), à consommer en priorité, dépenses du mois (prix connus, budget, projection), derniers mouvements ; cartes d'aide au démarrage (premiers produits, invitation, installation). **Centre de notifications** : cloche avec pastille dans la barre du haut, alertes par gravité avec lien vers l'écran utile, masquage d'une alerte ou de toutes, réaffichage, alertes d'un type désactivé signalées, modifications des autres membres marquées « nouvelles » jusqu'à consultation, activité du foyer, lien direct vers les préférences.
+Vérifié : 5 tests unitaires (tableau de bord, pastille, alertes restantes dont « chacun averti des modifications des autres, jamais des siennes », liens d'alertes vers des écrans existants) ; 3 parcours de bout en bout dont un test de fiabilité (action affichée = action enregistrée : rechargement immédiat avec serveur refusant les envois, aucune perte, rien de visible chez l'autre membre avant confirmation, puis envoi au retour du serveur).
+Défauts trouvés et corrigés : dates techniques (AAAA-MM-JJ) dans le journal et plusieurs messages, désormais au format français ; accord « 1 bouteille concerné » ; liens d'alertes vers des écrans inexistants ; projection « ≈ 0 € » sans aucun achat ; un test placé par erreur à l'intérieur d'un autre (donc jamais exécuté) — décelé en vérifiant l'inventaire des tests, désormais contrôlé (`playwright test --list`).
+Limites : récapitulatif push et alertes immédiates à vérifier sur téléphone réel ; dépenses inhabituelles visibles mais leur écran dédié arrive en phase 9.
+
+### Phase 8 — Inventaire initial guidé et inventaires correctifs ← **prochaine étape**
 **Contenu** : assistant par espaces avec progression, scan à la chaîne, édition avant validation, reprise sur un autre appareil ; écran des écarts et validation ; contrôle de cohérence (écran d'anomalies avec actions).
 **Sortie** : INV-*, AUD-* « Testé et validé ».
 **Dépend de** : Phase 4.

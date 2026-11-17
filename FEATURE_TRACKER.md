@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 17/11/2026 — fin de la phase 6 (prévisions, péremption, pertes).
+> Dernière mise à jour : 17/11/2026 — fin de la phase 7 (tableau de bord, centre de notifications).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 6)** : 150 tests unitaires/intégration et 20 parcours de bout en bout. Restent à construire dans l'interface : tableau de bord et centre de notifications, inventaire guidé, dépenses, OCR, écrans de données.
+**Constat global (fin de phase 7)** : 155 tests unitaires/intégration et 23 parcours de bout en bout. Restent à construire dans l'interface : inventaire guidé et contrôle de cohérence, dépenses et budget, OCR (dates, tickets), écrans de données (export, import, sauvegardes, restauration).
 
 ---
 
@@ -113,10 +113,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
 | SYNC-01 | Opérations idempotentes | `opId`, résultat enregistré atomiquement | M1§12, M3§7 | P0 | — | Testé et validé | S ✅ sync.test (rejeu, rejet mémorisé), week.test (renvois réseau) | Rejeu, coupure réseau |
-| SYNC-02 | Succès seulement après confirmation | Outbox persistante | M1§12 | P0 | SYNC-05 | Testé et validé | S ✅ · C ✅ `e2e/foundations.spec.ts` (en attente hors ligne → confirmé au retour) | Intégration + E2E |
+| SYNC-02 | Succès seulement après confirmation | Outbox persistante | M1§12 | P0 | SYNC-05 | Testé et validé | S ✅ · C ✅ `e2e/foundations.spec.ts` (en attente hors ligne → confirmé au retour ; envoi refusé par le serveur → rien de visible chez l’autre membre tant que non confirmé) | Intégration + E2E |
 | SYNC-03 | Pull incrémental paginé | Curseur `seq` | M1§12 | P0 | — | Testé et validé | S ✅ sync.test (pagination, pierres tombales, curseur) | Pagination, pierres tombales |
 | SYNC-04 | Temps réel | SSE + repli périodique | M1§5 | P0 | — | Testé et validé | S ✅ · C ✅ `e2e/foundations.spec.ts` (arrivée d’un membre, renommage vus en direct) | Intégration + E2E 2 membres |
-| SYNC-05 | Réplique locale + prédiction | IndexedDB par foyer, même logique métier | M1§1 | P0 | D | Testé et validé | D ✅ · C ✅ `e2e/foundations.spec.ts` | Unitaires + E2E |
+| SYNC-05 | Réplique locale + prédiction | IndexedDB par foyer, même logique métier | M1§1 | P0 | D | Testé et validé | D ✅ · C ✅ une action n’est affichée qu’après son écriture dans la base locale : rechargement immédiat sans perte (`e2e/foundations.spec.ts`) | Unitaires + E2E |
 | SYNC-06 | Hors connexion | App + données + file d'attente | M1§1, M3§10 | P0 | SYNC-05 | Testé et validé | C ✅ `e2e/foundations.spec.ts` (modification hors ligne ; ouverture de l’application sans réseau) | E2E hors ligne |
 | SYNC-07 | Conflits | Par champ, stock attendu, fusion, alias | M1§12 | P0 | — | En développement | D/S ✅ · C 🟡 conflits signalés (notifications + liste « À vérifier ») ; écran de résolution champ par champ à compléter | Concurrence serveur + E2E |
 | SYNC-08 | Indicateur de synchronisation | Synchronisé / en attente / hors ligne / problème | M1§12 | P0 | SYNC-02 | Testé et validé | C ✅ `e2e/foundations.spec.ts` (état synchronisé / hors ligne) | E2E |
@@ -330,32 +330,32 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| DASH-01 | Indicateurs clés | Produits, faibles, épuisés, à acheter, bientôt périmés | M1§9 | P1 | ENG-* | À développer | D ✅ données · C ❌ | E2E |
-| DASH-02 | Liste de courses actuelle | — | M1§9 | P1 | SHOP-01 | À développer | C ❌ | E2E |
-| DASH-03 | Derniers mouvements | — | M1§9 | P1 | MVT-10 | À développer | C ❌ | E2E |
-| DASH-04 | Dépenses du mois | Avec budget | M1§9 | P1 | BUD-07 | À développer | C ❌ | E2E |
-| DASH-05 | Prévisions d'approvisionnement | — | M1§9 | P1 | ENG-07 | À développer | C ❌ | E2E |
-| DASH-06 | « Ce que votre maison doit prévoir » | Synthèse des recommandations | M1§9 | P1 | ENG-* | À développer | D ✅ · C ❌ | E2E |
-| DASH-07 | Personnalisation | Widgets masquables, réordonnables, par membre | M1§9 | P2 | — | En développement | D ✅ préférences · C ❌ | E2E |
+| DASH-01 | Indicateurs clés | Produits, faibles, épuisés, à acheter, bientôt périmés | M1§9 | P1 | ENG-* | Testé et validé | C ✅ produits suivis, stocks faibles, épuisés, à acheter, bientôt périmés ; chaque indicateur ouvre la vue filtrée · `e2e/dashboard.spec.ts` | E2E |
+| DASH-02 | Liste de courses actuelle | — | M1§9 | P1 | SHOP-01 | Testé et validé | C ✅ articles à acheter, coût estimé (connu/estimé/inconnu), accès au mode courses · `e2e/dashboard.spec.ts` | E2E |
+| DASH-03 | Derniers mouvements | — | M1§9 | P1 | MVT-10 | Développé | C ✅ six dernières actions avec le membre et l’heure, lien vers le journal — non vérifié en E2E (affichage simple du journal déjà testé) | E2E |
+| DASH-04 | Dépenses du mois | Avec budget | M1§9 | P1 | BUD-07 | Développé | D ✅ `budgetStatus` (stats.test) · C ✅ dépensé (prix connus), achats sans prix comptés à part, budget, projection, lien pour définir un budget — vérifié visuellement, non couvert E2E | E2E |
+| DASH-05 | Prévisions d'approvisionnement | — | M1§9 | P1 | ENG-07 | Testé et validé | C ✅ recommandations « maintenant » et « avant les prochaines courses » avec fiabilité et ajout direct · `e2e/dashboard.spec.ts` | E2E |
+| DASH-06 | « Ce que votre maison doit prévoir » | Synthèse des recommandations | M1§9 | P1 | ENG-* | Testé et validé | D ✅ · C ✅ bloc central (achats à prévoir + lots à consommer), ajout à la liste depuis l’accueil · `e2e/dashboard.spec.ts` | E2E |
+| DASH-07 | Personnalisation | Widgets masquables, réordonnables, par membre | M1§9 | P2 | — | Testé et validé | D ✅ `resolveDashboard`, `moveWidget`, `toggleWidget` (dashboard.test) · C ✅ afficher/masquer/réordonner, enregistré par membre et par foyer, suit le compte sur tous les appareils · `e2e/dashboard.spec.ts` (rechargement, autre membre non affecté) | E2E |
 
 ## 20. Notifications
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| NOTIF-01 | Centre de notifications | — | M3§9 | P1 | — | En développement | D ✅ · C ❌ | E2E |
-| NOTIF-02 | Stocks critiques | — | M3§9 | P1 | — | En développement | D ✅ | — |
-| NOTIF-03 | Produits épuisés | — | M3§9 | P1 | — | En développement | D ✅ | — |
-| NOTIF-04 | Bientôt périmés | — | M3§9 | P1 | — | En développement | D ✅ | — |
-| NOTIF-05 | Produits à acheter | — | M3§9 | P1 | — | En développement | D ✅ | — |
-| NOTIF-06 | Courses non terminées | Achetés non réceptionnés | M3§9 | P1 | — | En développement | D 🟡 (non testé) | Unitaires |
-| NOTIF-07 | Modifications importantes | Par d'autres membres | M3§9, M1§2 | P1 | — | En développement | S ✅ services.test (alerte immédiate des autres membres) · C ❌ | Intégration |
-| NOTIF-08 | Dépenses inhabituelles | — | M3§9 | P2 | BUD-17 | En développement | D 🟡 | Unitaires |
-| NOTIF-09 | Inventaires à vérifier | — | M3§9 | P1 | REL-01 | En développement | D 🟡 | Unitaires |
-| NOTIF-10 | Personnalisation par membre | Types, alertes masquées | M3§9 | P1 | — | En développement | D ✅ · C ❌ | E2E |
-| NOTIF-11 | Déduplication | Clé stable, journal d'envoi | M3§9 | P1 | — | En développement | D ✅ · S ✅ services.test (un envoi par jour et par membre) · C ❌ | Intégration |
-| NOTIF-12 | Récapitulatif quotidien / hebdomadaire | Web Push à l'heure choisie | M3§9 | P2 | NOTIF-13 | En développement | S ✅ services.test (heure choisie, préférences, anti-doublon ; défaut d’heure corrigé) · C ❌ service worker | Intégration (envoi simulé) |
+| NOTIF-01 | Centre de notifications | — | M3§9 | P1 | — | Testé et validé | C ✅ page Notifications (alertes par gravité, activité du foyer) + cloche avec pastille dans la barre du haut · `e2e/dashboard.spec.ts` | E2E |
+| NOTIF-02 | Stocks critiques | — | M3§9 | P1 | — | Testé et validé | D ✅ · C ✅ « stock critique » · `e2e/dashboard.spec.ts` | — |
+| NOTIF-03 | Produits épuisés | — | M3§9 | P1 | — | Testé et validé | D ✅ stats.test · C ✅ « épuisé » (même affichage que NOTIF-02) | — |
+| NOTIF-04 | Bientôt périmés | — | M3§9 | P1 | — | Testé et validé | D ✅ · C ✅ « périme aujourd’hui », quantité concernée, DDM signalée · `e2e/dashboard.spec.ts` | — |
+| NOTIF-05 | Produits à acheter | — | M3§9 | P1 | — | Testé et validé | D ✅ · C ✅ « n produits à acheter » (information, lien vers Prévisions) | — |
+| NOTIF-06 | Courses non terminées | Achetés non réceptionnés | M3§9 | P1 | — | Testé et validé | D ✅ stats.test (achat coché non rangé depuis plus de 12 h → lien vers la réception) · C ✅ même affichage | Unitaires |
+| NOTIF-07 | Modifications importantes | Par d'autres membres | M3§9, M1§2 | P1 | — | Testé et validé | D ✅ stats.test (chacun averti des modifications des autres, jamais des siennes) · S ✅ services.test (push immédiat) · C ✅ marquée « nouvelle » jusqu’à consultation du centre · `e2e/dashboard.spec.ts` (signalement de Bob vu en direct par Nicolas) | Intégration |
+| NOTIF-08 | Dépenses inhabituelles | — | M3§9 | P2 | BUD-17 | Développé | D ✅ stats.test (alerte produite, lien existant) · C ✅ même affichage ; écran Dépenses en phase 9 | Unitaires |
+| NOTIF-09 | Inventaires à vérifier | — | M3§9 | P1 | REL-01 | Testé et validé | D ✅ stats.test (stock approximatif ou à vérifier) · C ✅ même affichage | Unitaires |
+| NOTIF-10 | Personnalisation par membre | Types, alertes masquées | M3§9 | P1 | — | Testé et validé | D ✅ · C ✅ types désactivables dans Paramètres (lien direct depuis le centre), masquage d’une alerte, « Tout masquer », « Tout réafficher » · `e2e/dashboard.spec.ts` | E2E |
+| NOTIF-11 | Déduplication | Clé stable, journal d'envoi | M3§9 | P1 | — | Testé et validé | D ✅ clés stables (une alerte masquée revient si la situation change) · S ✅ services.test · C ✅ · `e2e/dashboard.spec.ts` | Intégration |
+| NOTIF-12 | Récapitulatif quotidien / hebdomadaire | Web Push à l'heure choisie | M3§9 | P2 | NOTIF-13 | Développé | S ✅ services.test (heure choisie, préférences, anti-doublon) · C ✅ choix quotidien/hebdomadaire/aucun et heure dans Paramètres ; réception sur téléphone réel à vérifier | Intégration (envoi simulé) |
 | NOTIF-13 | Web Push | VAPID local, iPhone (PWA installée), Android, PC | M3§9 | P2 | FND-06 | En développement | S ✅ · C 🟡 service worker (réception, clic) + abonnement dans Paramètres ; essais sur appareils réels à faire | Manuel sur appareils |
-| NOTIF-14 | Fil d'activité partagé du foyer | « Notifications partagées » | M1§2 | P1 | MVT-10 | En développement | D ✅ · C ❌ | E2E |
+| NOTIF-14 | Fil d'activité partagé du foyer | « Notifications partagées » | M1§2 | P1 | MVT-10 | Testé et validé | D ✅ · C ✅ onglet « Activité du foyer » et journal de la page Famille · `e2e/dashboard.spec.ts` | E2E |
 
 ## 21. Niveaux de fiabilité et cohérence
 
@@ -402,7 +402,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | UX-04 | Graphiques interactifs | — | M1§11 | P1 | — | À développer | ❌ | E2E |
 | UX-05 | Mode clair et sombre | — | M1§11 | P0 | — | En développement | C ✅ thème clair/sombre/auto (captures vérifiées) ; à étendre aux modules suivants | Captures |
 | UX-06 | Optimisation téléphone | — | M1§11 | P0 | — | En développement | C 🟡 mobile d’abord (onglets, feuilles, cibles ≥ 44 px) — en cours | E2E mobile |
-| UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | En développement | C ✅ navigation 6 rubriques + Scanner ; Inventaire, Courses et Prévisions complets, Accueil (tableau de bord) en phase 7 | E2E |
+| UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | Testé et validé | C ✅ 6 rubriques (Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres) + Scanner + Notifications, toutes construites et parcourues en E2E | E2E |
 | UX-08 | Mode courses optimisé magasin | — | M1§11 | P0 | SHOP-12 | Testé et validé | Voir SHOP-12 · `e2e/shopping.spec.ts` | E2E mobile |
 | UX-09 | Scanner accessible partout | — | M2 | P0 | SCAN-01 | Développé | C ✅ bouton Scanner (téléphone : bouton flottant ; ordinateur : barre latérale) | E2E |
 | UX-10 | Accessibilité | Contrastes, cibles ≥ 44 px | AUD | P1 | — | En développement | C 🟡 libellés désormais reliés aux champs (défaut trouvé par les tests) ; audit complet à faire | Audit axe |
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 132 |
-| Développé | 58 |
-| En développement | 81 |
-| À développer | 21 |
+| Testé et validé | 149 |
+| Développé | 62 |
+| En développement | 66 |
+| À développer | 15 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |

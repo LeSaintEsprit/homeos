@@ -117,4 +117,42 @@ describe('audit, gaspillage et notifications', () => {
     expect(digest.title).toContain('point du jour');
     expect(digest.body.split('\n').length).toBeLessThanOrEqual(4);
   });
+
+  it('alertes : courses non rangées, dépense inhabituelle, stock à vérifier, incohérences, modifications des autres membres', () => {
+    const h = new Harness();
+    h.at('2026-11-02T08:00:00Z');
+    const p = h.product('Farine', 'kg', { minQty: 1 });
+    h.ok('stock.add', { productId: p, lotId: newId(), quantity: 3 });
+    h.ok('stock.adjust', { productId: p, expected: 3, quantity: 2, reason: 'count', approx: true });
+    const item = newId();
+    h.ok('shopping.add', { itemId: item, productId: null, name: 'Piles', quantity: 1, unit: 'piece', source: 'manual' });
+    h.ok('shopping.setPurchased', { itemId: item, purchasedQty: 1 });
+    h.as('user-bob', 'member').ok('stock.reportMissing', { productId: p, itemId: newId() });
+    h.as('user-alice');
+    h.advance(24); // le lendemain : achat toujours pas rangé
+    const c = h.collections();
+    const today = h.now.slice(0, 10);
+    const forecast = analyzeHousehold({
+      products: [...c.product.values()], lots: [...c.lot.values()], movements: [...c.movement.values()], items: [...c.shoppingItem.values()], purchases: [], locations: [...c.location.values()],
+      settings: DEFAULT_SETTINGS, now: h.now, today,
+    });
+    const member = c.member.get('m-user-alice')!;
+    const audit = [{ code: 'x', severity: 'error' as const, message: 'Lot incohérent', productId: p }];
+    const unusual = [{ key: 'budget:2026-11', message: 'Au rythme actuel…' }];
+    const alerts = computeAlerts({ forecast, collections: c, audit: audit as never, unusual, member, now: h.now, today });
+    const byKind = (k: string) => alerts.filter((a) => a.kind === k);
+    expect(byKind('shopping_unfinished')[0].link).toBe('/courses?tab=reception');
+    expect(byKind('unusual_spending')).toHaveLength(1);
+    expect(byKind('inventory_check')[0].body).toContain('approximative');
+    expect(byKind('data_issue')[0].severity).toBe('critical');
+    // Chacun est averti des modifications importantes des autres, jamais des siennes.
+    expect(byKind('important_change').map((a) => a.title)).toEqual(['Bob a signalé « Farine » manquant']);
+    const bob = c.member.get('m-user-bob')!;
+    const forBob = computeAlerts({ forecast, collections: c, audit: [], unusual: [], member: bob, now: h.now, today }).filter((a) => a.kind === 'important_change');
+    expect(forBob).toHaveLength(1);
+    expect(forBob[0].title).toMatch(/^Alice a corrigé le stock de « Farine » à environ 2\skg/);
+    // Toutes les alertes mènent à un écran existant.
+    const routes = [/^\/inventaire(\/|$|\?)/, /^\/courses(\?|$)/, /^\/previsions(\?|$)/, /^\/parametres$/];
+    for (const a of alerts) if (a.link) expect(routes.some((r) => r.test(a.link!)), a.link).toBe(true);
+  });
 });
