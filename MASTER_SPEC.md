@@ -340,6 +340,7 @@ Détection (sans correction automatique) : quantité négative ; Σ mouvements �
 - Pull incrémental paginé (curseur `seq`), temps réel par SSE, repli au retour au premier plan / en ligne / toutes les 60 s ; **époque** (`epoch`) : resynchronisation complète après restauration.
 - Conflits : deltas commutatifs ; correction de stock avec quantité attendue ; versions par champ (fusion des champs non concurrents, choix utilisateur pour les autres) ; fusion des doublons de liste avec alias d'identifiant ; « déjà acheté par X ».
 - Résultats : appliqué, appliqué avec avertissements, conflit, rejeté — tous visibles.
+- **Saisie en cours protégée** : une modification reçue en arrière-plan (confirmation du serveur, action d'un autre membre) ne réinitialise jamais un formulaire ouvert ; la version de référence servant à détecter les conflits est celle affichée à l'ouverture du formulaire.
 - Plateformes : iPhone (Safari, PWA installée), Android (Chrome), Windows (Edge/Chrome), navigateurs récents.
 - **Jamais de synchronisation entre foyers** ; données locales d'un foyer quitté supprimées.
 

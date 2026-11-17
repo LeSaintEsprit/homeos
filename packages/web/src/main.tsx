@@ -5,6 +5,7 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
 import './styles/layout.css';
+import './styles/shopping.css';
 import './lib/theme';
 import { App } from './App';
 import { registerSW } from 'virtual:pwa-register';

@@ -104,6 +104,9 @@ export function StockActionSheet({ action, product, lots, lot, onClose }: { acti
   const total = roundQty(lots.reduce((s, l) => s + l.quantity, 0));
   const target = lot ?? (lotId ? lots.find((l) => l.id === lotId) : undefined);
 
+  // Réinitialisé à l'ouverture uniquement (action, lot, produit) : une modification
+  // synchronisée pendant la saisie (autre membre, confirmation serveur) n'efface rien.
+  const openKey = action ? `${action}:${lot?.id ?? ''}:${product.id}` : '';
   useEffect(() => {
     if (!action) return;
     setLotId(lot?.id ?? '');
@@ -122,7 +125,8 @@ export function StockActionSheet({ action, product, lots, lot, onClose }: { acti
     const portion = ({ g: 250, ml: 250, cl: 25, kg: 0.5, l: 0.5 } as Partial<Record<UnitCode, number>>)[product.unit] ?? 1;
     const base = action === 'adjust' ? (lot ? lot.quantity : total) : action === 'waste' || action === 'move' ? (lot?.quantity ?? portion) : action === 'add' && product.packUnit && product.packSize ? 1 : portion;
     setQty(String(roundQty(base)).replace('.', ','));
-  }, [action, lot, product, total]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openKey]);
 
   if (!action) return null;
   const q = parseQty(qty);

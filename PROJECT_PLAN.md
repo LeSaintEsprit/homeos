@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.4 — 17/11/2026 — phases 1 à 4 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.5 — 17/11/2026 — phases 1 à 5 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -146,13 +146,18 @@ Défauts trouvés et corrigés : produit créé au scan sans emplacement (invent
 Limites : caméra éprouvée avec le périphérique simulé de Chromium seulement ; Open Food Facts injoignable lors des derniers essais en direct (comportement dégradé vérifié). Sur un réseau imposant un proxy, lancer le serveur avec `NODE_USE_ENV_PROXY=1`.
 **Dépend de** : Phase 3.
 
-### Phase 5 — Liste de courses, mode courses, réception, multi-magasins ← **prochaine étape**
+### Phase 5 — Liste de courses, mode courses, réception, multi-magasins ✅ (17/11/2026)
 **Contenu** : liste collaborative complète (ajouts depuis stock/recommandations, priorités, attribution, magasins, rayons, historique, avertissement anti-doublon) ; **mode courses** (grandes cases, par magasin puis rayon, écran allumé, temps réel, prix facultatif) ; **réception** (quantités réelles, écarts, dates, prix, emplacement, reliquat) ; magasins (adresse, notes, ordre des rayons, historique, produits habituels).
 **Tests** : E2E à deux navigateurs (mise à jour instantanée, fusion, « déjà acheté par ») ; réception partielle.
 **Sortie** : SHOP-*, RCV-*, STORE-* « Testé et validé ».
+
+**Bilan de la phase 5** : page Courses en trois onglets — **Liste** (saisie rapide avec suggestions du catalogue et avertissement anti-doublon, recommandations du moteur ajoutées une à une ou toutes, jamais automatiquement, regroupement par rayon ou par magasin, coût prévisionnel distinguant prix connus « ≈ estimés » et inconnus, fiche article : quantité, achat partiel, priorité, rayon, magasin, membre chargé, commentaire), **Réception** (quantité réellement rapportée, écart, reliquat laissé dans la liste, prix facultatif, magasin, emplacement, date saisie ou proposée d'après la conservation habituelle et marquée « estimée », produit existant / créé / dépense seule, « Pas acheté », « Tout ranger ») et **Historique** (achats rangés avec prix, articles retirés restaurables). **Mode courses** plein écran : magasin choisi (mémorisé), parcours par rayon selon l'ordre propre au magasin, grandes cases, progression, « Pris par … » en direct, quantité prise et prix en magasin, article pris en plus (coche l'existant plutôt que de dupliquer), écran maintenu allumé (Wake Lock). **Magasins** : création, adresse, notes, couleur, ordre des rayons, passages, dépensé (prix connus), panier moyen (passages entièrement chiffrés seulement), produits habituels, derniers achats, « Faire les courses ici ». Fiche produit : « Ajouter à la liste » / « Dans la liste de courses : … ».
+Vérifié : 4 nouveaux tests unitaires (organisation par magasin et par rayon, bilan d'un magasin) ; 6 parcours de bout en bout dont 2 à deux navigateurs (fusion « ajouté par … », attribution et « Pris par … » en direct, achat partiel puis réception avec création du produit, écart à la réception, retrait/restauration, ordre des rayons suivi en mode courses, historique du magasin, recommandations, conflit de saisie).
+Défauts trouvés et corrigés : **une synchronisation en arrière-plan (confirmation du serveur ou action d'un autre membre) effaçait la saisie en cours** dans la fiche d'un article de la liste et dans les fiches d'action de l'inventaire — formulaire désormais initialisé à l'ouverture seulement, version de référence des conflits mémorisée à l'ouverture (test de non-régression à deux navigateurs, vérifié en échec sur l'ancien code) ; historique limité aux articles entièrement réceptionnés (les réceptions partielles n'y figuraient pas) — désormais construit à partir des achats enregistrés ; en-têtes de page et barre d'ajout débordant sur téléphone.
+Limites : écran maintenu allumé non vérifiable sans téléphone réel ; produits habituels d'un magasin couverts par les tests unitaires seulement.
 **Dépend de** : Phase 3 (Phase 4 souhaitable pour la réception par scan).
 
-### Phase 6 — Prévisions, péremption et anti-gaspillage
+### Phase 6 — Prévisions, péremption et anti-gaspillage ← **prochaine étape**
 **Contenu** : page Prévisions (recommandations par urgence avec explications, confiance, coût estimé, « tout ajouter ») ; calendrier des ruptures ; achats réguliers ; produits sans données (inviter à définir des seuils) ; péremption (statuts, ouverts, oubliés, à consommer en priorité) ; tableau de bord anti-gaspillage ; affichage des **niveaux de fiabilité** partout.
 **Sortie** : ENG-*, EXP-*, REL-* « Testé et validé ».
 

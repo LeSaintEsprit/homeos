@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Archive, ArrowLeft, Barcode, Box, Check, CircleSlash, Combine, Edit3, MapPin, Minus, PackageOpen, Plus, ScanLine, Tag, Trash2, Undo2, Wrench, ShoppingCart, CalendarClock, Info,
 } from 'lucide-react';
@@ -160,6 +160,7 @@ export function ProductDetailPage() {
   const run = useRun();
   const canWrite = useCan('stock.write');
   const canCatalog = useCan('catalog.write');
+  const canShop = useCan('shopping.write');
   const { category, location } = useCatalog();
   const { ask, node } = useConfirm();
   const [action, setAction] = useState<{ a: StockAction; lot: Lot | null } | null>(null);
@@ -199,6 +200,11 @@ export function ProductDetailPage() {
     if (!(await ask('Annuler cette action ?', `Le mouvement « ${MOVEMENT_LABELS[m.type]} » sera compensé par un mouvement d'annulation. L'historique est conservé.`, 'Annuler l’action'))) return;
     await run('movement.revertOp', { targetOpId: m.opId }, { success: 'Action annulée' });
   };
+  const addToList = () => {
+    const reco = forecast.recommendations.find((r) => r.productId === product.id);
+    const unit = reco?.displayUnit ?? (product.packUnit && product.packSize ? product.packUnit : product.unit);
+    return run('shopping.add', { itemId: newId(), productId: product.id, name: product.name, quantity: reco?.displayQty ?? 1, unit, source: 'stock' }, { success: `« ${product.name} » ajouté à la liste` });
+  };
   const archive = async () => {
     if (!product.archived && !(await ask('Archiver ce produit ?', 'Il disparaîtra de l’inventaire et des prévisions. Son historique est conservé et vous pourrez le restaurer.', 'Archiver'))) return;
     await run('product.archive', { id: product.id, archived: !product.archived }, { success: product.archived ? 'Produit restauré' : 'Produit archivé' });
@@ -227,6 +233,13 @@ export function ProductDetailPage() {
           {ins && ins.expiredQty > 0 && <span className="small" style={{ color: 'var(--danger)', fontWeight: 700 }}>dont {formatQty(ins.expiredQty, product.unit)} périmé(s)</span>}
         </div>
         {ins && <div className="chips"><StatusChips ins={ins} max={4} /></div>}
+        {ins && !product.archived && (ins.onList > 0 ? (
+          <Link to="/courses" className="small strong row" style={{ ['--gap' as string]: '6px', marginTop: 10 }} data-testid="on-list">
+            <ShoppingCart size={15} /> Dans la liste de courses : {formatQty(ins.onList, product.unit)}
+          </Link>
+        ) : canShop && (
+          <button className="btn soft sm" style={{ marginTop: 10 }} onClick={() => void addToList()} data-testid="add-to-list"><ShoppingCart size={15} /> Ajouter à la liste</button>
+        ))}
         {canWrite && !product.archived && (
           <div className="action-grid">
             <button className="action" onClick={() => setAction({ a: 'consume', lot: null })} disabled={!lots.length}><Minus size={20} /> Consommer</button>

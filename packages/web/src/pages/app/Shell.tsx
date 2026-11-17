@@ -136,7 +136,8 @@ export function HouseholdSwitcher({ s }: { s: SessionState }) {
 export function Shell() {
   const s = useObservable(session);
   const navigate = useNavigate();
-  const onScanner = useLocation().pathname.startsWith('/scanner');
+  const path = useLocation().pathname;
+  const hideFab = path.startsWith('/scanner') || path.startsWith('/courses/magasin');
   return (
     <div className="app">
       <aside className="sidebar" aria-label="Navigation principale">
@@ -178,7 +179,7 @@ export function Shell() {
           </NavLink>
         ))}
       </nav>
-      {!onScanner && <button className="fab" onClick={() => navigate('/scanner')} aria-label="Scanner un produit"><ScanLine size={26} /></button>}
+      {!hideFab && <button className="fab" onClick={() => navigate('/scanner')} aria-label="Scanner un produit"><ScanLine size={26} /></button>}
     </div>
   );
 }

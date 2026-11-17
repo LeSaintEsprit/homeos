@@ -98,11 +98,22 @@ test.describe('Phase 3 — inventaire et mouvements', () => {
     await expect(page.getByTestId('product-qty')).toHaveText('2 paquets');
     await expect(bob.getByTestId('product-qty')).toHaveText('2 paquets');
 
+    // Bob prépare une consommation pendant qu'Alice en enregistre une autre : sa saisie n'est pas effacée.
+    await bob.getByTestId('product-row').click();
+    await bob.click('.action-grid .action:has-text("Consommer")');
+    await bob.locator('.sheet .qty-input input').fill('0,5');
+    await page.getByRole('button', { name: /Consommer 1 paquet de Café/ }).click();
+    await expect(bob.getByTestId('detail-qty')).toHaveText('1 paquet');
+    await expect(bob.locator('.sheet .qty-input input')).toHaveValue('0,5');
+    await bob.getByTestId('action-submit').click();
+    await expect(bob.getByTestId('detail-qty')).toHaveText('0,5 paquet');
+    await expect(page.getByTestId('product-qty')).toHaveText('0,5 paquet');
+
     const c2 = await browser.newContext();
     const gp = await c2.newPage();
     await register(gp, 'Grand-père', `${uniq('g')}@x.fr`, codeViewer);
     await gp.goto('/inventaire');
-    await expect(gp.getByTestId('product-qty')).toHaveText('2 paquets');
+    await expect(gp.getByTestId('product-qty')).toHaveText('0,5 paquet');
     await expect(gp.getByRole('button', { name: /Consommer/ })).toHaveCount(0);
     await expect(gp.getByRole('button', { name: 'Ajouter' })).toHaveCount(0);
     await gp.getByTestId('product-row').click();

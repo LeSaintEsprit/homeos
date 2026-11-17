@@ -15,6 +15,9 @@ import { Placeholder } from './pages/app/Placeholder';
 import { InventoryPage } from './pages/app/inventory/InventoryPage';
 import { NewProductPage, ProductDetailPage } from './pages/app/inventory/ProductDetail';
 import { ScannerPage } from './pages/app/scanner/ScannerPage';
+import { ShoppingPage } from './pages/app/shopping/ShoppingPage';
+import { ShoppingModePage } from './pages/app/shopping/ShoppingMode';
+import { StoreDetailPage, StoresPage } from './pages/app/shopping/Stores';
 
 function Splash() {
   return (
@@ -72,7 +75,10 @@ export function App() {
           <Route path="inventaire" element={<InventoryPage />} />
           <Route path="inventaire/nouveau" element={<NewProductPage />} />
           <Route path="inventaire/:id" element={<ProductDetailPage />} />
-          <Route path="courses/*" element={<Placeholder title="Courses" phase={5} />} />
+          <Route path="courses" element={<ShoppingPage />} />
+          <Route path="courses/magasin" element={<ShoppingModePage />} />
+          <Route path="courses/magasins" element={<StoresPage />} />
+          <Route path="courses/magasins/:id" element={<StoreDetailPage />} />
           <Route path="previsions/*" element={<Placeholder title="Prévisions" phase={6} />} />
           <Route path="scanner" element={<ScannerPage />} />
           <Route path="famille" element={<FamilyPage />} />

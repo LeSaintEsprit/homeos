@@ -75,7 +75,10 @@
   gap: var(--sp-4);
   margin: var(--sp-2) 0 var(--sp-5);
 }
-.page-head h1 { font-size: var(--fs-2xl); }
+.page-head { flex-wrap: wrap; }
+.page-head > div:first-child { min-width: 0; flex: 1 1 auto; }
+.page-head > .row { flex-wrap: wrap; }
+.page-head h1 { font-size: var(--fs-2xl); overflow-wrap: anywhere; }
 .page-head .eyebrow { font-size: var(--fs-sm); color: var(--text-3); font-weight: 700; margin-bottom: 4px; }
 
 /* Barre d'onglets (téléphone) */
@@ -209,8 +212,13 @@
 .auth-brand .tag { color: var(--text-3); font-weight: 650; font-size: var(--fs-sm); }
 
 .grid-2 { display: grid; gap: var(--sp-4); grid-template-columns: 1fr; }
+.grid-2.always { grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
 @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
 
 @media (min-width: 900px) {
   .mobile-only { display: none !important; }
+}
+
+@media (max-width: 520px) {
+  .hide-sm { display: none; }
 }

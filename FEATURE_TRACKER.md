@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 17/11/2026 — fin de la phase 4 (scanner).
+> Dernière mise à jour : 17/11/2026 — fin de la phase 5 (liste de courses, mode courses, réception, magasins).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 4)** : 140 tests unitaires/intégration (dont décodage réel de codes-barres) et 12 parcours de bout en bout. Restent à construire dans l'interface : liste de courses et mode courses, prévisions, tableau de bord, dépenses, OCR, inventaire guidé, écrans de données.
+**Constat global (fin de phase 5)** : 144 tests unitaires/intégration (dont décodage réel de codes-barres) et 18 parcours de bout en bout (dont 6 pour les courses, à deux navigateurs). Restent à construire dans l'interface : prévisions, tableau de bord, dépenses, OCR, inventaire guidé, écrans de données.
 
 ---
 
@@ -230,25 +230,25 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| SHOP-01 | Liste partagée synchronisée | — | M1§5 | P0 | SYNC-* | En développement | D ✅ · S 🟡 · C ❌ | E2E 2 membres |
-| SHOP-02 | Ajout manuel | — | M1§5 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| SHOP-03 | Ajout depuis le stock | — | M1§5 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| SHOP-04 | Ajout depuis les recommandations | — | M1§5 | P0 | ENG-* | En développement | D ✅ · C ❌ | E2E |
-| SHOP-05 | Quantités, commentaires, priorités, catégories | Avec conflits par champ | M1§5 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| SHOP-06 | Attribution à un membre | — | M1§5 | P1 | — | En développement | D ✅ · C ❌ | E2E |
-| SHOP-07 | Acheté / non acheté | — | M1§5 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| SHOP-08 | Achats partiels | — | M1§5 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| SHOP-09 | Suppression réversible | — | M1§5 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| SHOP-10 | Historique de la liste | — | M1§5 | P1 | — | En développement | D ✅ données · C ❌ | E2E |
-| SHOP-11 | Regroupement des doublons, addition multi-membres | Alias d'identifiant | M1§5 | P0 | — | En développement | D ✅ · S ✅ sync.test (deux membres hors ligne) · C ❌ | Intégration (2 appareils hors ligne) |
-| SHOP-12 | Mode courses téléphone | Grandes cases, rayons, quantités, navigation simple | M1§5, M1§11 | P0 | C | À développer | C ❌ | E2E mobile |
-| SHOP-13 | Mise à jour instantanée chez les autres | — | M1§5 | P0 | SYNC-04 | En développement | S 🟡 · C ❌ | E2E 2 navigateurs |
-| SHOP-14 | Anti-doublon / stock suffisant à l'ajout | Avertissement | M1§4 | P1 | ENG-* | En développement | D ✅ · C ❌ | E2E |
-| SHOP-15 | Répartition entre magasins | — | M3§5 | P1 | STORE-01 | En développement | D ✅ champ · C ❌ | E2E |
-| SHOP-16 | Mode courses par magasin puis rayon | Ordre des rayons par magasin | M3§5 | P1 | SHOP-12 | En développement | D 🟡 champ · C ❌ | E2E |
-| SHOP-17 | Écran maintenu allumé | Wake Lock | M1§11 | P2 | SHOP-12 | À développer | C ❌ | Manuel |
-| RCV-01 | Proposition de mise à jour du stock après achat | — | M1§5 | P0 | SHOP-07 | À développer | C ❌ | E2E |
-| RCV-02 | Étape de réception | Quantités réelles, écarts, prix, dates, emplacement | M1§5 | P0 | — | En développement | D ✅ · C ❌ | E2E |
+| SHOP-01 | Liste partagée synchronisée | — | M1§5 | P0 | SYNC-* | Testé et validé | D ✅ · S ✅ · C ✅ onglets Liste / Réception / Historique · `e2e/shopping.spec.ts` (deux membres, temps réel) | E2E 2 membres |
+| SHOP-02 | Ajout manuel | — | M1§5 | P0 | — | Testé et validé | C ✅ barre d’ajout : suggestions du catalogue, quantité et unité affichées seulement après saisie · `e2e/shopping.spec.ts` | E2E |
+| SHOP-03 | Ajout depuis le stock | — | M1§5 | P0 | — | Testé et validé | C ✅ bouton « Ajouter à la liste » de la fiche produit (quantité recommandée ou 1 conditionnement) + « Terminé » / « Manquant » · `e2e/shopping.spec.ts` (fiche produit) | E2E |
+| SHOP-04 | Ajout depuis les recommandations | — | M1§5 | P0 | ENG-* | Testé et validé | C ✅ carte « À prévoir selon vos stocks » avec explication, ajout un par un ou « Tout ajouter », jamais automatique · `e2e/shopping.spec.ts` | E2E |
+| SHOP-05 | Quantités, commentaires, priorités, catégories | Avec conflits par champ | M1§5 | P0 | — | Testé et validé | C ✅ fiche article : quantité/unité, priorité, rayon, magasin, commentaire ; formulaire chargé à l’ouverture, conflits par champ signalés · `e2e/shopping.spec.ts` (priorité, commentaire, rayon, conflit à deux membres) | E2E |
+| SHOP-06 | Attribution à un membre | — | M1§5 | P1 | — | Testé et validé | C ✅ « Confié à » + avatar du membre sur la ligne · `e2e/shopping.spec.ts` (vu en direct par l’autre membre) | E2E |
+| SHOP-07 | Acheté / non acheté | — | M1§5 | P0 | — | Testé et validé | C ✅ case à cocher (liste et mode courses) · `e2e/shopping.spec.ts` | E2E |
+| SHOP-08 | Achats partiels | — | M1§5 | P0 | — | Testé et validé | C ✅ quantité prise en magasin, badge « x pris », reliquat · `e2e/shopping.spec.ts` | E2E |
+| SHOP-09 | Suppression réversible | — | M1§5 | P0 | — | Testé et validé | C ✅ « Retirer » puis « Remettre » depuis l’historique · `e2e/shopping.spec.ts` | E2E |
+| SHOP-10 | Historique de la liste | — | M1§5 | P1 | — | Testé et validé | C ✅ historique : achats rangés (quantité, membre, magasin, prix) et articles retirés · `e2e/shopping.spec.ts` | E2E |
+| SHOP-11 | Regroupement des doublons, addition multi-membres | Alias d'identifiant | M1§5 | P0 | — | Testé et validé | D ✅ · S ✅ sync.test · C ✅ message « déjà dans la liste (ajouté par …) », « n demandes » · `e2e/shopping.spec.ts` | Intégration (2 appareils hors ligne) |
+| SHOP-12 | Mode courses téléphone | Grandes cases, rayons, quantités, navigation simple | M1§5, M1§11 | P0 | C | Testé et validé | C ✅ plein écran, cases de 44 px, lignes de 76 px, progression, ajout d’un article pris en plus (coche l’existant au lieu de dupliquer) · `e2e/shopping.spec.ts` (profil Pixel 7) ; à essayer sur téléphones réels | E2E mobile |
+| SHOP-13 | Mise à jour instantanée chez les autres | — | M1§5 | P0 | SYNC-04 | Testé et validé | C ✅ ajout, fusion, attribution et « Pris par … » vus en direct · `e2e/shopping.spec.ts` (deux navigateurs) | E2E 2 navigateurs |
+| SHOP-14 | Anti-doublon / stock suffisant à l'ajout | Avertissement | M1§4 | P1 | ENG-* | Testé et validé | D ✅ engine.test (stock suffisant) · C ✅ avertissement sous la saisie · `e2e/shopping.spec.ts` (« Déjà 1 paquet dans la liste ») | E2E |
+| SHOP-15 | Répartition entre magasins | — | M3§5 | P1 | STORE-01 | Testé et validé | C ✅ magasin par article, regroupement « Magasin », filtre du mode courses (articles des autres magasins masqués et comptés) · shopping.test · `e2e/shopping.spec.ts` | E2E |
+| SHOP-16 | Mode courses par magasin puis rayon | Ordre des rayons par magasin | M3§5 | P1 | SHOP-12 | Testé et validé | D ✅ `groupByAisle`, `moveAisle` (shopping.test) · C ✅ ordre des rayons modifiable par magasin, suivi par le mode courses · `e2e/shopping.spec.ts` | E2E |
+| SHOP-17 | Écran maintenu allumé | Wake Lock | M1§11 | P2 | SHOP-12 | Développé | C ✅ Screen Wake Lock pendant le mode courses, réacquis au retour sur l’onglet, indication à l’écran ; non vérifiable sans navigateur réel (Safari iOS ≥ 16.4, Chrome Android) — essai manuel à faire | Manuel |
+| RCV-01 | Proposition de mise à jour du stock après achat | — | M1§5 | P0 | SHOP-07 | Testé et validé | C ✅ bandeau « n article(s) acheté(s) à ranger », « Terminer et ranger les achats » ouvre la réception ; le stock n’est jamais modifié par une simple coche · `e2e/shopping.spec.ts` | E2E |
+| RCV-02 | Étape de réception | Quantités réelles, écarts, prix, dates, emplacement | M1§5 | P0 | — | Testé et validé | D ✅ · C ✅ quantité réellement rapportée, écart affiché, prix total facultatif, magasin, emplacement, date (saisie ou proposée d’après la conservation habituelle, marquée « estimée »), produit existant / créé / dépense seule, « Pas acheté », « Tout ranger » · `e2e/shopping.spec.ts` (partiel, écart, création du produit) | E2E |
 | RCV-03 | Reliquat d'achat partiel conservé | — | M1§5 | P0 | — | En développement | D ✅ · C ❌ | — |
 | RCV-04 | Article libre → produit suivi | — | AUD | P1 | — | En développement | D 🟡 (non testé) · C ❌ | Unitaires |
 
@@ -262,10 +262,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | TKT-04 | Après validation : réceptions, prix, dépenses, produits inconnus | — | M3§4 | P1 | — | En développement | D ✅ · S 🟡 · C ❌ | Intégration |
 | TKT-05 | Jamais de stock depuis un OCR non vérifié | — | M3§4 | P0 | — | En développement | D ✅ (case explicite par ligne) | E2E |
 | TKT-06 | Apprentissage des libellés par magasin | — | M3§4 | P2 | — | En développement | D ✅ · C ❌ | — |
-| STORE-01 | Magasins : nom, adresse, notes | — | M3§5 | P1 | — | En développement | D ✅ · C ❌ | E2E |
-| STORE-02 | Historique des achats par magasin | — | M3§5 | P1 | BUD-01 | En développement | D ✅ données · C ❌ | E2E |
-| STORE-03 | Produits habituellement achetés par magasin | — | M3§5 | P2 | — | À développer | ❌ | Unitaires |
-| STORE-04 | Plusieurs magasins | Création, archivage | M1§10, M3§5 | P1 | — | En développement | D ✅ · C ❌ | — |
+| STORE-01 | Magasins : nom, adresse, notes | — | M3§5 | P1 | — | Testé et validé | C ✅ page Magasins (création, nom, adresse, notes, couleur) · `e2e/shopping.spec.ts` | E2E |
+| STORE-02 | Historique des achats par magasin | — | M3§5 | P1 | BUD-01 | Testé et validé | D ✅ `storeSummary` (shopping.test : passages, prix inconnus exclus, panier moyen sur passages chiffrés) · C ✅ fiche magasin · `e2e/shopping.spec.ts` (achat réceptionné visible avec son prix) | E2E |
+| STORE-03 | Produits habituellement achetés par magasin | — | M3§5 | P2 | — | Développé | D ✅ `storeSummary.usual` (≥ 2 achats, shopping.test) · C ✅ « Produits habituels » avec ajout à la liste — non couvert E2E | Unitaires |
+| STORE-04 | Plusieurs magasins | Création, archivage | M1§10, M3§5 | P1 | — | Testé et validé | C ✅ création (Courses › Magasins), archivage (Paramètres › Catalogue) · `e2e/shopping.spec.ts` | — |
 
 ## 16. Moteur d'approvisionnement
 
@@ -280,7 +280,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | ENG-07 | Prévision des réapprovisionnements | Date conseillée | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
 | ENG-08 | Quantités recommandées | Idéale, couverture, conditionnement | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
 | ENG-09 | Bientôt périmés, risque de gaspillage | — | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
-| ENG-10 | Éviter les achats en double | Liste déduite, « déjà prévu » | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
+| ENG-10 | Éviter les achats en double | Liste déduite, « déjà prévu » | M1§4 | P0 | — | Testé et validé | D ✅ quantité déjà prévue déduite des recommandations · C ✅ la recommandation disparaît une fois l’article dans la liste ; fiche produit « Dans la liste de courses : … » · `e2e/shopping.spec.ts` | — |
 | ENG-11 | Adaptation aux habitudes réelles | Pondération récente | M1§4 | P0 | — | En développement | D ✅ | — |
 | ENG-12 | Explication compréhensible | Phrase + détail | M1§4 | P0 | — | En développement | D ✅ (texte de l'exemple vérifié) · C ❌ | — |
 | ENG-13 | Niveaux de confiance | — | M1§4 | P0 | — | En développement | D ✅ · C ❌ | — |
@@ -308,7 +308,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| BUD-01 | Enregistrement des achats | Produit, quantité, prix, magasin, date, membre | M1§8 | P0 | — | En développement | D ✅ · S 🟡 · C ❌ | E2E |
+| BUD-01 | Enregistrement des achats | Produit, quantité, prix, magasin, date, membre | M1§8 | P0 | — | Développé | D ✅ · S ✅ · C ✅ achat enregistré à la réception (produit, quantité, prix facultatif, magasin, date, membre), visible dans l’historique · `e2e/shopping.spec.ts` ; écran Dépenses : phase 9 | E2E |
 | BUD-02 | Dépenses hebdomadaires | — | M1§8 | P1 | — | En développement | D ✅ · C ❌ | — |
 | BUD-03 | Dépenses mensuelles | — | M1§8 | P1 | — | En développement | D ✅ · C ❌ | — |
 | BUD-04 | Dépenses annuelles | — | M3§6 | P1 | — | En développement | D ✅ · C ❌ | — |
@@ -402,8 +402,8 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | UX-04 | Graphiques interactifs | — | M1§11 | P1 | — | À développer | ❌ | E2E |
 | UX-05 | Mode clair et sombre | — | M1§11 | P0 | — | En développement | C ✅ thème clair/sombre/auto (captures vérifiées) ; à étendre aux modules suivants | Captures |
 | UX-06 | Optimisation téléphone | — | M1§11 | P0 | — | En développement | C 🟡 mobile d’abord (onglets, feuilles, cibles ≥ 44 px) — en cours | E2E mobile |
-| UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | En développement | C ✅ navigation 6 rubriques + Scanner ; Inventaire, Courses, Prévisions en construction | E2E |
-| UX-08 | Mode courses optimisé magasin | — | M1§11 | P0 | SHOP-12 | À développer | ❌ | E2E mobile |
+| UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | En développement | C ✅ navigation 6 rubriques + Scanner ; Inventaire et Courses complets, Prévisions en construction | E2E |
+| UX-08 | Mode courses optimisé magasin | — | M1§11 | P0 | SHOP-12 | Testé et validé | Voir SHOP-12 · `e2e/shopping.spec.ts` | E2E mobile |
 | UX-09 | Scanner accessible partout | — | M2 | P0 | SCAN-01 | Développé | C ✅ bouton Scanner (téléphone : bouton flottant ; ordinateur : barre latérale) | E2E |
 | UX-10 | Accessibilité | Contrastes, cibles ≥ 44 px | AUD | P1 | — | En développement | C 🟡 libellés désormais reliés aux champs (défaut trouvé par les tests) ; audit complet à faire | Audit axe |
 | UX-11 | Chaque bouton fonctionne | — | M1§12 | P0 | — | À développer | ❌ | E2E exhaustif |
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 86 |
-| Développé | 51 |
-| En développement | 128 |
-| À développer | 27 |
+| Testé et validé | 109 |
+| Développé | 54 |
+| En développement | 107 |
+| À développer | 22 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |
