@@ -1,0 +1,107 @@
+/* HOMEOS — design tokens. Palette « lin & forêt » : chaleureuse, calme, lisible. */
+:root {
+  color-scheme: light;
+  --font: 'Manrope Variable', 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --bg: #f5f3ee;
+  --bg-elev: #faf9f6;
+  --surface: #ffffff;
+  --surface-2: #f2efe8;
+  --surface-3: #e9e5dc;
+  --border: #e5e0d5;
+  --border-strong: #d4cdbe;
+  --text: #17201b;
+  --text-2: #4a544e;
+  --text-3: #7a827c;
+  --text-on-primary: #ffffff;
+
+  --primary: #1f6f54;
+  --primary-strong: #175a44;
+  --primary-soft: #e3efe8;
+  --primary-ring: rgba(31, 111, 84, 0.28);
+  --accent: #c2702b;
+  --accent-soft: #f7eadb;
+  --danger: #bf3f2c;
+  --danger-soft: #fbe6e1;
+  --warning: #a86c12;
+  --warning-soft: #faefd6;
+  --success: #2c8456;
+  --success-soft: #e0f1e6;
+  --info: #2d5fa5;
+  --info-soft: #e3ebf7;
+
+  --r-xs: 8px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-full: 999px;
+
+  --shadow-1: 0 1px 2px rgba(30, 28, 20, 0.05), 0 1px 1px rgba(30, 28, 20, 0.03);
+  --shadow-2: 0 2px 6px rgba(30, 28, 20, 0.06), 0 8px 24px rgba(30, 28, 20, 0.06);
+  --shadow-3: 0 12px 40px rgba(20, 24, 18, 0.16), 0 2px 8px rgba(20, 24, 18, 0.08);
+
+  --fs-2xs: 11.5px;
+  --fs-xs: 12.5px;
+  --fs-sm: 13.5px;
+  --fs-base: 15px;
+  --fs-md: 16.5px;
+  --fs-lg: 19px;
+  --fs-xl: 23px;
+  --fs-2xl: 29px;
+  --fs-3xl: 36px;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --t-fast: 140ms;
+  --t-med: 240ms;
+
+  --topbar-h: 60px;
+  --tabbar-h: 68px;
+  --sidebar-w: 264px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0d1210;
+  --bg-elev: #111815;
+  --surface: #151d19;
+  --surface-2: #1b2520;
+  --surface-3: #232f29;
+  --border: #25312b;
+  --border-strong: #33423a;
+  --text: #e7eee9;
+  --text-2: #b3beb8;
+  --text-3: #83908a;
+  --text-on-primary: #05170f;
+
+  --primary: #4fbf8f;
+  --primary-strong: #6fd2a7;
+  --primary-soft: #16342a;
+  --primary-ring: rgba(79, 191, 143, 0.32);
+  --accent: #e39a57;
+  --accent-soft: #382816;
+  --danger: #f07a66;
+  --danger-soft: #3a1d18;
+  --warning: #e2b04f;
+  --warning-soft: #352a12;
+  --success: #5cc98e;
+  --success-soft: #15301f;
+  --info: #7ca8ea;
+  --info-soft: #172740;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.3);
+  --shadow-3: 0 16px 48px rgba(0, 0, 0, 0.55);
+}

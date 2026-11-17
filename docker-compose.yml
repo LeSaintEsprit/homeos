@@ -1,0 +1,20 @@
+services:
+  homeos:
+    build: .
+    image: homeos:latest
+    container_name: homeos
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    environment:
+      # Adresse publique (liens d'invitation et de réinitialisation), ex. https://homeos.exemple.fr
+      HOMEOS_PUBLIC_URL: ""
+      # invite (par défaut) | open | closed
+      HOMEOS_REGISTRATION: invite
+      # Derrière un proxy HTTPS (Cloudflare Tunnel, Caddy…) : 1
+      HOMEOS_TRUST_PROXY: "1"
+      # Facultatif : envoi d'e-mails avec votre propre boîte (invitations, mot de passe oublié)
+      # HOMEOS_SMTP_URL: "smtps://utilisateur:motdepasse@smtp.exemple.fr:465"
+      # HOMEOS_MAIL_FROM: "HOMEOS <homeos@exemple.fr>"

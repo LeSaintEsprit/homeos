@@ -2,7 +2,7 @@
   "name": "homeos",
   "version": "1.0.0",
   "private": true,
-  "description": "HOMEOS \u2014 gestion familiale intelligente des stocks et des courses",
+  "description": "HOMEOS — gestion familiale intelligente des stocks et des courses",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "workspaces": [
@@ -23,8 +23,9 @@
     "typecheck": "tsc -p packages/shared && tsc -p packages/server && tsc -p packages/web"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.5",
     "typescript": "5.9.3",
-    "vitest": "^5.1.0",
-    "@types/node": "^22.20.5"
+    "vitest": "^5.1.0"
   }
 }
