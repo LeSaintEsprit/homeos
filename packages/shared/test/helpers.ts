@@ -9,17 +9,17 @@ export class Harness {
   store: MemoryStore;
   now = '2026-11-02T08:00:00.000Z';
   userId = 'user-alice';
-  role: Role = 'owner';
+  role: Role = 'admin';
   cat: Record<string, string> = {};
   loc: Record<string, string> = {};
   results: OpResult[] = [];
 
   constructor() {
     this.store = MemoryStore.standalone(() => this.userId);
-    const h = { id: HH, householdId: HH, version: 0, name: 'Famille Test', currency: 'EUR', settings: { ...DEFAULT_SETTINGS }, createdAt: this.now, fv: {} };
+    const h = { id: HH, householdId: HH, version: 0, name: 'Famille Test', avatar: null, currency: 'EUR', settings: { ...DEFAULT_SETTINGS }, createdAt: this.now, createdBy: 'user-alice', fv: {} };
     this.store.put('household', h);
     for (const [u, name] of [['user-alice', 'Alice'], ['user-bob', 'Bob'], ['user-zoe', 'Zoé']]) {
-      this.store.put('member', { id: `m-${u}`, householdId: HH, version: 0, userId: u, name, email: `${u}@x.fr`, role: u === 'user-zoe' ? 'viewer' : 'owner', color: '#1F7A64', active: true, joinedAt: this.now, prefs: {} });
+      this.store.put('member', { id: `m-${u}`, householdId: HH, version: 0, userId: u, name, email: `${u}@x.fr`, role: u === 'user-zoe' ? 'viewer' : u === 'user-bob' ? 'member' : 'admin', color: '#1F7A64', active: true, joinedAt: this.now, prefs: {} });
     }
     DEFAULT_CATEGORIES.forEach((c, i) => {
       this.cat[c.key] = `cat-${c.key}`;
@@ -31,7 +31,7 @@ export class Harness {
     });
   }
 
-  as(userId: string, role: Role = 'owner') {
+  as(userId: string, role: Role = 'admin') {
     this.userId = userId;
     this.role = role;
     return this;

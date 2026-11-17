@@ -75,3 +75,17 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   digestHour: 8,
   pushImportant: true,
 };
+
+/** Avatars proposés à la création d'un foyer (emoji, aucun fichier requis). */
+export const HOUSEHOLD_AVATARS = ['🏡', '🏠', '🏘️', '🌳', '🌻', '🍀', '⭐', '❤️', '🐱', '🐶', '🏔️', '🌊', '☀️', '🍎', '🧺', '🔑'];
+
+export const CURRENCIES: { code: string; label: string }[] = [
+  { code: 'EUR', label: 'Euro (€)' },
+  { code: 'CHF', label: 'Franc suisse (CHF)' },
+  { code: 'CAD', label: 'Dollar canadien ($ CA)' },
+  { code: 'USD', label: 'Dollar américain ($)' },
+  { code: 'GBP', label: 'Livre sterling (£)' },
+  { code: 'XOF', label: 'Franc CFA BCEAO' },
+  { code: 'XAF', label: 'Franc CFA BEAC' },
+  { code: 'MAD', label: 'Dirham marocain' },
+];

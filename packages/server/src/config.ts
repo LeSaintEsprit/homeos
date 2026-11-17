@@ -18,6 +18,11 @@ export interface Config {
   publicUrl: string | null;
   vapidSubject: string;
   schedulers: boolean;
+  /** SMTP facultatif (votre propre boîte), ex. smtps://utilisateur:motdepasse@smtp.exemple.fr:465 */
+  smtpUrl: string | null;
+  mailFrom: string | null;
+  /** Durée de conservation des opérations traitées (idempotence). */
+  processedOpsDays: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Partial<Config> = {}): Config {
@@ -40,6 +45,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     publicUrl: env.HOMEOS_PUBLIC_URL ?? null,
     vapidSubject: env.HOMEOS_VAPID_SUBJECT ?? 'mailto:admin@homeos.local',
     schedulers: env.HOMEOS_SCHEDULERS !== '0',
+    smtpUrl: env.HOMEOS_SMTP_URL || null,
+    mailFrom: env.HOMEOS_MAIL_FROM || null,
+    processedOpsDays: Number(env.HOMEOS_PROCESSED_OPS_DAYS ?? 180),
     ...overrides,
   };
 }

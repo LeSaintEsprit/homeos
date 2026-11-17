@@ -569,19 +569,21 @@ const householdUpdate: H<'household.update'> = (ctx, { patch, baseVersion }) => 
   const flat: Record<string, unknown> = {};
   if (patch.name !== undefined) flat.name = patch.name;
   if (patch.currency !== undefined) flat.currency = patch.currency;
+  if (patch.avatar !== undefined) flat.avatar = patch.avatar;
   for (const [k, v] of Object.entries(patch.settings ?? {})) if (v !== undefined) flat[`settings.${k}`] = v;
   const view: Record<string, unknown> & { id: string; fv: FieldVersions } = {
     id: h.id,
     fv: h.fv,
     name: h.name,
+    avatar: h.avatar,
     currency: h.currency,
     ...Object.fromEntries(Object.entries(h.settings).map(([k, v]) => [`settings.${k}`, v])),
   };
-  const { next, touched } = patchWithConflicts(ctx, 'household', view, flat, baseVersion, { name: 'Nom du foyer' });
+  const { next, touched } = patchWithConflicts(ctx, 'household', view, flat, baseVersion, { name: 'Nom du foyer', avatar: 'Avatar', currency: 'Devise' });
   if (!touched.length) return;
   const settings = { ...h.settings };
   for (const k of touched) if (k.startsWith('settings.')) (settings as Record<string, unknown>)[k.slice(9)] = next[k];
-  put(ctx, 'household', { ...h, name: next.name as string, currency: next.currency as string, settings }, touched);
+  put(ctx, 'household', { ...h, name: next.name as string, avatar: (next.avatar as string | null) ?? null, currency: next.currency as string, settings }, touched);
   log(ctx, 'a modifié les réglages du foyer', 'household', h.id);
 };
 

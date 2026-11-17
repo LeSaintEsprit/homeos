@@ -301,7 +301,7 @@ describe('conflits et droits', () => {
   it('réserve les réglages du foyer aux administrateurs', () => {
     const v = h.store.get('household', 'hh-test-0001')!.version;
     expect(h.as('user-bob', 'member').exec('household.update', { patch: { name: 'X' }, baseVersion: v }).error?.code).toBe('forbidden');
-    h.as('user-alice', 'owner').ok('household.update', { patch: { settings: { monthlyBudgetCents: 60000 } }, baseVersion: v });
+    h.as('user-alice', 'admin').ok('household.update', { patch: { settings: { monthlyBudgetCents: 60000 } }, baseVersion: v });
     expect(h.store.get('household', 'hh-test-0001')!.settings.monthlyBudgetCents).toBe(60000);
   });
 
@@ -418,5 +418,20 @@ describe('tickets de caisse', () => {
     expect(h.store.get('product', lait)!.aliases).toEqual([{ text: 'LAIT DEMI ECR 1L', kind: 'receipt', storeId: store }]);
     expect(h.store.list('movement', { productId: lait })[0]).toMatchObject({ type: 'purchase', source: 'receipt' });
     h.assertInvariants();
+  });
+});
+
+describe('matrice des permissions', () => {
+  it('chaque opération exige une permission, accordée selon les 3 rôles', async () => {
+    const { OP_TYPES, OP_PERMISSIONS, can, ROLES } = await import('@homeos/shared');
+    expect(ROLES).toEqual(['admin', 'member', 'viewer']);
+    for (const t of OP_TYPES) expect(OP_PERMISSIONS[t], t).toBeTruthy();
+    const allowed = (r: 'admin' | 'member' | 'viewer') => OP_TYPES.filter((t) => can(r, OP_PERMISSIONS[t]));
+    expect(allowed('viewer')).toEqual(['member.updateSelf']);
+    expect(allowed('member')).not.toContain('household.update');
+    expect(allowed('member').length).toBe(OP_TYPES.length - 1);
+    expect(allowed('admin').length).toBe(OP_TYPES.length);
+    expect(can('member', 'members.manage')).toBe(false);
+    expect(can('admin', 'platform.invite')).toBe(true);
   });
 });

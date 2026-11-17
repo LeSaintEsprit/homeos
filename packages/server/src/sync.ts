@@ -25,6 +25,12 @@ export interface PushContext {
   userId: string;
   role: Role;
   timezone: string;
+  /**
+   * Âge maximal (jours) d'une opération non encore traitée. Au-delà, elle est refusée :
+   * le journal d'idempotence est purgé après une durée plus longue, ce qui garantit
+   * qu'une opération ne peut jamais être appliquée deux fois.
+   */
+  maxOpAgeDays?: number;
 }
 
 export interface PushOutcome {
@@ -79,6 +85,20 @@ export function pushOps(db: Db, rawOps: unknown[], ctx: PushContext, log?: (e: u
       continue;
     }
     const now = new Date().toISOString();
+    const maxAge = ctx.maxOpAgeDays ?? 150;
+    const t = Date.parse(op.clientTime);
+    if (!Number.isNaN(t) && t < Date.now() - maxAge * 86_400_000) {
+      const result: OpResult = {
+        opId: op.opId,
+        status: 'rejected',
+        warnings: [],
+        conflicts: [],
+        error: { code: 'too_old', message: `Modification enregistrée hors ligne il y a plus de ${maxAge} jours : refusée par sécurité. Vérifiez la date de l'appareil et refaites l'action si nécessaire.` },
+      };
+      db.tx(() => record(db, op, ctx, result, now));
+      out.results.push(result);
+      continue;
+    }
     try {
       const res = db.tx(() => {
         const store = new SqlStore(db, ctx.householdId, ctx.userId);

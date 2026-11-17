@@ -10,18 +10,22 @@ export interface TableDef {
   indexes?: string[];
 }
 
-const FK = (col: string, table: string) => `FOREIGN KEY (${col}) REFERENCES ${table}(id) DEFERRABLE INITIALLY DEFERRED`;
+/**
+ * Clé étrangère COMPOSITE (householdId, colonne) → (householdId, id) : la base refuse
+ * physiquement qu'une donnée référence une donnée d'un autre foyer.
+ */
+const FK = (col: string, table: string) => `FOREIGN KEY (householdId, ${col}) REFERENCES ${table}(householdId, id) DEFERRABLE INITIALLY DEFERRED`;
 
 /** Registre des tables d'entités synchronisées (nom de colonne = nom de champ). */
 export const TABLES: Record<EntityType, TableDef> = {
   household: {
     table: 'households',
-    cols: { name: 'text', currency: 'text', settings: 'json', createdAt: 'text', fv: 'json' },
+    cols: { name: 'text', avatar: 'text', currency: 'text', settings: 'json', createdAt: 'text', createdBy: 'text', fv: 'json' },
   },
   member: {
     table: 'members',
     cols: { userId: 'text', name: 'text', email: 'text', role: 'text', color: 'text', active: 'bool', joinedAt: 'text', prefs: 'json' },
-    extra: ["CHECK (role IN ('owner','admin','member','viewer'))"],
+    extra: ["CHECK (role IN ('admin','member','viewer'))"],
     indexes: ['CREATE UNIQUE INDEX IF NOT EXISTS ux_members_user ON members(householdId, userId)', 'CREATE INDEX IF NOT EXISTS ix_members_userid ON members(userId)'],
   },
   category: { table: 'categories', cols: { name: 'text', icon: 'text', color: 'text', sort: 'int', archived: 'bool' } },
@@ -76,7 +80,7 @@ export const TABLES: Record<EntityType, TableDef> = {
       assignedTo: 'text', status: 'text', purchasedQty: 'real', purchasedBy: 'text', purchasedAt: 'text', priceCents: 'int', receivedAt: 'text',
       source: 'text', requests: 'json', createdAt: 'text', createdBy: 'text', updatedAt: 'text', updatedBy: 'text', fv: 'json',
     },
-    extra: [FK('productId', 'products'), 'CHECK (quantity > 0)', 'CHECK (purchasedQty >= 0)'],
+    extra: [FK('productId', 'products'), FK('categoryId', 'categories'), FK('storeId', 'stores'), 'CHECK (quantity > 0)', 'CHECK (purchasedQty >= 0)'],
     indexes: ['CREATE INDEX IF NOT EXISTS ix_items_product ON shoppingItems(productId)'],
   },
   purchase: {
@@ -85,10 +89,17 @@ export const TABLES: Record<EntityType, TableDef> = {
       productId: 'text', name: 'text', categoryId: 'text', quantity: 'real', unit: 'text', totalCents: 'int', discountCents: 'int', storeId: 'text',
       userId: 'text', date: 'text', shoppingItemId: 'text', lotId: 'text', receiptId: 'text', note: 'text', createdAt: 'text',
     },
-    extra: ['CHECK (totalCents IS NULL OR totalCents >= 0)'],
+    extra: [
+      FK('productId', 'products'), FK('categoryId', 'categories'), FK('storeId', 'stores'), FK('lotId', 'lots'),
+      FK('shoppingItemId', 'shoppingItems'), FK('receiptId', 'receipts'), 'CHECK (totalCents IS NULL OR totalCents >= 0)',
+    ],
     indexes: ['CREATE INDEX IF NOT EXISTS ix_pu_product ON purchases(productId)'],
   },
-  receipt: { table: 'receipts', cols: { storeId: 'text', date: 'text', totalCents: 'int', lines: 'json', createdAt: 'text', createdBy: 'text' } },
+  receipt: {
+    table: 'receipts',
+    cols: { storeId: 'text', date: 'text', totalCents: 'int', lines: 'json', createdAt: 'text', createdBy: 'text' },
+    extra: [FK('storeId', 'stores')],
+  },
   inventorySession: {
     table: 'inventorySessions',
     cols: {
@@ -118,7 +129,13 @@ export function entityTableDDL(type: EntityType): string[] {
   version INTEGER NOT NULL,
 ${[...cols, ...hhFk, ...(def.extra ?? []).map((e) => `  ${e}`)].join(',\n')}
 )`;
-  return [ddl, `CREATE INDEX IF NOT EXISTS ix_${def.table}_hv ON ${def.table}(householdId, version)`, ...(def.indexes ?? [])];
+  return [
+    ddl,
+    `CREATE INDEX IF NOT EXISTS ix_${def.table}_hv ON ${def.table}(householdId, version)`,
+    // Cible des clés étrangères composites.
+    `CREATE UNIQUE INDEX IF NOT EXISTS ux_${def.table}_hid ON ${def.table}(householdId, id)`,
+    ...(def.indexes ?? []),
+  ];
 }
 
 export const SERVER_DDL = [
@@ -145,12 +162,31 @@ export const SERVER_DDL = [
     householdId TEXT NOT NULL REFERENCES households(id) ON DELETE CASCADE,
     code TEXT NOT NULL UNIQUE,
     role TEXT NOT NULL CHECK (role IN ('admin','member','viewer')),
+    email TEXT,
     createdBy TEXT NOT NULL,
     createdAt TEXT NOT NULL,
     expiresAt TEXT NOT NULL,
     maxUses INTEGER NOT NULL,
     uses INTEGER NOT NULL DEFAULT 0,
     revokedAt TEXT
+  )`,
+  `CREATE TABLE IF NOT EXISTS platform_invitations (
+    id TEXT PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    createdBy TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    expiresAt TEXT NOT NULL,
+    maxUses INTEGER NOT NULL,
+    uses INTEGER NOT NULL DEFAULT 0,
+    revokedAt TEXT
+  )`,
+  `CREATE TABLE IF NOT EXISTS password_resets (
+    tokenHash TEXT PRIMARY KEY,
+    userId TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    createdBy TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    expiresAt TEXT NOT NULL,
+    usedAt TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS processed_ops (
     opId TEXT PRIMARY KEY,
@@ -160,6 +196,7 @@ export const SERVER_DDL = [
     result TEXT NOT NULL,
     at TEXT NOT NULL
   )`,
+  `CREATE INDEX IF NOT EXISTS ix_processed_at ON processed_ops(at)`,
   `CREATE TABLE IF NOT EXISTS id_aliases (
     householdId TEXT NOT NULL,
     type TEXT NOT NULL,

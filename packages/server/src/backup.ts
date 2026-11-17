@@ -3,6 +3,10 @@ import { randomUUID, createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import type { Db } from './db';
+import { ENTITY_TYPES, type AnyEntity, type EntityType } from '@homeos/shared';
+import { TABLES } from './schema';
+import { rowToEntity } from './sqlStore';
+import { EXPORT_FORMAT, EXPORT_VERSION, type ExportFile } from './exportImport';
 
 export type BackupReason = 'auto' | 'manual' | 'pre-import' | 'pre-restore' | 'pre-delete';
 
@@ -68,6 +72,11 @@ export class BackupManager {
     for (let i = 1; existsSync(join(this.dir, name)); i++) name = `homeos-${reason}-${stamp()}-${i}.db`;
     const path = join(this.dir, name);
     await this.db.raw.backup(path);
+    // Fichier autonome : la copie hérite du mode WAL de la base ; on la repasse en
+    // journal classique pour qu'elle tienne en UN fichier (sans -wal/-shm à côté).
+    const copy = new Database(path);
+    copy.pragma('journal_mode = DELETE');
+    copy.close();
     const v = verifyBackupFile(path);
     const info: BackupInfo = {
       name,
@@ -135,7 +144,7 @@ export class BackupManager {
     others.filter((b) => Date.now() - Date.parse(b.createdAt) < 30 * 86_400_000).slice(0, 20).forEach((b) => keep.add(b.name));
     for (const b of all) {
       if (keep.has(b.name)) continue;
-      for (const f of [b.name, `${b.name}.json`]) {
+      for (const f of [b.name, `${b.name}.json`, `${b.name}-wal`, `${b.name}-shm`]) {
         const p = join(this.dir, f);
         if (existsSync(p)) unlinkSync(p);
       }
@@ -161,4 +170,51 @@ export class BackupManager {
     this.db.setMeta('epoch', epoch);
     return { safety, epoch };
   }
+}
+
+/**
+ * Extrait UN foyer d'un fichier de sauvegarde (lecture seule), au format d'export.
+ * Permet de restaurer une famille sans toucher aux autres familles de l'instance.
+ */
+export function extractHousehold(path: string, householdId: string): ExportFile | null {
+  const db = new Database(path, { readonly: true, fileMustExist: true });
+  try {
+    const h = db.prepare('SELECT * FROM households WHERE id = ?').get(householdId) as Record<string, unknown> | undefined;
+    if (!h) return null;
+    const entities: Partial<Record<EntityType, AnyEntity[]>> = {};
+    for (const t of ENTITY_TYPES) {
+      const def = TABLES[t];
+      // Colonnes ajoutées après la sauvegarde : valeurs par défaut.
+      const cols = new Set((db.prepare(`PRAGMA table_info(${def.table})`).all() as { name: string }[]).map((c) => c.name));
+      if (!cols.size) continue;
+      const rows = db.prepare(`SELECT * FROM ${def.table} WHERE householdId = ? ORDER BY version`).all(householdId) as Record<string, unknown>[];
+      entities[t] = rows.map((r) => rowToEntity(t, r));
+    }
+    const photos = (db.prepare('SELECT id, mime, data FROM photos WHERE householdId = ?').all(householdId) as { id: string; mime: string; data: Buffer }[]).map((p) => ({
+      id: p.id,
+      mime: p.mime,
+      data: p.data.toString('base64'),
+    }));
+    return { format: EXPORT_FORMAT, version: EXPORT_VERSION, exportedAt: new Date().toISOString(), householdId, householdName: String(h.name), entities, photos };
+  } finally {
+    db.close();
+  }
+}
+
+/** Sauvegardes vérifiées contenant ce foyer (les plus récentes d'abord). */
+export function backupsContaining(manager: BackupManager, householdId: string): BackupInfo[] {
+  const out: BackupInfo[] = [];
+  for (const b of manager.list()) {
+    if (!b.verified) continue;
+    let db: Database.Database | null = null;
+    try {
+      db = new Database(manager.path(b.name), { readonly: true, fileMustExist: true });
+      if (db.prepare('SELECT 1 FROM households WHERE id = ?').get(householdId)) out.push(b);
+    } catch {
+      /* sauvegarde illisible : ignorée */
+    } finally {
+      db?.close();
+    }
+  }
+  return out;
 }

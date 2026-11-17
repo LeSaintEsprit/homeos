@@ -11,6 +11,7 @@ export * from './memoryStore';
 export * from './commands/context';
 export * from './commands/schemas';
 export * from './commands/execute';
+export * from './commands/permissions';
 export { HANDLERS } from './commands/handlers';
 export * from './engine/engine';
 export * from './engine/prices';

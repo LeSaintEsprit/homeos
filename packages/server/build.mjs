@@ -1,12 +1,12 @@
 import { build } from 'esbuild';
 await build({
-  entryPoints: ['src/server.ts'],
+  entryPoints: { server: 'src/server.ts', cli: 'src/cli.ts' },
   bundle: true,
   platform: 'node',
   target: 'node20',
   format: 'esm',
-  outfile: 'dist/server.js',
-  external: ['better-sqlite3', 'web-push'],
+  outdir: 'dist',
+  external: ['better-sqlite3', 'web-push', 'nodemailer'],
   sourcemap: true,
   banner: { js: "import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);" },
   alias: { '@homeos/shared': '../shared/src/index.ts' },

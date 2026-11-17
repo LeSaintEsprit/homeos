@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.0 — 17/11/2026 — après consolidation M1–M5 et audit du code. (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.1 — 17/11/2026 — phase 1 terminée. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -70,13 +70,13 @@ Rien (pas encore d'interface).
 ### 1.8 À corriger
 | # | Constat | Exigence | Action |
 |---|---|---|---|
-| A1 | 4 rôles (propriétaire/admin/membre/lecture) au lieu de 3 | M4§4 (C1) | Refonte des rôles + protection « dernier administrateur ». |
-| A2 | Permissions codées en dur (`VIEWER_OPS`, `ADMIN_OPS`) | M4§4 | Matrice de permissions nommées. |
-| A3 | La réponse de recherche de code-barres expose `cached`, qui révèle qu'un **autre foyer** a déjà scanné ce code | M4§6 | Retirer l'information (et uniformiser le temps de réponse si nécessaire). |
-| A4 | Inscription par défaut « sur invitation d'un foyer » : une autre famille ne peut pas créer son propre foyer sans être invitée dans le vôtre | M4§9 | Invitation plateforme (décision D1). |
-| A5 | Création de foyer limitée au nom | M4§2 | Avatar, devise, paramètres, préférences de notification. |
-| A6 | `processed_ops` croît sans limite | Fiabilité | Rétention sûre (ex. 180 jours). |
-| A7 | La restauration complète touche toutes les familles d'une instance | M4 (C7) | Restauration par foyer ; restauration complète réservée à l'hébergeur avec avertissement. |
+| A1 | 4 rôles (propriétaire/admin/membre/lecture) au lieu de 3 | M4§4 (C1) | ✅ Corrigé (phase 1) : 3 rôles, dernier administrateur protégé. |
+| A2 | Permissions codées en dur (`VIEWER_OPS`, `ADMIN_OPS`) | M4§4 | ✅ Corrigé : `OP_PERMISSIONS` + `ROLE_PERMISSIONS`. |
+| A3 | La réponse de recherche de code-barres expose `cached`, qui révèle qu'un **autre foyer** a déjà scanné ce code | M4§6 | ✅ Corrigé : champ retiré (le temps de réponse plus court d'un code en cache reste un indice mineur, accepté). |
+| A4 | Inscription par défaut « sur invitation d'un foyer » : une autre famille ne peut pas créer son propre foyer sans être invitée dans le vôtre | M4§9 | ✅ Corrigé : invitations plateforme (D1). |
+| A5 | Création de foyer limitée au nom | M4§2 | ✅ Corrigé (API) ; écran à faire en phase 2. |
+| A6 | `processed_ops` croît sans limite | Fiabilité | ✅ Corrigé : purge à 180 jours, opérations de plus de 150 jours refusées (aucune double application possible). |
+| A7 | La restauration complète touche toutes les familles d'une instance | M4 (C7) | ✅ Corrigé (API) : restauration d'un foyer en nouveau foyer ; restauration complète réservée à l'hébergeur. |
 | A8 | Tracker / statuts : le plan v1 ne distinguait pas les couches | M5§4 | Fait : statut + avancement par couche. |
 
 ### 1.9 Refontes techniques nécessaires (avant de construire dessus)
@@ -104,13 +104,18 @@ Exigences présentes dans les messages mais absentes ou incomplètes dans le pla
 ### Phase 0 — Consolidation ✅ (17/11/2026)
 MASTER_SPEC, FEATURE_TRACKER, PROJECT_PLAN v2, audit. **Sortie** : documents créés, audit consigné, décisions D1–D5 soumises.
 
-### Phase 1 — Fondations multi-foyers et sécurité (P0)
+### Phase 1 — Fondations multi-foyers et sécurité (P0) ✅ (17/11/2026)
 **Contenu** : refonte en 3 rôles + matrice de permissions (A1, A2) ; clés étrangères composites (ISO-05) ; création de foyer complète (avatar, devise, paramètres, préférences de notification — A5) ; invitation plateforme et politique d'inscription (A4, D1) ; récupération du mot de passe, changement d'e-mail (D2) ; invitation par e-mail (D2) ; suppression de compte et export des données personnelles ; retrait du champ `cached` (A3) ; rétention de `processed_ops` (A6) ; restauration d'un seul foyer (A7).
 **Tests** : suite d'intégration serveur complète (comptes, sessions, limitation, CSRF, invitations, rôles, retrait, sync, idempotence par rejeu, concurrence, ordre hors ligne, alias, export/import aller-retour, sauvegarde → restauration → données identiques, push simulé, proxy codes-barres simulé) ; **suite d'isolation A1/A2/B1/B2 complète** (MASTER_SPEC §6.3) ; **semaine familiale sur la pile serveur** (deux membres, deux appareils, rejeux).
 **Sortie** : tous ces tests verts ; ISO-*, MEM-*, ACC-*, SYNC-01/03/09, BAK-01..09 au statut « Développé » ou mieux côté serveur.
 **Dépend de** : décisions D1, D2 (des valeurs par défaut permettent d'avancer).
 
-### Phase 2 — Socle client
+**Bilan de la phase 1** — critères de sortie atteints :
+- Réalisé : 3 rôles + matrice de permissions nommées ; clés étrangères composites `(householdId, id)` ; création de foyer complète (avatar, devise, fuseau, paramètres, préférences de notification) ; invitations de foyer (code, lien, e-mail via SMTP ou `mailto:`, réservées à une adresse) ; invitations plateforme ; mot de passe oublié (SMTP en libre-service, lien administrateur serveur, commande serveur) ; changement d'e-mail et de nom répercuté ; export des données personnelles et suppression de compte avec anonymisation ; retrait du champ `cached` ; refus des opérations hors ligne de plus de 150 jours + purge quotidienne du journal d'idempotence (180 jours) ; restauration d'un seul foyer ; routes réparties en modules ; outil en ligne de commande.
+- Vérifié : **59 tests serveur** (comptes 12, foyers 11, synchronisation 9, **isolation A1/A2/B1/B2 11**, données 8, services 6, **semaine familiale sur 3 appareils** 1, fumée 1) + 77 tests du domaine = **136 tests verts** ; serveur compilé pour la production, démarré réellement (sauvegarde automatique au démarrage, outil en ligne de commande).
+- Défauts trouvés et corrigés pendant la phase : l'heure du récapitulatif push était lue « 08 h » en français (le récapitulatif ne serait **jamais** parti) ; chaque sauvegarde laissait des fichiers `-wal`/`-shm` à côté d'elle (désormais un fichier autonome) ; le serveur plantait au démarrage (import `web-push`, corrigé lors de l'audit).
+
+### Phase 2 — Socle client ← **prochaine étape**
 **Contenu** : PWA (Vite, service worker, manifeste, icônes) ; **design system** (couleurs, typographie Manrope, composants, cartes, feuilles, animations, clair/sombre) ; coquille d'application (navigation 6 rubriques, barre latérale ordinateur, bouton Scanner central) ; **sélecteur de foyer + nom du foyer actif** ; réplique IndexedDB **par foyer**, outbox, prédiction optimiste (`MemoryStore`), SSE, indicateur de synchronisation, écran des conflits/rejets, hors ligne, époque, purge d'un foyer quitté ; parcours d'accueil (inscription, connexion, créer/rejoindre un foyer, lien d'invitation) ; Dockerfile minimal pour tester sur de vrais téléphones en HTTPS.
 **Tests** : E2E inscription → foyer → invitation → second membre ; hors ligne → reconnexion sans perte ; bascule entre deux foyers sans mélange ; mobile émulé (iPhone, Android).
 **Sortie** : MULTI-*, SYNC-02/04/05/06/08/10/12, HH-02, MEM-01/02/05 « Testé et validé ».

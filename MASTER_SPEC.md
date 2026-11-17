@@ -130,7 +130,7 @@ Chaque enregistrement métier porte `householdId` : produits, codes-barres, lots
 
 ### 5.1 Comptes utilisateurs (M4§1)
 - Inscription (e-mail, mot de passe ≥ 8 caractères, nom), connexion, déconnexion.
-- **Récupération du mot de passe** : voir décision D2 (§16).
+- **Récupération du mot de passe** : décision D2 (§16.2) — SMTP facultatif en libre-service, sinon lien à usage unique généré par l'administrateur du serveur ou par une commande sur le serveur.
 - Profil : nom, couleur, préférences ; modification des informations personnelles (nom, e-mail, mot de passe — le changement de mot de passe déconnecte les autres appareils).
 - Mots de passe hachés (scrypt + sel), sessions par cookie `HttpOnly`/`SameSite=Lax`/`Secure` (HTTPS), limitation des tentatives.
 - **Protection des données personnelles** (M3§10) : export de ses données, suppression de son compte (anonymisation de l'historique : les mouvements restent attribués à « ancien membre »).
@@ -336,6 +336,7 @@ Détection (sans correction automatique) : quantité négative ; Σ mouvements �
 ### 14.1 Synchronisation (M1§12, M4§7)
 - Outbox IndexedDB : une opération reste « en attente » **tant que le serveur ne l'a pas confirmée** ; indicateur visible (synchronisé / en attente (n) / hors ligne / problème).
 - Idempotence par `opId` (résultat enregistré dans la même transaction que les écritures) ; ordre des opérations d'un appareil conservé.
+- Une opération restée hors ligne **plus de 150 jours** est refusée (message explicite) ; le journal d'idempotence est conservé 180 jours : une opération ne peut donc jamais être appliquée deux fois.
 - Pull incrémental paginé (curseur `seq`), temps réel par SSE, repli au retour au premier plan / en ligne / toutes les 60 s ; **époque** (`epoch`) : resynchronisation complète après restauration.
 - Conflits : deltas commutatifs ; correction de stock avec quantité attendue ; versions par champ (fusion des champs non concurrents, choix utilisateur pour les autres) ; fusion des doublons de liste avec alias d'identifiant ; « déjà acheté par X ».
 - Résultats : appliqué, appliqué avec avertissements, conflit, rejeté — tous visibles.
@@ -345,7 +346,8 @@ Détection (sans correction automatique) : quantité négative ; Σ mouvements �
 ### 14.2 Sauvegardes et restauration (M1§12, M3§10)
 - **Sauvegardes automatiques** quotidiennes (API de sauvegarde en ligne SQLite), **versionnées** (14 quotidiennes + 12 mensuelles), avant chaque import, restauration ou suppression de foyer.
 - **Chaque sauvegarde est vérifiée** (réouverture, `integrity_check`, clés étrangères, lecture des tables) et documentée (taille, empreinte SHA-256, comptages).
-- **Restauration** : serveur complet (administrateur du serveur, sauvegarde préalable, nouvelle époque) ; **restauration d'un seul foyer** sans affecter les autres familles (extraction depuis une sauvegarde).
+- **Restauration** : serveur complet (administrateur du serveur uniquement, sauvegarde préalable, nouvelle époque) ; **restauration d'un seul foyer** par un administrateur de ce foyer, sans affecter les autres familles : les données du foyer à la date choisie sont recréées dans un **nouveau foyer** « (restauré du JJ/MM/AAAA) », avec ses membres et leurs rôles ; l'original n'est jamais écrasé.
+- Chaque sauvegarde est un **fichier autonome** (journal SQLite classique, sans fichiers annexes), accompagné d'une fiche JSON.
 - **Export complet** JSON (avec photos) et CSV (inventaire, achats, mouvements) ; **import complet** (nouveau foyer, identifiants régénérés, contrôle d'intégrité).
 - **Un export n'est pas une sauvegarde automatique** ; les deux existent.
 - **Test automatisé** : sauvegarde → restauration → données identiques.
@@ -377,14 +379,21 @@ Détection (sans correction automatique) : quantité négative ; Σ mouvements �
 | C7 | Restauration d'une sauvegarde serveur ↔ plateforme multi-familles (M4) | Restauration complète réservée à l'hébergeur, avec avertissement ; ajout de la **restauration d'un seul foyer**. |
 | C8 | « Row Level Security si SQL » (M4§6) ↔ SQLite sans RLS | Isolation par couche d'accès obligatoire + vérification serveur + **clés étrangères composites** + tests d'isolation. PostgreSQL/RLS reste une option future. |
 
-### 16.2 Décisions à valider par vous (aucune n'est irréversible)
-| # | Sujet | Proposition par défaut |
+### 16.2 Décisions validées (17/11/2026 — « je te fais confiance, vas-y »)
+Les propositions par défaut ont été adoptées. Elles restent modifiables.
+
+| # | Sujet | Décision retenue |
 |---|---|---|
-| **D1** | **Inscription sur la plateforme** : qui peut créer un compte et un foyer (ex. votre sœur) ? | Par défaut, inscription sur **code d'invitation** : invitation à rejoindre un foyer existant, ou **« invitation plateforme »** (créée par l'hébergeur ou par un administrateur de foyer) pour qu'une autre famille crée son propre foyer. Option « inscription ouverte » activable. |
-| **D2** | **E-mails** (invitation par e-mail, mot de passe oublié) sans service payant | **SMTP facultatif** avec votre propre boîte (gratuit) ; sans SMTP : invitation par e-mail via l'application de messagerie de l'appareil (lien pré-rempli) et réinitialisation du mot de passe par **lien à usage unique** généré par un administrateur du foyer ou de la plateforme, ou par une commande sur le serveur. |
-| **D3** | **Suppression d'un foyer** avec 3 rôles | Tout administrateur, avec double confirmation (nom du foyer) et sauvegarde préalable automatique. |
-| **D4** | **Confidentialité vis-à-vis de l'hébergeur** : la personne qui héberge l'instance peut techniquement lire la base | Isolation garantie entre familles dans l'application ; transparence affichée aux foyers hébergés ; chiffrement de bout en bout **reporté** (il empêcherait le moteur et les récapitulatifs côté serveur). Alternative : une instance par famille. |
-| **D5** | Périmètre de **tâches ménagères**, **planification des repas**, **gestion des restes** | À spécifier ensemble avant développement (P3/P4). |
+| **D1** | **Inscription sur la plateforme** | Le premier compte de l'instance est libre (il devient administrateur du serveur). Ensuite, inscription **sur code** : soit une **invitation de foyer** (rejoindre un foyer existant), soit une **invitation plateforme** (créer son propre foyer), générée par l'administrateur du serveur **ou par tout administrateur de foyer**. Mode « inscription ouverte » activable par configuration (`HOMEOS_REGISTRATION=open`). |
+| **D2** | **E-mails sans service payant** | **SMTP facultatif** avec votre propre boîte (gratuit) pour : invitation par e-mail, « mot de passe oublié » en libre-service. Sans SMTP : l'invitation par e-mail ouvre l'application de messagerie de l'appareil avec un message pré-rempli (lien `mailto:`) ; la réinitialisation se fait par un **lien à usage unique (24 h)** généré par **l'administrateur du serveur** (interface ou commande sur le serveur). **Précision de sécurité** : un administrateur de foyer ne peut **pas** générer ce lien, car il pourrait ainsi prendre le contrôle d'un compte qui appartient aussi à d'autres foyers. |
+| **D3** | **Suppression d'un foyer** | Tout administrateur du foyer, avec double confirmation (saisie du nom) et sauvegarde automatique préalable. |
+| **D4** | **Confidentialité vis-à-vis de l'hébergeur** | Isolation stricte entre familles dans l'application ; **information claire** des foyers hébergés : la personne qui héberge l'instance peut techniquement accéder à la base. Chiffrement de bout en bout reporté (P4). Alternative documentée : une instance par famille. |
+| **D5** | **Repas, restes, tâches ménagères** | Inscrits en P4, à spécifier ensemble avant développement. |
+
+Règles complémentaires découlant de D1/D2 :
+- Une invitation de foyer peut être **réservée à une adresse e-mail** : seul un compte avec cette adresse peut l'accepter.
+- « Mot de passe oublié » répond toujours le même message, que l'adresse existe ou non (aucune énumération des comptes).
+- Une réinitialisation déconnecte tous les appareils du compte.
 
 ---
 

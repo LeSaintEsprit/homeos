@@ -1,18 +1,77 @@
 import type { UnitCode } from './units';
 
-export type Role = 'owner' | 'admin' | 'member' | 'viewer';
+export type Role = 'admin' | 'member' | 'viewer';
+
+export const ROLES: Role[] = ['admin', 'member', 'viewer'];
 
 export const ROLE_LABELS: Record<Role, string> = {
-  owner: 'Propriétaire',
   admin: 'Administrateur',
   member: 'Membre',
   viewer: 'Lecture seule',
 };
 
-export const ROLE_RANK: Record<Role, number> = { viewer: 0, member: 1, admin: 2, owner: 3 };
+export const ROLE_DESCRIPTIONS: Record<Role, string> = {
+  admin: 'Gère le foyer, les membres et les autorisations ; accès à toutes les fonctionnalités.',
+  member: 'Gère les produits, les stocks, les scans, la liste de courses et les achats ; consulte les statistiques.',
+  viewer: 'Consulte les stocks, les listes et les informations du foyer, sans rien modifier.',
+};
 
-export function hasRole(role: Role, min: Role): boolean {
-  return ROLE_RANK[role] >= ROLE_RANK[min];
+/**
+ * Permissions nommées. Chaque opération et chaque route sensible exige une permission ;
+ * chaque rôle accorde un ensemble de permissions. Des permissions plus fines (par
+ * membre) pourront être ajoutées sans modifier les opérations.
+ */
+export type Permission =
+  | 'data.read'
+  | 'self.update'
+  | 'catalog.write'
+  | 'stock.write'
+  | 'shopping.write'
+  | 'purchase.write'
+  | 'inventory.write'
+  | 'recipe.write'
+  | 'data.export'
+  | 'household.settings'
+  | 'members.manage'
+  | 'data.import'
+  | 'household.delete'
+  | 'platform.invite';
+
+export const PERMISSION_LABELS: Record<Permission, string> = {
+  'data.read': 'Consulter les données du foyer',
+  'self.update': 'Modifier son profil et ses préférences',
+  'catalog.write': 'Gérer les produits, catégories, emplacements et magasins',
+  'stock.write': 'Modifier les stocks (scans, mouvements)',
+  'shopping.write': 'Gérer la liste de courses',
+  'purchase.write': 'Enregistrer des achats et des tickets',
+  'inventory.write': 'Réaliser des inventaires',
+  'recipe.write': 'Gérer les recettes',
+  'data.export': 'Exporter les données du foyer',
+  'household.settings': 'Modifier les paramètres du foyer',
+  'members.manage': 'Inviter, retirer des membres et gérer les rôles',
+  'data.import': 'Restaurer ou importer des données',
+  'household.delete': 'Supprimer le foyer',
+  'platform.invite': "Inviter une autre famille à créer son foyer",
+};
+
+const MEMBER_PERMS: Permission[] = [
+  'data.read', 'self.update', 'catalog.write', 'stock.write', 'shopping.write', 'purchase.write', 'inventory.write', 'recipe.write', 'data.export',
+];
+
+export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
+  viewer: ['data.read', 'self.update'],
+  member: MEMBER_PERMS,
+  admin: [...MEMBER_PERMS, 'household.settings', 'members.manage', 'data.import', 'household.delete', 'platform.invite'],
+};
+
+export function can(role: Role, perm: Permission): boolean {
+  return ROLE_PERMISSIONS[role]?.includes(perm) ?? false;
+}
+
+export const ROLE_RANK: Record<Role, number> = { viewer: 0, member: 1, admin: 2 };
+
+export function isRole(r: unknown): r is Role {
+  return r === 'admin' || r === 'member' || r === 'viewer';
 }
 
 /** Version par champ : [version, userId] de la dernière modification. */
@@ -45,9 +104,12 @@ export interface HouseholdSettings {
 
 export interface Household extends BaseEntity {
   name: string;
+  /** Avatar : un emoji, ou « photo:<id> » pour une photo du foyer. */
+  avatar: string | null;
   currency: string;
   settings: HouseholdSettings;
   createdAt: string;
+  createdBy: string;
   fv: FieldVersions;
 }
 

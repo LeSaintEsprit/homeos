@@ -106,7 +106,17 @@ export interface ImportReport {
  * (aucune collision possible avec des données existantes), l'importateur devient
  * propriétaire, les autres membres sont conservés comme anciens membres inactifs.
  */
-export function importHousehold(db: Db, file: unknown, user: { id: string; name: string; email: string }): ImportReport {
+export interface ImportOptions {
+  /** Nom du nouveau foyer (sinon « <nom> (import) »). */
+  name?: string;
+  /**
+   * Restauration depuis une sauvegarde de CE serveur : les membres dont le compte
+   * existe toujours retrouvent leur appartenance et leur rôle.
+   */
+  keepMembers?: boolean;
+}
+
+export function importHousehold(db: Db, file: unknown, user: { id: string; name: string; email: string }, opts: ImportOptions = {}): ImportReport {
   const f = file as ExportFile;
   if (!f || f.format !== EXPORT_FORMAT || typeof f.version !== 'number') throw new HttpError(400, 'invalid_file', "Ce fichier n'est pas un export HOMEOS.");
   if (f.version > EXPORT_VERSION) throw new HttpError(400, 'version', 'Export créé par une version plus récente de HOMEOS.');
@@ -127,11 +137,17 @@ export function importHousehold(db: Db, file: unknown, user: { id: string; name:
       for (const e of list) {
         const next = remap(e, map) as AnyEntity & Record<string, unknown>;
         next.householdId = newHh;
-        if (t === 'household') next.name = `${String(next.name)} (import)`;
+        if (t === 'household') {
+          next.name = opts.name ?? `${String(next.name)} (import)`;
+          next.avatar = next.avatar ?? null;
+          next.createdBy = next.createdBy ?? user.id;
+        }
         if (t === 'member') {
           const isMe = next.userId === user.id;
-          next.active = isMe;
-          if (isMe) next.role = 'owner';
+          if (next.role === 'owner') next.role = 'admin'; // exports antérieurs à la refonte des rôles
+          const accountExists = !!db.prep('SELECT 1 FROM users WHERE id = ?').get(next.userId);
+          next.active = isMe || (!!opts.keepMembers && !!next.active && accountExists);
+          if (isMe) next.role = 'admin';
         }
         store.put(t, next as never);
       }
@@ -140,7 +156,7 @@ export function importHousehold(db: Db, file: unknown, user: { id: string; name:
     const me = db.prep('SELECT id FROM members WHERE householdId = ? AND userId = ?').get(newHh, user.id);
     if (!me) {
       store.put('member', {
-        id: randomUUID(), householdId: newHh, version: 0, userId: user.id, name: user.name, email: user.email, role: 'owner', color: '#1F7A64', active: true,
+        id: randomUUID(), householdId: newHh, version: 0, userId: user.id, name: user.name, email: user.email, role: 'admin', color: '#1F7A64', active: true,
         joinedAt: new Date().toISOString(), prefs: {},
       });
     }
@@ -165,4 +181,12 @@ export function integrityReport(db: Db, householdId: string) {
   const fk = db.raw.pragma('foreign_key_check') as unknown[];
   if (fk.length) issues.unshift({ code: 'foreign_keys', severity: 'error', message: `${fk.length} référence(s) cassée(s) dans la base.` });
   return issues;
+}
+
+/** Supprime un foyer et toutes ses données (y compris journaux techniques). */
+export function deleteHouseholdData(db: Db, householdId: string) {
+  db.tx(() => {
+    db.prep('DELETE FROM households WHERE id = ?').run(householdId);
+    for (const t of ['tombstones', 'id_aliases', 'processed_ops']) db.prep(`DELETE FROM ${t} WHERE householdId = ?`).run(householdId);
+  });
 }

@@ -3,12 +3,8 @@ import { DomainError } from './context';
 import { OP_SCHEMAS, type Op, type OpType } from './schemas';
 import { HANDLERS, buildActivity, type Ctx } from './handlers';
 import { clampClientTime, dateInTz } from '../time';
-import { hasRole } from '../types';
-
-/** Opérations autorisées en lecture seule. */
-const VIEWER_OPS: OpType[] = ['member.updateSelf'];
-/** Opérations réservées aux administrateurs. */
-const ADMIN_OPS: OpType[] = ['household.update'];
+import { can, PERMISSION_LABELS } from '../types';
+import { OP_PERMISSIONS } from './permissions';
 
 export interface ExecOutcome {
   result: OpResult;
@@ -37,11 +33,13 @@ export function executeOp(store: DataStore, op: Op, env: ExecEnv): ExecOutcome {
       rollback: true,
     };
   }
-  if (env.role === 'viewer' && !VIEWER_OPS.includes(op.type)) {
-    return { result: { ...base, status: 'rejected', error: { code: 'forbidden', message: 'Votre rôle (lecture seule) ne permet pas de modifier les données.' } }, rollback: true };
-  }
-  if (ADMIN_OPS.includes(op.type) && !hasRole(env.role, 'admin')) {
-    return { result: { ...base, status: 'rejected', error: { code: 'forbidden', message: 'Action réservée aux administrateurs du foyer.' } }, rollback: true };
+  const perm = OP_PERMISSIONS[op.type];
+  if (!perm || !can(env.role, perm)) {
+    const message =
+      env.role === 'viewer'
+        ? 'Votre rôle (lecture seule) ne permet pas de modifier les données.'
+        : `Action non autorisée pour votre rôle : ${PERMISSION_LABELS[perm] ?? op.type}.`;
+    return { result: { ...base, status: 'rejected', error: { code: 'forbidden', message } }, rollback: true };
   }
   const occurredAt = clampClientTime(op.clientTime, env.now);
   const ctx: Ctx = {

@@ -113,7 +113,9 @@ export class PushService {
       const h = c.household.get(id) as Household;
       const tz = h.settings.timezone;
       const today = dateInTz(now, tz);
-      const hour = Number(new Intl.DateTimeFormat('fr-FR', { timeZone: tz, hour: '2-digit', hourCycle: 'h23' }).format(now));
+      // formatToParts : en français, le format horaire seul donne « 08 h », pas « 08 ».
+      const hourPart = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', hourCycle: 'h23' }).formatToParts(now).find((p) => p.type === 'hour');
+      const hour = Number(hourPart?.value ?? -1);
       const weekday = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(now);
       const iso = now.toISOString();
       const forecast = analyzeHousehold({

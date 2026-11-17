@@ -17,6 +17,9 @@ const priority = z.enum(['normal', 'high', 'urgent']);
 const source = z.enum(['manual', 'stock', 'recommendation', 'missing', 'recipe']);
 const optId = id.nullable().optional();
 const baseVersion = z.number().int().min(0);
+/** Avatar du foyer : emoji (ou courte chaîne) ou « photo:<id> ». */
+export const avatar = z.string().trim().min(1).max(60).refine((v) => !v.startsWith('photo:') || ID_RE.test(v.slice(6)), 'Avatar invalide');
+export const currency = z.enum(['EUR', 'CHF', 'CAD', 'USD', 'GBP', 'XOF', 'XAF', 'MAD']);
 const code = z.string().trim().regex(/^[0-9A-Za-z-]{4,48}$/, 'Code-barres invalide');
 const expirySource = z.enum(['manual', 'gs1', 'ocr', 'estimated']);
 const expiryKind = z.enum(['dlc', 'ddm']);
@@ -158,7 +161,7 @@ const receiptLine = z.object({
 export const OP_SCHEMAS = {
   'household.update': z.object({
     patch: z
-      .object({ name: name.optional(), currency: z.string().length(3).optional(), settings: settingsPatch.optional() })
+      .object({ name: name.optional(), avatar: avatar.nullable().optional(), currency: currency.optional(), settings: settingsPatch.optional() })
       .strict(),
     baseVersion,
   }),

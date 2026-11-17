@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 17/11/2026 (consolidation M1–M5 + audit du code).
+> Dernière mise à jour : 17/11/2026 — fin de la phase 1 (fondations multi-foyers et sécurité).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (audit du 17/11/2026)** : le domaine partagé est avancé et testé (76 tests verts) ; le serveur est écrit et ne vient que d'être démarré pour la première fois (2 tests de fumée/isolation verts ; un plantage au démarrage corrigé pendant l'audit) ; **aucune interface n'existe encore**. En conséquence, **aucune fonctionnalité visible par l'utilisateur n'est encore « Testée et validée »**.
+**Constat global (fin de phase 1)** : domaine partagé testé (77 tests) ; serveur testé (59 tests : comptes, foyers, invitations, rôles, synchronisation, isolation A/B, sauvegardes et restauration, export/import, codes-barres, push, semaine familiale sur 3 appareils) ; **aucune interface encore** — les fonctionnalités visibles restent donc « En développement », avec la couche serveur marquée ✅.
 
 ---
 
@@ -29,102 +29,102 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | FND-04 | Sans IA générative | Règles déterministes, statistiques | M1§4, M3§12, M5§5 | P0 | — | Développé | D ✅ moteur purement algorithmique | Revue de code |
 | FND-05 | Interface en français | Tous les textes en français | M1§1 | P0 | UX | En développement | D ✅ messages · S ✅ messages · C ❌ | E2E : aucun texte anglais |
 | FND-06 | PWA installable | Installation PC/iPhone/Android, cache hors ligne | M1§1, M4§7 | P0 | C | À développer | C ❌ | Lighthouse PWA, installation réelle |
-| FND-07 | Architecture monorepo partagée | Même logique métier client/serveur | M1§12 | P0 | — | Développé | D ✅ S 🟡 C ❌ | — |
+| FND-07 | Architecture monorepo partagée | Même logique métier client/serveur | M1§12 | P0 | — | Testé et validé | D ✅ S ✅ — logique partagée exécutée côté serveur (toutes les suites serveur) | — |
 
 ## 2. Comptes utilisateurs
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| ACC-01 | Inscription | Compte personnel (e-mail, mot de passe, nom) | M1§2, M4§1 | P0 | ACC-11 | En développement | S ✅ (test de fumée) · C ❌ | Intégration + E2E |
-| ACC-02 | Connexion | Session par cookie sécurisé | M4§1 | P0 | — | En développement | S 🟡 · C ❌ | Intégration (succès, échec, limitation) |
-| ACC-03 | Déconnexion | Suppression de la session | M4§1 | P0 | — | En développement | S 🟡 · C ❌ | Intégration |
-| ACC-04 | Récupération du mot de passe | Lien à usage unique / SMTP facultatif / commande serveur | M4§1 | P0 | D2 | À spécifier | Décision D2 attendue | Intégration (expiration, usage unique) |
-| ACC-05 | Gestion du profil | Nom, couleur, préférences | M1§2, M4§1 | P0 | — | En développement | D ✅ `member.updateSelf` · S 🟡 nom · C ❌ | Intégration + E2E |
-| ACC-06 | Modifier ses informations | Nom, e-mail, mot de passe (déconnexion des autres appareils) | M4§1 | P1 | — | En développement | S 🟡 nom + mot de passe · e-mail ❌ · C ❌ | Intégration |
-| ACC-07 | Sessions sécurisées | HttpOnly, SameSite, Secure, glissantes 180 j, anti-CSRF | M3§10 | P0 | — | Développé | S 🟡 | Intégration (CSRF, expiration) |
-| ACC-08 | Limitation des tentatives | Connexion, inscription, invitations | M3§10 | P0 | — | Développé | S 🟡 | Intégration |
-| ACC-09 | Attribution des actions | Chaque action liée à son auteur | M1§2, M4§1 | P0 | — | Développé | D ✅ (userId sur mouvements/activités/achats) · S 🟡 · C ❌ (affichage) | Intégration |
-| ACC-10 | Protection des données personnelles | Export de ses données, suppression du compte (historique anonymisé) | M3§10 | P1 | — | À développer | ❌ | Intégration |
-| ACC-11 | Politique d'inscription plateforme | Ouverte / sur invitation / invitation plateforme | M4§9, AUD | P0 | D1 | À spécifier | S 🟡 modes open/invite/closed ; invitation plateforme ❌ | Intégration |
+| ACC-01 | Inscription | Compte personnel (e-mail, mot de passe, nom) | M1§2, M4§1 | P0 | ACC-11 | En développement | S ✅ `server/test/auth.test.ts` · C ❌ | Intégration + E2E |
+| ACC-02 | Connexion | Session par cookie sécurisé | M4§1 | P0 | — | En développement | S ✅ auth.test (succès, échec, message identique compte inexistant) · C ❌ | Intégration (succès, échec, limitation) |
+| ACC-03 | Déconnexion | Suppression de la session | M4§1 | P0 | — | En développement | S ✅ auth.test · C ❌ | Intégration |
+| ACC-04 | Récupération du mot de passe | Lien à usage unique / SMTP facultatif / commande serveur | M4§1 | P0 | D2 | En développement | S ✅ auth.test (SMTP en libre-service, lien administrateur, usage unique, sessions fermées) · CLI ✅ (exécution réelle) · C ❌ | Intégration (expiration, usage unique) |
+| ACC-05 | Gestion du profil | Nom, couleur, préférences | M1§2, M4§1 | P0 | — | En développement | D ✅ · S ✅ auth.test (nom répercuté dans les foyers) · C ❌ | Intégration + E2E |
+| ACC-06 | Modifier ses informations | Nom, e-mail, mot de passe (déconnexion des autres appareils) | M4§1 | P1 | — | En développement | S ✅ auth.test (nom, e-mail avec mot de passe, mot de passe → autres appareils déconnectés) · C ❌ | Intégration |
+| ACC-07 | Sessions sécurisées | HttpOnly, SameSite, Secure, glissantes 180 j, anti-CSRF | M3§10 | P0 | — | Testé et validé | S ✅ auth.test (HttpOnly, SameSite, CSRF en-tête + origine, invalidation) | Intégration (CSRF, expiration) |
+| ACC-08 | Limitation des tentatives | Connexion, inscription, invitations | M3§10 | P0 | — | Testé et validé | S ✅ auth.test (blocage après 10 échecs, même avec le bon mot de passe) | Intégration |
+| ACC-09 | Attribution des actions | Chaque action liée à son auteur | M1§2, M4§1 | P0 | — | Testé et validé | D ✅ · S ✅ week.test (chaque mouvement attribué), auth.test (anonymisation conservant l’historique) | Intégration |
+| ACC-10 | Protection des données personnelles | Export de ses données, suppression du compte (historique anonymisé) | M3§10 | P1 | — | En développement | S ✅ auth.test (export des données personnelles, suppression + anonymisation, protection du dernier administrateur) · C ❌ | Intégration |
+| ACC-11 | Politique d'inscription plateforme | Ouverte / sur invitation / invitation plateforme | M4§9, AUD | P0 | D1 | Testé et validé | S ✅ auth.test (premier compte libre, sur invitation, invitation plateforme, fermée, ouverte) | Intégration |
 
 ## 3. Foyers
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| HH-01 | Création d'un foyer | Nom + catégories/emplacements par défaut | M1§2, M4§2 | P0 | ACC-01 | En développement | S ✅ (fumée) · C ❌ | Intégration + E2E |
+| HH-01 | Création d'un foyer | Nom + catégories/emplacements par défaut | M1§2, M4§2 | P0 | ACC-01 | En développement | S ✅ households.test · C ❌ | Intégration + E2E |
 | HH-02 | Parcours d'accueil | « Créer un foyer » ou « Rejoindre avec une invitation » | M4§2 | P0 | HH-01, MEM-01 | À développer | C ❌ | E2E |
-| HH-03 | Photo / avatar du foyer | Facultatif | M4§2 | P1 | CAT-04 | À développer | ❌ (champ absent du modèle) | Intégration |
-| HH-04 | Paramètres initiaux | Fréquence des courses, marge, alertes, budget | M4§2 | P1 | — | En développement | D ✅ modèle + `household.update` · S ❌ à la création · C ❌ | Intégration |
-| HH-05 | Devise | Choisie à la création | M4§2 | P1 | — | En développement | D ✅ champ · S ❌ à la création · C ❌ | Intégration |
-| HH-06 | Préférences de notifications à la création | Récapitulatif, types | M4§2 | P1 | NOTIF-10 | À développer | ❌ | E2E |
-| HH-07 | Créateur = administrateur | Automatique | M4§2 | P0 | MEM-06 | En développement | S 🟡 (rôle « owner » à convertir) | Intégration |
-| HH-08 | Paramètres du foyer | Modification avec détection de conflit | M1§2 | P0 | MEM-06 | En développement | D ✅ · S 🟡 · C ❌ | Intégration + E2E |
-| HH-09 | Suppression d'un foyer | Double confirmation + sauvegarde préalable | AUD | P1 | BAK-01 | En développement | S 🟡 · C ❌ | Intégration |
-| HH-10 | Nombre illimité de foyers | Une instance, plusieurs familles | M4 | P0 | ISO-* | En développement | S 🟡 (architecture) · ISO sondée | Tests d'isolation |
+| HH-03 | Photo / avatar du foyer | Facultatif | M4§2 | P1 | CAT-04 | En développement | D ✅ champ `avatar` (emoji ou photo) · S ✅ households.test · C ❌ | Intégration |
+| HH-04 | Paramètres initiaux | Fréquence des courses, marge, alertes, budget | M4§2 | P1 | — | En développement | D ✅ · S ✅ households.test (paramètres à la création) · C ❌ | Intégration |
+| HH-05 | Devise | Choisie à la création | M4§2 | P1 | — | En développement | D ✅ · S ✅ households.test (devise validée) · C ❌ | Intégration |
+| HH-06 | Préférences de notifications à la création | Récapitulatif, types | M4§2 | P1 | NOTIF-10 | En développement | S ✅ households.test (préférences du créateur) · C ❌ | E2E |
+| HH-07 | Créateur = administrateur | Automatique | M4§2 | P0 | MEM-06 | En développement | S ✅ households.test (rôle administrateur) · C ❌ | Intégration |
+| HH-08 | Paramètres du foyer | Modification avec détection de conflit | M1§2 | P0 | MEM-06 | En développement | D ✅ · S ✅ households.test (réservé aux administrateurs) · C ❌ | Intégration + E2E |
+| HH-09 | Suppression d'un foyer | Double confirmation + sauvegarde préalable | AUD | P1 | BAK-01 | En développement | S ✅ households.test (administrateur, confirmation, sauvegarde préalable, purge complète) · C ❌ | Intégration |
+| HH-10 | Nombre illimité de foyers | Une instance, plusieurs familles | M4 | P0 | ISO-* | En développement | S ✅ isolation.test · C ❌ | Tests d'isolation |
 
 ## 4. Membres, invitations, rôles
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| MEM-01 | Invitation par code | Code 10 caractères | M1§2, M4§3 | P0 | HH-01 | En développement | S 🟡 · C ❌ | Intégration |
-| MEM-02 | Invitation par lien | `/invitation/CODE`, partage SMS/WhatsApp/QR | M4§3 | P0 | MEM-01 | En développement | S 🟡 (aperçu public) · C ❌ | E2E |
-| MEM-03 | Invitation par e-mail | Sans service payant | M4§3 | P1 | D2 | À spécifier | ❌ | Intégration |
-| MEM-04 | Règles d'invitation | Rôle, expiration, nombre d'utilisations, révocation | M4§3 | P0 | MEM-01 | En développement | S 🟡 · C ❌ | Intégration (expirée, révoquée, épuisée) |
-| MEM-05 | Accès immédiat après acceptation | Synchronisation initiale complète | M4§3 | P0 | SYNC-05 | En développement | S 🟡 · C ❌ | E2E |
-| MEM-06 | Trois rôles | Administrateur / Membre / Lecture seule | M4§4 | P0 | — | En développement | D/S 🟡 **à refondre** (4 rôles actuellement, C1) | Unitaires + intégration |
-| MEM-07 | Droits administrateur | Foyer, invitations, retrait, rôles, tout | M4§4 | P0 | MEM-06 | En développement | S 🟡 | Intégration |
-| MEM-08 | Droits membre | Stocks, produits, scans, liste, achats, statistiques | M4§4 | P0 | MEM-06 | En développement | D ✅ | Intégration |
-| MEM-09 | Lecture seule | Aucune modification | M4§4 | P0 | MEM-06 | En développement | D ✅ (rejet testé) · S 🟡 · C ❌ (masquage des actions) | Intégration + E2E |
-| MEM-10 | Matrice de permissions extensible | Permissions nommées par opération | M4§4 | P0 | MEM-06 | À développer | Listes codées en dur actuellement | Unitaires |
-| MEM-11 | Retrait : perte immédiate des droits | API, temps réel, purge locale | M4§8 | P0 | SYNC-12 | En développement | S 🟡 (vérif. par requête, SSE `revoked`) · C ❌ | Isolation |
-| MEM-12 | Changement de rôle, dernier administrateur protégé | — | M4§4 | P0 | MEM-06 | En développement | S 🟡 (« dernier propriétaire » à adapter) | Intégration |
-| MEM-13 | Quitter un foyer | — | M4§5 | P1 | MEM-12 | En développement | S 🟡 · C ❌ | Intégration |
+| MEM-01 | Invitation par code | Code 10 caractères | M1§2, M4§3 | P0 | HH-01 | En développement | S ✅ households.test · C ❌ | Intégration |
+| MEM-02 | Invitation par lien | `/invitation/CODE`, partage SMS/WhatsApp/QR | M4§3 | P0 | MEM-01 | En développement | S ✅ households.test (lien, aperçu public) · C ❌ | E2E |
+| MEM-03 | Invitation par e-mail | Sans service payant | M4§3 | P1 | D2 | En développement | S ✅ households.test (SMTP ; sinon mailto pré-rempli ; réservée à l’adresse) · C ❌ | Intégration |
+| MEM-04 | Règles d'invitation | Rôle, expiration, nombre d'utilisations, révocation | M4§3 | P0 | MEM-01 | En développement | S ✅ households.test (expiration, utilisations, révocation) · C ❌ | Intégration (expirée, révoquée, épuisée) |
+| MEM-05 | Accès immédiat après acceptation | Synchronisation initiale complète | M4§3 | P0 | SYNC-05 | En développement | S ✅ households.test (données visibles dès l’acceptation) · C ❌ | E2E |
+| MEM-06 | Trois rôles | Administrateur / Membre / Lecture seule | M4§4 | P0 | — | Testé et validé | D ✅ matrice testée (commands.test) · S ✅ households.test (contrainte base, refus de « owner ») | Unitaires + intégration |
+| MEM-07 | Droits administrateur | Foyer, invitations, retrait, rôles, tout | M4§4 | P0 | MEM-06 | En développement | S ✅ households.test · C ❌ | Intégration |
+| MEM-08 | Droits membre | Stocks, produits, scans, liste, achats, statistiques | M4§4 | P0 | MEM-06 | En développement | D ✅ · S ✅ · C ❌ | Intégration |
+| MEM-09 | Lecture seule | Aucune modification | M4§4 | P0 | MEM-06 | En développement | D ✅ · S ✅ households.test · C ❌ (masquage des actions) | Intégration + E2E |
+| MEM-10 | Matrice de permissions extensible | Permissions nommées par opération | M4§4 | P0 | MEM-06 | Testé et validé | D ✅ `OP_PERMISSIONS` + `ROLE_PERMISSIONS` (commands.test) · S ✅ routes par permission | Unitaires |
+| MEM-11 | Retrait : perte immédiate des droits | API, temps réel, purge locale | M4§8 | P0 | SYNC-12 | En développement | S ✅ isolation.test (requêtes refusées, SSE `revoked`) · C ❌ purge locale | Isolation |
+| MEM-12 | Changement de rôle, dernier administrateur protégé | — | M4§4 | P0 | MEM-06 | En développement | S ✅ households.test (dernier administrateur protégé) · C ❌ | Intégration |
+| MEM-13 | Quitter un foyer | — | M4§5 | P1 | MEM-12 | En développement | S ✅ households.test · C ❌ | Intégration |
 | MEM-14 | Profils visibles du foyer | Nom, couleur, rôle | M1§2 | P1 | — | En développement | D ✅ · C ❌ | E2E |
-| MEM-15 | Invitation plateforme | Permet à une autre famille de créer son foyer | M4§9, AUD | P0 | D1 | À spécifier | ❌ | Intégration |
+| MEM-15 | Invitation plateforme | Permet à une autre famille de créer son foyer | M4§9, AUD | P0 | D1 | En développement | S ✅ auth.test (invitation plateforme à usage limité) · C ❌ | Intégration |
 
 ## 5. Multi-foyers
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| MULTI-01 | Appartenance à plusieurs foyers | — | M4§5 | P0 | — | En développement | S 🟡 (`/auth/me` liste les foyers) · C ❌ | Isolation |
+| MULTI-01 | Appartenance à plusieurs foyers | — | M4§5 | P0 | — | En développement | S ✅ isolation.test (C membre de A et B) · C ❌ | Isolation |
 | MULTI-02 | Sélecteur de foyer | Accessible partout | M4§5 | P0 | C | À développer | C ❌ | E2E |
 | MULTI-03 | Données exclusives du foyer actif | Réplique locale séparée par foyer | M4§5 | P0 | SYNC-05 | À développer | C ❌ | E2E (bascule sans mélange) |
 | MULTI-04 | Nom du foyer actif affiché | En permanence | M4§5 | P0 | C | À développer | C ❌ | E2E |
-| MULTI-05 | Aucun mélange (listes, stocks, notifications) | Y compris notifications push | M4§5 | P0 | NOTIF-* | En développement | S 🟡 (récapitulatifs par foyer) · C ❌ | Isolation + E2E |
+| MULTI-05 | Aucun mélange (listes, stocks, notifications) | Y compris notifications push | M4§5 | P0 | NOTIF-* | En développement | S ✅ isolation.test (notifications par foyer) · C ❌ | Isolation + E2E |
 
 ## 6. Isolation et sécurité
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| ISO-01 | `householdId` sur chaque donnée | Toutes les tables métier | M4§6 | P0 | — | Développé | S ✅ schéma ; sondage vert | Isolation |
-| ISO-02 | Couche d'accès filtrée | `SqlStore(householdId)` | M4§6 | P0 | — | Développé | S ✅ (sondage) | Isolation |
-| ISO-03 | Vérification serveur de l'appartenance | Jamais de confiance dans le client | M4§6 | P0 | — | Développé | S ✅ lecture/écriture d'un autre foyer → 404 (sondage) | Isolation complète |
-| ISO-04 | Anti-falsification d'identifiants | Référence ou écrasement d'une entité d'un autre foyer | M4§6, M4§8 | P0 | — | Développé | S ✅ 2 cas sondés (référence, écrasement) | Alias, fusion, import, photos |
-| ISO-05 | Isolation au niveau base | Clés étrangères composites `(householdId, id)` | M4§6, C8 | P0 | — | À développer | ❌ (FK simples actuellement) | Tentatives SQL directes |
-| ISO-06 | Photos/fichiers isolés | Par foyer | M4§6 | P0 | CAT-04 | Développé | S 🟡 | Isolation |
-| ISO-07 | Notifications isolées | Par foyer | M4§6 | P0 | NOTIF-* | Développé | S 🟡 | Isolation |
-| ISO-08 | Suite de tests A1/A2/B1/B2 | 8 vérifications + API directe + falsification | M4§8 | P0 | ISO-01..07 | En développement | Sondage (1 test) ✅ ; suite complète ❌ | — |
-| ISO-09 | Cache produits sans fuite | Ne pas révéler qu'un autre foyer a scanné un code | AUD | P1 | SCAN-03 | À développer | S : le champ `cached` de la réponse est à retirer | Intégration |
-| ISO-10 | Transparence vis-à-vis de l'hébergeur | Information des foyers hébergés | AUD | P1 | D4 | À spécifier | ❌ | — |
-| ISO-11 | En-têtes de sécurité, CSP, anti-CSRF | — | M3§10 | P0 | — | Développé | S 🟡 | Intégration |
+| ISO-01 | `householdId` sur chaque donnée | Toutes les tables métier | M4§6 | P0 | — | Testé et validé | S ✅ isolation.test | Isolation |
+| ISO-02 | Couche d'accès filtrée | `SqlStore(householdId)` | M4§6 | P0 | — | Testé et validé | S ✅ isolation.test | Isolation |
+| ISO-03 | Vérification serveur de l'appartenance | Jamais de confiance dans le client | M4§6 | P0 | — | Testé et validé | S ✅ isolation.test (14 routes × 2 foyers → 404 ; non connecté → 401) | Isolation complète |
+| ISO-04 | Anti-falsification d'identifiants | Référence ou écrasement d'une entité d'un autre foyer | M4§6, M4§8 | P0 | — | Testé et validé | S ✅ isolation.test (25 opérations falsifiées rejetées ; aucune modification de A) | Alias, fusion, import, photos |
+| ISO-05 | Isolation au niveau base | Clés étrangères composites `(householdId, id)` | M4§6, C8 | P0 | — | Testé et validé | S ✅ clés étrangères composites ; isolation.test (insertion SQL directe refusée) | Tentatives SQL directes |
+| ISO-06 | Photos/fichiers isolés | Par foyer | M4§6 | P0 | CAT-04 | Testé et validé | S ✅ isolation.test (photo de A introuvable depuis B) | Isolation |
+| ISO-07 | Notifications isolées | Par foyer | M4§6 | P0 | NOTIF-* | Testé et validé | S ✅ isolation.test + services.test | Isolation |
+| ISO-08 | Suite de tests A1/A2/B1/B2 | 8 vérifications + API directe + falsification | M4§8 | P0 | ISO-01..07 | Testé et validé | `server/test/isolation.test.ts` (11 tests) | — |
+| ISO-09 | Cache produits sans fuite | Ne pas révéler qu'un autre foyer a scanné un code | AUD | P1 | SCAN-03 | Testé et validé | S ✅ champ retiré ; services.test vérifie son absence | Intégration |
+| ISO-10 | Transparence vis-à-vis de l'hébergeur | Information des foyers hébergés | AUD | P1 | D4 | En développement | Décision D4 consignée (MASTER_SPEC §16.2) · C ❌ (affichage aux foyers hébergés) | — |
+| ISO-11 | En-têtes de sécurité, CSP, anti-CSRF | — | M3§10 | P0 | — | Testé et validé | S ✅ auth.test (CSRF) ; en-têtes présents sur toutes les réponses | Intégration |
 
 ## 7. Synchronisation et hors ligne
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| SYNC-01 | Opérations idempotentes | `opId`, résultat enregistré atomiquement | M1§12, M3§7 | P0 | — | Développé | S 🟡 | Rejeu, coupure réseau |
-| SYNC-02 | Succès seulement après confirmation | Outbox persistante | M1§12 | P0 | SYNC-05 | En développement | S ✅ réponses par opération · C ❌ outbox | Intégration + E2E |
-| SYNC-03 | Pull incrémental paginé | Curseur `seq` | M1§12 | P0 | — | Développé | S ✅ (fumée) ; pagination 🟡 | Pagination, pierres tombales |
-| SYNC-04 | Temps réel | SSE + repli périodique | M1§5 | P0 | — | Développé | S 🟡 · C ❌ | Intégration + E2E 2 membres |
+| SYNC-01 | Opérations idempotentes | `opId`, résultat enregistré atomiquement | M1§12, M3§7 | P0 | — | Testé et validé | S ✅ sync.test (rejeu, rejet mémorisé), week.test (renvois réseau) | Rejeu, coupure réseau |
+| SYNC-02 | Succès seulement après confirmation | Outbox persistante | M1§12 | P0 | SYNC-05 | En développement | S ✅ résultats par opération · C ❌ outbox | Intégration + E2E |
+| SYNC-03 | Pull incrémental paginé | Curseur `seq` | M1§12 | P0 | — | Testé et validé | S ✅ sync.test (pagination, pierres tombales, curseur) | Pagination, pierres tombales |
+| SYNC-04 | Temps réel | SSE + repli périodique | M1§5 | P0 | — | En développement | S ✅ sync.test (SSE réel) · C ❌ | Intégration + E2E 2 membres |
 | SYNC-05 | Réplique locale + prédiction | IndexedDB par foyer, même logique métier | M1§1 | P0 | D | En développement | D ✅ `MemoryStore` à couches · C ❌ | Unitaires + E2E |
 | SYNC-06 | Hors connexion | App + données + file d'attente | M1§1, M3§10 | P0 | SYNC-05 | À développer | C ❌ | E2E hors ligne |
-| SYNC-07 | Conflits | Par champ, stock attendu, fusion, alias | M1§12 | P0 | — | En développement | D ✅ testés · S 🟡 · C ❌ (écran de résolution) | Concurrence serveur + E2E |
+| SYNC-07 | Conflits | Par champ, stock attendu, fusion, alias | M1§12 | P0 | — | En développement | D ✅ · S ✅ sync.test (champs, alias) + week.test (stock attendu) · C ❌ | Concurrence serveur + E2E |
 | SYNC-08 | Indicateur de synchronisation | Synchronisé / en attente / hors ligne / problème | M1§12 | P0 | SYNC-02 | À développer | C ❌ | E2E |
-| SYNC-09 | Connexions simultanées | Transactions sérialisées | M1§12 | P0 | — | Développé | S 🟡 | Concurrence |
+| SYNC-09 | Connexions simultanées | Transactions sérialisées | M1§12 | P0 | — | Testé et validé | S ✅ sync.test (consommations simultanées), week.test | Concurrence |
 | SYNC-10 | Resynchronisation après restauration | Changement d'époque | M3§10 | P0 | BAK-04 | En développement | S 🟡 · C ❌ | Intégration |
 | SYNC-11 | iPhone, Android, Windows, navigateurs | — | M4§7 | P0 | C | À développer | ❌ | E2E (WebKit, Chromium, mobile) |
 | SYNC-12 | Purge locale d'un foyer quitté | — | M4§8, AUD | P0 | MEM-11 | À développer | ❌ | E2E |
-| SYNC-13 | Rétention des opérations traitées | Purge sûre de `processed_ops` | AUD | P2 | — | À développer | ❌ (croissance illimitée) | Intégration |
+| SYNC-13 | Rétention des opérations traitées | Purge sûre de `processed_ops` | AUD | P2 | — | Développé | S ✅ refus des opérations trop anciennes (sync.test) ; purge quotidienne écrite, non testée | Intégration |
 
 ## 8. Catalogue
 
@@ -160,7 +160,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | STK-05 | Aucune conversion incompatible | Sans information fiable | M3§2 | P0 | — | En développement | D ✅ · S 🟡 | Intégration |
 | STK-06 | Quantités achetée / initiale / restante / consommée | Distinction affichée | M3§2 | P1 | — | En développement | D 🟡 (données présentes, calcul « consommée » à exposer) · C ❌ | Unitaires + E2E |
 | STK-07 | FEFO | Date la plus proche, ouverts d'abord | M1§7, M2§5 | P0 | — | En développement | D ✅ · S 🟡 | — |
-| STK-08 | Jamais de stock négatif | Base + domaine | M1§12, M3§7 | P0 | — | Développé | D ✅ · S 🟡 (`CHECK`) | Intégration (tentative directe) |
+| STK-08 | Jamais de stock négatif | Base + domaine | M1§12, M3§7 | P0 | — | Testé et validé | D ✅ · S ✅ contrainte CHECK + sync.test (jamais négatif sous concurrence) | Intégration (tentative directe) |
 | STK-09 | Emplacement par lot, déplacement partiel | — | M1§3 | P1 | — | En développement | D ✅ · C ❌ | — |
 
 ## 10. Mouvements et actions rapides
@@ -186,10 +186,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 |---|---|---|---|---|---|---|---|---|
 | SCAN-01 | Lecture 1D et 2D | EAN, UPC, Code 128, ITF, QR, DataMatrix, DataBar (zxing-wasm) | M2§3 | P0 | C | À développer | ❌ | Images de test + appareils réels |
 | SCAN-02 | Identification GTIN | Clé de contrôle, normalisation | M2§1 | P0 | — | En développement | D ✅ · C ❌ | — |
-| SCAN-03 | Recherche Open Food / Beauty / Products Facts | Proxy serveur, cache, User-Agent, 60 req/min | M2§1 | P0 | — | En développement | D ✅ normalisation (fiche réelle) · S 🟡 · API réelle vérifiée manuellement | Intégration (réponses simulées) |
+| SCAN-03 | Recherche Open Food / Beauty / Products Facts | Proxy serveur, cache, User-Agent, 60 req/min | M2§1 | P0 | — | En développement | D ✅ · S ✅ services.test (réponses au format réel, cache, User-Agent, bascule OBF/OPF, indisponibilité) · C ❌ | Intégration (réponses simulées) |
 | SCAN-04 | Nom, marque, photo, catégorie, format | — | M2§1 | P0 | SCAN-03 | En développement | D ✅ · S 🟡 photo · C ❌ | — |
 | SCAN-05 | Association au catalogue / produits existants | Catalogue local hors ligne | M2§1 | P0 | CAT-05 | En développement | D ✅ codes · C ❌ | E2E |
-| SCAN-06 | Produits ménagers et d'hygiène | OBF, OPF, création rapide | M2§1 | P0 | SCAN-03 | En développement | S 🟡 · C ❌ | — |
+| SCAN-06 | Produits ménagers et d'hygiène | OBF, OPF, création rapide | M2§1 | P0 | SCAN-03 | En développement | S ✅ services.test (Open Beauty Facts) · C ❌ | — |
 | SCAN-07 | Mode Réception | +1, lot créé/complété, péremption | M2§2, M2§5 | P0 | SCAN-01 | En développement | D ✅ · C ❌ | E2E |
 | SCAN-08 | Mode Consommation | −1, FEFO | M2§2, M2§5 | P0 | SCAN-01 | En développement | D ✅ · C ❌ | E2E |
 | SCAN-09 | Mode Inventaire | Comptage, écarts, confirmation | M2§2, M2§5 | P0 | INV-06 | En développement | D ✅ · C ❌ | E2E |
@@ -200,7 +200,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | SCAN-14 | Confirmation discrète + Annuler | « +1 produit ajouté » | M2§6 | P0 | MVT-11 | À développer | D ✅ annulation · C ❌ | E2E |
 | SCAN-15 | Mode scan continu | — | M2§6 | P0 | SCAN-01 | À développer | C ❌ | E2E |
 | SCAN-16 | Anti-doublon de scan | Anti-rebond 2,5 s + détection d'audit | M2§7, M3§7 | P0 | — | En développement | D ✅ détection · C ❌ anti-rebond | Unitaires + E2E |
-| SCAN-17 | Erreurs, codes inconnus, non référencés | Messages clairs, création rapide | M2§7 | P0 | — | En développement | S 🟡 statuts · C ❌ | E2E |
+| SCAN-17 | Erreurs, codes inconnus, non référencés | Messages clairs, création rapide | M2§7 | P0 | — | En développement | S ✅ services.test (invalide, inconnu, indisponible) · C ❌ | E2E |
 | SCAN-18 | Hors connexion | Catalogue local | M2§7 | P0 | SYNC-05 | À développer | C ❌ | E2E hors ligne |
 
 ## 12. OCR des dates
@@ -223,7 +223,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | INV-04 | Pourcentage d'avancement | — | M3§1 | P1 | — | En développement | D 🟡 (fonction non testée) · C ❌ | Unitaires |
 | INV-05 | Sauvegarde partielle et reprise | Synchronisée | M3§1 | P1 | — | En développement | D ✅ · C ❌ | E2E |
 | INV-06 | Comparaison théorique / compté | Par emplacement, confirmation | M2§5, M3§7 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| INV-07 | Conflit si le stock change pendant l'inventaire | — | M3§7 | P0 | — | En développement | D ✅ · S 🟡 | Intégration |
+| INV-07 | Conflit si le stock change pendant l'inventaire | — | M3§7 | P0 | — | En développement | D ✅ · S ✅ week.test · C ❌ | Intégration |
 | INV-08 | Produits inconnus à résoudre avant validation | — | M3§1 | P1 | — | En développement | D ✅ · C ❌ | E2E |
 
 ## 14. Liste de courses, mode courses, réception
@@ -240,7 +240,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | SHOP-08 | Achats partiels | — | M1§5 | P0 | — | En développement | D ✅ · C ❌ | E2E |
 | SHOP-09 | Suppression réversible | — | M1§5 | P0 | — | En développement | D ✅ · C ❌ | E2E |
 | SHOP-10 | Historique de la liste | — | M1§5 | P1 | — | En développement | D ✅ données · C ❌ | E2E |
-| SHOP-11 | Regroupement des doublons, addition multi-membres | Alias d'identifiant | M1§5 | P0 | — | En développement | D ✅ · S 🟡 | Intégration (2 appareils hors ligne) |
+| SHOP-11 | Regroupement des doublons, addition multi-membres | Alias d'identifiant | M1§5 | P0 | — | En développement | D ✅ · S ✅ sync.test (deux membres hors ligne) · C ❌ | Intégration (2 appareils hors ligne) |
 | SHOP-12 | Mode courses téléphone | Grandes cases, rayons, quantités, navigation simple | M1§5, M1§11 | P0 | C | À développer | C ❌ | E2E mobile |
 | SHOP-13 | Mise à jour instantanée chez les autres | — | M1§5 | P0 | SYNC-04 | En développement | S 🟡 · C ❌ | E2E 2 navigateurs |
 | SHOP-14 | Anti-doublon / stock suffisant à l'ajout | Avertissement | M1§4 | P1 | ENG-* | En développement | D ✅ · C ❌ | E2E |
@@ -288,7 +288,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | ENG-15 | Jamais de consommation inventée | — | M1§4 | P0 | — | En développement | D ✅ | — |
 | ENG-16 | Qualité des données prise en compte | — | M3§8 | P0 | REL-01 | En développement | D ✅ | — |
 | ENG-17 | Coût estimé des recommandations | Prix connu/estimé/inconnu | M3§6 | P1 | BUD-14 | En développement | D ✅ · C ❌ | — |
-| ENG-18 | Calcul côté serveur | Pour notifications et récapitulatifs | M3§9 | P1 | NOTIF-12 | Développé | S 🟡 | Intégration |
+| ENG-18 | Calcul côté serveur | Pour notifications et récapitulatifs | M3§9 | P1 | NOTIF-12 | Testé et validé | S ✅ services.test (récapitulatifs calculés côté serveur) | Intégration |
 
 ## 17. Péremption et anti-gaspillage
 
@@ -348,13 +348,13 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | NOTIF-04 | Bientôt périmés | — | M3§9 | P1 | — | En développement | D ✅ | — |
 | NOTIF-05 | Produits à acheter | — | M3§9 | P1 | — | En développement | D ✅ | — |
 | NOTIF-06 | Courses non terminées | Achetés non réceptionnés | M3§9 | P1 | — | En développement | D 🟡 (non testé) | Unitaires |
-| NOTIF-07 | Modifications importantes | Par d'autres membres | M3§9, M1§2 | P1 | — | En développement | D 🟡 · S 🟡 push immédiat | Intégration |
+| NOTIF-07 | Modifications importantes | Par d'autres membres | M3§9, M1§2 | P1 | — | En développement | S ✅ services.test (alerte immédiate des autres membres) · C ❌ | Intégration |
 | NOTIF-08 | Dépenses inhabituelles | — | M3§9 | P2 | BUD-17 | En développement | D 🟡 | Unitaires |
 | NOTIF-09 | Inventaires à vérifier | — | M3§9 | P1 | REL-01 | En développement | D 🟡 | Unitaires |
 | NOTIF-10 | Personnalisation par membre | Types, alertes masquées | M3§9 | P1 | — | En développement | D ✅ · C ❌ | E2E |
-| NOTIF-11 | Déduplication | Clé stable, journal d'envoi | M3§9 | P1 | — | En développement | D ✅ · S 🟡 | Intégration |
-| NOTIF-12 | Récapitulatif quotidien / hebdomadaire | Web Push à l'heure choisie | M3§9 | P2 | NOTIF-13 | Développé | S 🟡 (jamais exécuté) | Intégration (envoi simulé) |
-| NOTIF-13 | Web Push | VAPID local, iPhone (PWA installée), Android, PC | M3§9 | P2 | FND-06 | En développement | S 🟡 (plantage au démarrage corrigé pendant l'audit) · C ❌ service worker | Manuel sur appareils |
+| NOTIF-11 | Déduplication | Clé stable, journal d'envoi | M3§9 | P1 | — | En développement | D ✅ · S ✅ services.test (un envoi par jour et par membre) · C ❌ | Intégration |
+| NOTIF-12 | Récapitulatif quotidien / hebdomadaire | Web Push à l'heure choisie | M3§9 | P2 | NOTIF-13 | En développement | S ✅ services.test (heure choisie, préférences, anti-doublon ; défaut d’heure corrigé) · C ❌ service worker | Intégration (envoi simulé) |
+| NOTIF-13 | Web Push | VAPID local, iPhone (PWA installée), Android, PC | M3§9 | P2 | FND-06 | En développement | S ✅ (envoi simulé) · C ❌ service worker, essais sur appareils | Manuel sur appareils |
 | NOTIF-14 | Fil d'activité partagé du foyer | « Notifications partagées » | M1§2 | P1 | MVT-10 | En développement | D ✅ · C ❌ | E2E |
 
 ## 21. Niveaux de fiabilité et cohérence
@@ -373,24 +373,24 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | AUD-04 | Écart théorique / physique | — | M3§7 | P0 | INV-06 | En développement | D ✅ | — |
 | AUD-05 | Consommation sur stock nul | — | M3§7 | P0 | — | En développement | D ✅ | — |
 | AUD-06 | Dates incohérentes | Avant l'achat, > 10 ans, dépassée à réception | M3§7 | P1 | — | En développement | D 🟡 (non testé) | Unitaires |
-| AUD-07 | Contrôle d'intégrité serveur | SQLite + règles métier | M1§12 | P0 | — | Développé | S ✅ (fumée) | Intégration |
+| AUD-07 | Contrôle d'intégrité serveur | SQLite + règles métier | M1§12 | P0 | — | Testé et validé | S ✅ week.test (contrôle chaque soir), data.test | Intégration |
 | AUD-08 | Interface de contrôle et de correction | — | M3§7 | P1 | C | À développer | C ❌ | E2E |
 
 ## 22. Sauvegardes, export, import
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| BAK-01 | Sauvegardes automatiques | Quotidiennes + avant opérations sensibles | M1§12, M3§10 | P0 | — | Développé | S 🟡 (jamais exécuté) | Intégration |
-| BAK-02 | Versions et rotation | 14 jours + 12 mois | M3§10 | P0 | BAK-01 | Développé | S 🟡 | Unitaires (rotation) |
-| BAK-03 | Vérification de chaque sauvegarde | integrity_check, FK, lecture | M3§10 | P0 | BAK-01 | Développé | S 🟡 | Intégration (fichier corrompu) |
-| BAK-04 | Restauration complète | Sauvegarde préalable, nouvelle époque | M3§10 | P0 | BAK-03 | Développé | S 🟡 | Intégration |
-| BAK-05 | Restauration d'un seul foyer | Sans affecter les autres familles | M4, C7 | P0 | BAK-03 | À développer | ❌ | Intégration |
-| BAK-06 | Export complet JSON | Avec photos | M1§12, M3§10 | P0 | — | Développé | S 🟡 | Aller-retour |
-| BAK-07 | Export CSV | Inventaire, achats, mouvements | M1§12 | P1 | — | Développé | S 🟡 | Intégration |
-| BAK-08 | Import complet | Nouveau foyer, identifiants régénérés | M1§12, M3§10 | P0 | — | Développé | S 🟡 | Aller-retour |
-| BAK-09 | Preuve de restauration | Sauvegarde → restauration → données identiques | M3§10 | P0 | BAK-04 | À développer | ❌ | — |
+| BAK-01 | Sauvegardes automatiques | Quotidiennes + avant opérations sensibles | M1§12, M3§10 | P0 | — | Testé et validé | S ✅ sauvegarde automatique créée au démarrage réel ; data.test | Intégration |
+| BAK-02 | Versions et rotation | 14 jours + 12 mois | M3§10 | P0 | BAK-01 | Testé et validé | S ✅ data.test (rotation) | Unitaires (rotation) |
+| BAK-03 | Vérification de chaque sauvegarde | integrity_check, FK, lecture | M3§10 | P0 | BAK-01 | Testé et validé | S ✅ data.test (fichier corrompu détecté ; un seul fichier autonome) | Intégration (fichier corrompu) |
+| BAK-04 | Restauration complète | Sauvegarde préalable, nouvelle époque | M3§10 | P0 | BAK-03 | Testé et validé | S ✅ data.test (restauration complète réservée à l’hébergeur, sauvegarde préalable, nouvelle époque) | Intégration |
+| BAK-05 | Restauration d'un seul foyer | Sans affecter les autres familles | M4, C7 | P0 | BAK-03 | En développement | S ✅ data.test (un foyer restauré, l’autre intact) · C ❌ | Intégration |
+| BAK-06 | Export complet JSON | Avec photos | M1§12, M3§10 | P0 | — | En développement | S ✅ data.test (aller-retour, photos) · C ❌ | Aller-retour |
+| BAK-07 | Export CSV | Inventaire, achats, mouvements | M1§12 | P1 | — | En développement | S ✅ data.test (BOM, séparateur « ; ») · C ❌ | Intégration |
+| BAK-08 | Import complet | Nouveau foyer, identifiants régénérés | M1§12, M3§10 | P0 | — | En développement | S ✅ data.test + isolation.test (identifiants régénérés) · C ❌ | Aller-retour |
+| BAK-09 | Preuve de restauration | Sauvegarde → restauration → données identiques | M3§10 | P0 | BAK-04 | Testé et validé | S ✅ data.test « PREUVE : sauvegarde → modifications → restauration → données identiques » | — |
 | BAK-10 | Interface sauvegardes / export / import | — | M1§12 | P1 | C | À développer | C ❌ | E2E |
-| BAK-11 | Export ≠ sauvegarde automatique | Les deux existent et sont distingués | M3§10 | P0 | — | Développé | Documenté (MASTER_SPEC §14.2) | — |
+| BAK-11 | Export ≠ sauvegarde automatique | Les deux existent et sont distingués | M3§10 | P0 | — | Testé et validé | Documenté (MASTER_SPEC §14.2) ; sauvegardes automatiques et exports distincts et testés | — |
 
 ## 23. Design et expérience utilisateur
 
@@ -428,18 +428,18 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
 | TST-01 | Tests unitaires du domaine | — | M1§12 | P0 | — | Testé et validé | 76 tests verts (unités, commandes, moteur, GS1, OCR, statistiques, audit, notifications, semaine) | — |
-| TST-02 | Tests d'intégration serveur | Comptes, foyers, sync, idempotence, concurrence, conflits | M1§12 | P0 | — | En développement | 2 tests (fumée, sondage d'isolation) | — |
-| TST-03 | Tests d'isolation multi-foyers | Scénario A1/A2/B1/B2 | M4§8 | P0 | ISO-* | En développement | = ISO-08 | — |
-| TST-04 | Semaine familiale simulée | Domaine ✅ ; pile complète (2 membres, 2 appareils, hors ligne) ❌ | M3§11 | P0 | SYNC-* | En développement | Domaine ✅ | — |
+| TST-02 | Tests d'intégration serveur | Comptes, foyers, sync, idempotence, concurrence, conflits | M1§12 | P0 | — | Testé et validé | `server/test/*.test.ts` : 59 tests (comptes, foyers, sync, isolation, données, services, semaine) | — |
+| TST-03 | Tests d'isolation multi-foyers | Scénario A1/A2/B1/B2 | M4§8 | P0 | ISO-* | Testé et validé | = ISO-08 | — |
+| TST-04 | Semaine familiale simulée | Domaine ✅ ; pile complète (2 membres, 2 appareils, hors ligne) ❌ | M3§11 | P0 | SYNC-* | En développement | Domaine ✅ (shared/test/week.test.ts) · pile serveur ✅ (server/test/week.test.ts : 3 appareils, hors ligne, renvois) · interface ❌ | — |
 | TST-05 | Tests de bout en bout | Parcours, temps réel, hors ligne, mobile, chaque bouton | M1§12 | P0 | C | À développer | ❌ | — |
 | TST-06 | Audit global | Cohérence, simplicité, design, rapidité… | M3§11 | P0 | — | En développement | 1er audit fait (PROJECT_PLAN §1) ; à refaire à chaque phase | — |
-| DOC-01 | PROJECT_PLAN.md | — | M1§13, M5 | P0 | — | Développé | Actualisé | — |
+| DOC-01 | PROJECT_PLAN.md | — | M1§13, M5 | P0 | — | Développé | Version 2.1 (phase 1) | — |
 | DOC-02 | MASTER_SPEC.md | — | M5 | P0 | — | Développé | Créé | — |
 | DOC-03 | FEATURE_TRACKER.md | — | M5 | P0 | — | Développé | Ce document | — |
 | DOC-04 | Guide de déploiement gratuit | Docker, Raspberry Pi/NAS, Tailscale/Cloudflare | M1§1 | P0 | DEP-01 | À développer | ❌ | Installation réelle |
 | DOC-05 | Guide utilisateur | Pour transmettre l'application à d'autres familles | M4§9 | P1 | — | À développer | ❌ | — |
 | DEP-01 | Image Docker / compose | — | M1§1 | P0 | — | À développer | ❌ | Démarrage du conteneur |
-| DEP-02 | Script de réinitialisation de mot de passe | Côté serveur | M4§1 | P1 | D2 | À spécifier | ❌ | — |
+| DEP-02 | Script de réinitialisation de mot de passe | Côté serveur | M4§1 | P1 | D2 | Testé et validé | CLI `lien-reinitialisation`, `utilisateurs`, `sauvegarde` exécutée réellement | — |
 
 ---
 
@@ -447,11 +447,11 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 2 (FND-03, TST-01) |
-| Développé | 34 |
-| En développement | 188 |
-| À développer | 62 |
-| À spécifier | 6 |
+| Testé et validé | 34 |
+| Développé | 8 |
+| En développement | 197 |
+| À développer | 53 |
+| À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |
 | **Total** | **297** |
