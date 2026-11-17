@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.2 — 17/11/2026 — phases 1 et 2 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.3 — 17/11/2026 — phases 1 à 3 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -126,12 +126,16 @@ Vérifié : **6 parcours de bout en bout** verts ; build de production ; disposi
 Défauts trouvés et corrigés : nom du foyer dans l'en-tête non synchronisé (ni hors ligne ni en direct) ; police bloquée par la CSP (ressource intégrée en ligne).
 Limites honnêtes : WebKit (Safari iPhone) indisponible dans cet environnement de test → à vérifier sur appareil ; image Docker non construite ici (Docker Hub a refusé les téléchargements : 429).
 
-### Phase 3 — Inventaire et mouvements ← **prochaine étape**
+### Phase 3 — Inventaire et mouvements ✅ (17/11/2026)
 **Contenu** : catégories, emplacements, magasins (gestion) ; fiche produit complète (photo, conditionnement, codes, alias, variantes) ; liste d'inventaire (recherche, filtres, regroupements, statuts) ; détail produit (lots, fiabilité, consommation, historique) ; **actions rapides** (ajouter, consommer, terminé, manquant, corriger, ouvert, déplacer, jeter) avec quantités décimales/approximatives ; journal d'activité ; **annulation** ; doublons et fusion validée.
 **Sortie** : CAT-*, STK-*, MVT-* « Testé et validé » (E2E + domaine).
+
+**Bilan de la phase 3** : liste d'inventaire (recherche nom/marque/alias/code, filtres épuisés/faibles/à consommer vite/ouverts, regroupement par emplacement ou catégorie, « −1 » rapide avec annulation), fiche produit (stock et fiabilité, lots par ordre de péremption avec source de la date et de la quantité, analyse et recommandation expliquées, codes-barres, noms alternatifs, historique regroupé par action avec annulation, fusion validée, archivage), formulaire produit (doublons signalés en direct, conditionnement, photo, stock initial), actions rapides (consommer, ajouter/acheter, ouvrir, terminé, corriger, manquant, jeter, déplacer, date), gestion du catalogue (catégories, emplacements, magasins).
+Vérifié : 4 nouveaux parcours de bout en bout (10 au total) + 136 tests unitaires/intégration.
+Défauts trouvés et corrigés : libellés de listes déroulantes non reliés à leur champ (accessibilité) ; historique d'une ouverture affiché en deux lignes contradictoires ; quantité par défaut de « 1 g » ; limites anti-abus bloquant les tests (désormais réglables, inchangées en production).
 **Dépend de** : Phase 2.
 
-### Phase 4 — Scanner universel
+### Phase 4 — Scanner universel ← **prochaine étape**
 **Contenu** : lecture caméra zxing-wasm (1D/2D, GS1) ; identification (catalogue local hors ligne → serveur → OFF/OBF/OPF) ; validation d'identité incertaine ; création rapide ; **modes Réception / Consommation / Inventaire** ; quantité par scan ; mode continu ; confirmation discrète + Annuler ; anti-rebond ; gestion des erreurs.
 **Tests** : images de codes (EAN, DataMatrix GS1, QR Digital Link) injectées dans la caméra simulée ; E2E des trois modes ; essais sur téléphones réels.
 **Sortie** : SCAN-* (hors OCR) « Testé et validé ».

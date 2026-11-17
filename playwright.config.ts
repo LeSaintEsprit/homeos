@@ -30,6 +30,8 @@ export default defineConfig({
       HOMEOS_WEB_DIR: 'packages/web/dist',
       HOMEOS_REGISTRATION: 'open',
       HOMEOS_SCHEDULERS: '0',
+      // Tous les navigateurs de test partagent une adresse IP : limites anti-abus relevées.
+      HOMEOS_RATE_LIMIT_MULTIPLIER: '50',
       LOG_LEVEL: 'warn',
     },
   },

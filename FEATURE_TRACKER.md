@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 17/11/2026 — fin de la phase 2 (socle client).
+> Dernière mise à jour : 17/11/2026 — fin de la phase 3 (inventaire et mouvements).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 2)** : domaine (77 tests) et serveur (59 tests) vérifiés ; socle de l'application vérifié de bout en bout (6 parcours Playwright : comptes, foyers, invitations, temps réel, hors ligne, bascule entre foyers, retrait, lecture seule, démarrage sans réseau). Les modules métier visibles (inventaire, scanner, courses, prévisions…) restent à construire dans l'interface : ils sont donc « En développement ».
+**Constat global (fin de phase 3)** : domaine (77 tests) et serveur (59 tests) vérifiés ; 10 parcours de bout en bout (socle + inventaire et mouvements). Restent à construire dans l'interface : scanner, liste de courses et mode courses, prévisions, tableau de bord, dépenses, OCR, écrans de données.
 
 ---
 
@@ -130,55 +130,55 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| CAT-01 | Fiche produit complète | Tous les champs de M1§3 | M1§3 | P0 | — | En développement | D ✅ · S 🟡 · C ❌ | E2E |
-| CAT-02 | Catégories personnalisables | 9 par défaut | M1§3 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| CAT-03 | Emplacements personnalisables | 9 par défaut dont Cuisine | M1§3, M3§1 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| CAT-04 | Photo facultative | Redimensionnée côté client, isolée | M1§3 | P1 | — | En développement | S 🟡 · C ❌ | Intégration |
-| CAT-05 | Plusieurs codes-barres par produit | Avec format, marque, quantité par scan | M3§3 | P0 | — | En développement | D ✅ · C ❌ | — |
-| CAT-06 | Formats d'emballage | Conditionnement (1 paquet = 500 g) | M3§3 | P0 | — | En développement | D ✅ · C ❌ | — |
-| CAT-07 | Variantes | Famille de produits | M3§3 | P2 | — | En développement | D 🟡 champ seulement · C ❌ | E2E |
-| CAT-08 | Marques différentes | Marque par code | M3§3 | P1 | CAT-05 | En développement | D ✅ · C ❌ | — |
-| CAT-09 | Produits personnalisés | Sans code-barres | M3§3 | P0 | — | En développement | D ✅ · C ❌ | — |
-| CAT-10 | Alias et noms alternatifs | Dont libellés de tickets appris | M3§3 | P1 | — | En développement | D ✅ · C ❌ | — |
-| CAT-11 | Détection des doublons probables | Sans fusion automatique | M3§3, M1§12 | P0 | — | En développement | D ✅ · C ❌ | — |
-| CAT-12 | Fusion validée | Conserve l'historique, conversion vérifiée | M3§3 | P1 | CAT-11 | En développement | D ✅ · S 🟡 · C ❌ | Intégration |
+| CAT-01 | Fiche produit complète | Tous les champs de M1§3 | M1§3 | P0 | — | Testé et validé | D/S ✅ · C ✅ formulaire complet (création/modification) · `e2e/inventory.spec.ts` | E2E |
+| CAT-02 | Catégories personnalisables | 9 par défaut | M1§3 | P0 | — | Développé | D ✅ · C ✅ Paramètres → Catalogue (même composant que les emplacements, testé) | E2E |
+| CAT-03 | Emplacements personnalisables | 9 par défaut dont Cuisine | M1§3, M3§1 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (nouvel emplacement disponible dans les fiches) | E2E |
+| CAT-04 | Photo facultative | Redimensionnée côté client, isolée | M1§3 | P1 | — | Développé | S ✅ · C ✅ photo redimensionnée (640 px) puis envoyée ; affichée et mise en cache hors ligne — non couverte E2E | Intégration |
+| CAT-05 | Plusieurs codes-barres par produit | Avec format, marque, quantité par scan | M3§3 | P0 | — | Développé | D ✅ · C ✅ ajout/retrait de codes dans la fiche — non couvert E2E | — |
+| CAT-06 | Formats d'emballage | Conditionnement (1 paquet = 500 g) | M3§3 | P0 | — | Développé | D ✅ · C ✅ « Conditionnement d’achat » + saisie dans l’unité de conditionnement | — |
+| CAT-07 | Variantes | Famille de produits | M3§3 | P2 | — | Développé | D ✅ · C ✅ champ « Famille (variantes) » ; utilisé pour proposer les doublons | E2E |
+| CAT-08 | Marques différentes | Marque par code | M3§3 | P1 | CAT-05 | En développement | D ✅ · C 🟡 marque du produit ; marque par code via le scanner (phase 4) | — |
+| CAT-09 | Produits personnalisés | Sans code-barres | M3§3 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (produits sans code-barres) | — |
+| CAT-10 | Alias et noms alternatifs | Dont libellés de tickets appris | M3§3 | P1 | — | Développé | D ✅ · C ✅ noms alternatifs dans la fiche, utilisés par la recherche | — |
+| CAT-11 | Détection des doublons probables | Sans fusion automatique | M3§3, M1§12 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (alerte à la saisie, aucune fusion automatique) | — |
+| CAT-12 | Fusion validée | Conserve l'historique, conversion vérifiée | M3§3 | P1 | CAT-11 | Développé | D ✅ · S ✅ · C ✅ « Fusionner un doublon » avec confirmation explicite — non couvert E2E | Intégration |
 | CAT-13 | Validation d'identité incertaine | Question lors du scan | M3§3, M2§1 | P0 | SCAN-05 | À développer | C ❌ | E2E |
-| CAT-14 | Archivage / restauration | — | AUD | P1 | — | En développement | D ✅ · C ❌ | — |
-| CAT-15 | Magasin habituel | Par produit | M1§3 | P1 | STORE-01 | En développement | D ✅ · C ❌ | — |
-| CAT-16 | Commentaires | — | M1§3 | P1 | — | En développement | D ✅ · C ❌ | — |
-| CAT-17 | Consommation moyenne affichée | Calculée, avec sa source | M1§3 | P0 | ENG-05 | En développement | D ✅ · C ❌ | E2E |
-| CAT-18 | Historique des mouvements par produit | — | M1§3 | P0 | MVT-08 | En développement | D ✅ · C ❌ | E2E |
+| CAT-14 | Archivage / restauration | — | AUD | P1 | — | Développé | D ✅ · C ✅ archiver / restaurer | — |
+| CAT-15 | Magasin habituel | Par produit | M1§3 | P1 | STORE-01 | Développé | D ✅ · C ✅ | — |
+| CAT-16 | Commentaires | — | M1§3 | P1 | — | Développé | D ✅ · C ✅ | — |
+| CAT-17 | Consommation moyenne affichée | Calculée, avec sa source | M1§3 | P0 | ENG-05 | Développé | D ✅ · C ✅ carte « Analyse » (débit, source, confiance, autonomie) — à vérifier avec historique réel (phase 6) | E2E |
+| CAT-18 | Historique des mouvements par produit | — | M1§3 | P0 | MVT-08 | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (historique par action, auteur, avant → après, motif) | E2E |
 
 ## 9. Stocks, lots, unités
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| STK-01 | Lots multiples | Quantités et dates différentes | M1§3, M1§7 | P0 | — | En développement | D ✅ · S 🟡 · C ❌ | E2E |
-| STK-02 | Quantités partielles | 0,5 bouteille, 250 g, 300 ml, 1,5 kg | M3§2 | P0 | — | En développement | D ✅ · C ❌ (saisie décimale) | E2E |
-| STK-03 | Quantité approximative | « Environ la moitié » | M3§2, M3§8 | P0 | — | En développement | D ✅ · C ❌ | — |
-| STK-04 | Unités et conversions | g/kg, ml/cl/L, comptage, conditionnements | M1§3, M3§2 | P0 | — | En développement | D ✅ · C ❌ | — |
+| STK-01 | Lots multiples | Quantités et dates différentes | M1§3, M1§7 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (lots distincts, dates, sources) | E2E |
+| STK-02 | Quantités partielles | 0,5 bouteille, 250 g, 300 ml, 1,5 kg | M3§2 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (0,5 bouteille) | E2E |
+| STK-03 | Quantité approximative | « Environ la moitié » | M3§2, M3§8 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (« ≈ 1,5 bouteille » affiché partout) | — |
+| STK-04 | Unités et conversions | g/kg, ml/cl/L, comptage, conditionnements | M1§3, M3§2 | P0 | — | Développé | D ✅ · C ✅ choix des unités compatibles dans chaque action | — |
 | STK-05 | Aucune conversion incompatible | Sans information fiable | M3§2 | P0 | — | En développement | D ✅ · S 🟡 | Intégration |
-| STK-06 | Quantités achetée / initiale / restante / consommée | Distinction affichée | M3§2 | P1 | — | En développement | D 🟡 (données présentes, calcul « consommée » à exposer) · C ❌ | Unitaires + E2E |
-| STK-07 | FEFO | Date la plus proche, ouverts d'abord | M1§7, M2§5 | P0 | — | En développement | D ✅ · S 🟡 | — |
+| STK-06 | Quantités achetée / initiale / restante / consommée | Distinction affichée | M3§2 | P1 | — | En développement | D 🟡 · C 🟡 restante / initiale affichées par lot ; consommée et achetée à exposer | Unitaires + E2E |
+| STK-07 | FEFO | Date la plus proche, ouverts d'abord | M1§7, M2§5 | P0 | — | Testé et validé | D ✅ · C ✅ sélection automatique « date la plus proche d’abord » ou lot choisi | — |
 | STK-08 | Jamais de stock négatif | Base + domaine | M1§12, M3§7 | P0 | — | Testé et validé | D ✅ · S ✅ contrainte CHECK + sync.test (jamais négatif sous concurrence) | Intégration (tentative directe) |
-| STK-09 | Emplacement par lot, déplacement partiel | — | M1§3 | P1 | — | En développement | D ✅ · C ❌ | — |
+| STK-09 | Emplacement par lot, déplacement partiel | — | M1§3 | P1 | — | Développé | D ✅ · C ✅ « Déplacer » (partiel) — non couvert E2E | — |
 
 ## 10. Mouvements et actions rapides
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| MVT-01 | Ajouter au stock | — | M1§6 | P0 | — | En développement | D ✅ · S ✅ (fumée) · C ❌ | E2E |
-| MVT-02 | Retirer / consommer | — | M1§6 | P0 | — | En développement | D ✅ · S ✅ (fumée) · C ❌ | E2E |
-| MVT-03 | Déclarer terminé | Avec ajout facultatif à la liste | M1§6 | P0 | SHOP-01 | En développement | D ✅ · C ❌ | E2E |
-| MVT-04 | Signaler manquant | Ajout prioritaire à la liste, stock inchangé | M1§6 | P0 | SHOP-01 | En développement | D ✅ · C ❌ | E2E |
-| MVT-05 | Modifier une quantité | Motif obligatoire, contrôle de concurrence | M1§6 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| MVT-06 | Signaler ouvert | Isolement de l'unité ouverte | M1§6 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| MVT-07 | Jeter / périmé | Motifs, lots périmés d'abord | M1§7 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| MVT-08 | Mouvement historisé complet | Id, date, utilisateur, type, produit, avant, après, motif, source | M1§6, M3§7 | P0 | — | En développement | D ✅ · S 🟡 · C ❌ | — |
+| MVT-01 | Ajouter au stock | — | M1§6 | P0 | — | Testé et validé | D/S ✅ · C ✅ stock initial et action « Ajouter » (achat facultatif, prix, magasin, date) · `e2e/inventory.spec.ts` | E2E |
+| MVT-02 | Retirer / consommer | — | M1§6 | P0 | — | Testé et validé | D/S ✅ · C ✅ `e2e/inventory.spec.ts` (feuille et « −1 » rapide) | E2E |
+| MVT-03 | Déclarer terminé | Avec ajout facultatif à la liste | M1§6 | P0 | SHOP-01 | Développé | D ✅ · C ✅ « Terminé » (+ ajout facultatif à la liste) — non couvert E2E | E2E |
+| MVT-04 | Signaler manquant | Ajout prioritaire à la liste, stock inchangé | M1§6 | P0 | SHOP-01 | Développé | D ✅ · C ✅ « Manquant » — non couvert E2E | E2E |
+| MVT-05 | Modifier une quantité | Motif obligatoire, contrôle de concurrence | M1§6 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (quantité réelle, approximative, motif) | E2E |
+| MVT-06 | Signaler ouvert | Isolement de l'unité ouverte | M1§6 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (unité ouverte isolée) | E2E |
+| MVT-07 | Jeter / périmé | Motifs, lots périmés d'abord | M1§7 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` | E2E |
+| MVT-08 | Mouvement historisé complet | Id, date, utilisateur, type, produit, avant, après, motif, source | M1§6, M3§7 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` | — |
 | MVT-09 | Aucune modification silencieuse ni suppression d'historique | — | M1§6, M3§7 | P0 | — | Développé | D ✅ par conception, audit ✅ | Audit |
-| MVT-10 | Journal qui / quoi / quand | Activités du foyer | M1§2, M1§6 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| MVT-11 | Annulation et correction | Mouvements compensatoires, une seule fois | M3§7 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| MVT-12 | Saisie manuelle toujours possible | — | M1§6, M2§1 | P0 | C | À développer | C ❌ | E2E |
+| MVT-10 | Journal qui / quoi / quand | Activités du foyer | M1§2, M1§6 | P0 | — | Testé et validé | D ✅ · C ✅ historique par produit (`e2e/inventory.spec.ts`) et journal du foyer (Famille) | E2E |
+| MVT-11 | Annulation et correction | Mouvements compensatoires, une seule fois | M3§7 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (« Annuler » dans la notification et dans l’historique) | E2E |
+| MVT-12 | Saisie manuelle toujours possible | — | M1§6, M2§1 | P0 | C | Testé et validé | C ✅ `e2e/inventory.spec.ts` | E2E |
 
 ## 11. Scanner
 
@@ -361,8 +361,8 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| REL-01 | Fiabilité des quantités | Comptée, scannée, saisie, approximative, calculée | M3§8 | P0 | — | En développement | D ✅ · C ❌ | — |
-| REL-02 | Fiabilité des dates | GS1, saisie, OCR confirmée, estimée, inconnue | M3§8 | P0 | — | En développement | D ✅ · C ❌ | — |
+| REL-01 | Fiabilité des quantités | Comptée, scannée, saisie, approximative, calculée | M3§8 | P0 | — | En développement | D ✅ · C 🟡 « ≈ », source de la quantité et date de comptage par lot ; à étendre au tableau de bord | — |
+| REL-02 | Fiabilité des dates | GS1, saisie, OCR confirmée, estimée, inconnue | M3§8 | P0 | — | En développement | D ✅ · C 🟡 source de la date par lot (lue, saisie, reconnue, estimée) ; DLC/DDM | — |
 | REL-03 | Fiabilité de la consommation | Observée / achats / manuelle / aucune + confiance | M3§8 | P0 | — | En développement | D ✅ · C ❌ | — |
 | REL-04 | Fiabilité des prix | Connu / estimé / inconnu | M3§6 | P0 | — | En développement | D ✅ · C ❌ | — |
 | REL-05 | Affichage clair des incertitudes | Jamais une estimation présentée comme exacte | M3§8 | P0 | C | À développer | C ❌ | E2E + revue |
@@ -405,9 +405,9 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | En développement | C ✅ navigation 6 rubriques + Scanner ; Inventaire, Courses, Prévisions en construction | E2E |
 | UX-08 | Mode courses optimisé magasin | — | M1§11 | P0 | SHOP-12 | À développer | ❌ | E2E mobile |
 | UX-09 | Scanner accessible partout | — | M2 | P0 | SCAN-01 | À développer | ❌ | E2E |
-| UX-10 | Accessibilité | Contrastes, cibles ≥ 44 px | AUD | P1 | — | À développer | ❌ | Audit axe |
+| UX-10 | Accessibilité | Contrastes, cibles ≥ 44 px | AUD | P1 | — | En développement | C 🟡 libellés désormais reliés aux champs (défaut trouvé par les tests) ; audit complet à faire | Audit axe |
 | UX-11 | Chaque bouton fonctionne | — | M1§12 | P0 | — | À développer | ❌ | E2E exhaustif |
-| UX-12 | Gestion des erreurs lisible | Messages français, pas d'écran blanc | M1§12 | P0 | — | En développement | D/S ✅ messages · C ❌ | E2E |
+| UX-12 | Gestion des erreurs lisible | Messages français, pas d'écran blanc | M1§12 | P0 | — | En développement | D/S ✅ · C ✅ notifications d’erreur en français ; refus immédiats expliqués | E2E |
 
 ## 24. Fonctionnalités avancées
 
@@ -431,7 +431,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | TST-02 | Tests d'intégration serveur | Comptes, foyers, sync, idempotence, concurrence, conflits | M1§12 | P0 | — | Testé et validé | `server/test/*.test.ts` : 59 tests (comptes, foyers, sync, isolation, données, services, semaine) | — |
 | TST-03 | Tests d'isolation multi-foyers | Scénario A1/A2/B1/B2 | M4§8 | P0 | ISO-* | Testé et validé | = ISO-08 | — |
 | TST-04 | Semaine familiale simulée | Domaine ✅ ; pile complète (2 membres, 2 appareils, hors ligne) ❌ | M3§11 | P0 | SYNC-* | En développement | Domaine ✅ (shared/test/week.test.ts) · pile serveur ✅ (server/test/week.test.ts : 3 appareils, hors ligne, renvois) · interface ❌ | — |
-| TST-05 | Tests de bout en bout | Parcours, temps réel, hors ligne, mobile, chaque bouton | M1§12 | P0 | C | En développement | `e2e/foundations.spec.ts` : 6 parcours (temps réel, hors ligne, bascule, retrait, lecture seule, démarrage sans réseau) | — |
+| TST-05 | Tests de bout en bout | Parcours, temps réel, hors ligne, mobile, chaque bouton | M1§12 | P0 | C | En développement | `e2e/foundations.spec.ts` (6) + `e2e/inventory.spec.ts` (4) = 10 parcours | — |
 | TST-06 | Audit global | Cohérence, simplicité, design, rapidité… | M3§11 | P0 | — | En développement | 1er audit fait (PROJECT_PLAN §1) ; à refaire à chaque phase | — |
 | DOC-01 | PROJECT_PLAN.md | — | M1§13, M5 | P0 | — | Développé | Version 2.1 (phase 1) | — |
 | DOC-02 | MASTER_SPEC.md | — | M5 | P0 | — | Développé | Créé | — |
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 56 |
-| Développé | 26 |
-| En développement | 173 |
-| À développer | 37 |
+| Testé et validé | 74 |
+| Développé | 41 |
+| En développement | 142 |
+| À développer | 35 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |

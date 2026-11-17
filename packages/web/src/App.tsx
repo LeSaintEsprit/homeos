@@ -12,6 +12,8 @@ import { HomePage } from './pages/app/Home';
 import { FamilyPage } from './pages/app/Family';
 import { SettingsPage } from './pages/app/Settings';
 import { Placeholder } from './pages/app/Placeholder';
+import { InventoryPage } from './pages/app/inventory/InventoryPage';
+import { NewProductPage, ProductDetailPage } from './pages/app/inventory/ProductDetail';
 
 function Splash() {
   return (
@@ -66,7 +68,9 @@ export function App() {
         <Route path="/foyers/rejoindre" element={<RequireAuth><JoinHouseholdPage /></RequireAuth>} />
         <Route element={<RequireAuth><HouseholdSpace /></RequireAuth>}>
           <Route index element={<HomePage />} />
-          <Route path="inventaire/*" element={<Placeholder title="Inventaire" phase={3} />} />
+          <Route path="inventaire" element={<InventoryPage />} />
+          <Route path="inventaire/nouveau" element={<NewProductPage />} />
+          <Route path="inventaire/:id" element={<ProductDetailPage />} />
           <Route path="courses/*" element={<Placeholder title="Courses" phase={5} />} />
           <Route path="previsions/*" element={<Placeholder title="Prévisions" phase={6} />} />
           <Route path="scanner" element={<Placeholder title="Scanner" phase={4} />} />

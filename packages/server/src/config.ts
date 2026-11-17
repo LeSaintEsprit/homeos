@@ -23,6 +23,8 @@ export interface Config {
   mailFrom: string | null;
   /** Durée de conservation des opérations traitées (idempotence). */
   processedOpsDays: number;
+  /** Multiplicateur des limites anti-abus (1 en production ; relevé pour les tests automatisés). */
+  rateLimitMultiplier: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Partial<Config> = {}): Config {
@@ -48,6 +50,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     smtpUrl: env.HOMEOS_SMTP_URL || null,
     mailFrom: env.HOMEOS_MAIL_FROM || null,
     processedOpsDays: Number(env.HOMEOS_PROCESSED_OPS_DAYS ?? 180),
+    rateLimitMultiplier: Math.max(1, Number(env.HOMEOS_RATE_LIMIT_MULTIPLIER ?? 1) || 1),
     ...overrides,
   };
 }

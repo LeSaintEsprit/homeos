@@ -16,6 +16,7 @@ import { Sheet } from '../../ui/Sheet';
 import { HouseholdAvatar } from '../../ui/Avatar';
 import { useConfirm } from '../../ui/Confirm';
 import { PageHead } from './Shell';
+import { CatalogSection } from './inventory/CatalogSection';
 
 function Section({ icon, title, children, id }: { icon: ReactNode; title: string; children: ReactNode; id?: string }) {
   return (
@@ -353,6 +354,7 @@ export function SettingsPage() {
       <PageHead title="Paramètres" eyebrow={s.me?.user.email} />
       <ProfileSection />
       <HouseholdSection />
+      <CatalogSection />
       <NotificationSection />
       <Section icon={<Palette size={20} />} title="Apparence">
         <Segmented<ThemePref>

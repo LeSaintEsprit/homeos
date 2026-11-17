@@ -53,11 +53,11 @@ export function buildApp(deps: AppDeps): App {
     barcodes: new BarcodeService(db, config, deps.fetchImpl),
     mailer: deps.mailer ?? mailerFromConfig(config),
     limits: {
-      loginIp: new RateLimiter(30, 15 * 60_000),
+      loginIp: new RateLimiter(30 * config.rateLimitMultiplier, 15 * 60_000),
       loginEmail: new RateLimiter(10, 15 * 60_000),
-      registerIp: new RateLimiter(10, 60 * 60_000),
-      inviteIp: new RateLimiter(30, 15 * 60_000),
-      forgotIp: new RateLimiter(5, 60 * 60_000),
+      registerIp: new RateLimiter(10 * config.rateLimitMultiplier, 60 * 60_000),
+      inviteIp: new RateLimiter(30 * config.rateLimitMultiplier, 15 * 60_000),
+      forgotIp: new RateLimiter(5 * config.rateLimitMultiplier, 60 * 60_000),
     },
   };
 
