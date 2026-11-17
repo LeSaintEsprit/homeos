@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.1 — 17/11/2026 — phase 1 terminée. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.2 — 17/11/2026 — phases 1 et 2 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -115,13 +115,18 @@ MASTER_SPEC, FEATURE_TRACKER, PROJECT_PLAN v2, audit. **Sortie** : documents cr�
 - Vérifié : **59 tests serveur** (comptes 12, foyers 11, synchronisation 9, **isolation A1/A2/B1/B2 11**, données 8, services 6, **semaine familiale sur 3 appareils** 1, fumée 1) + 77 tests du domaine = **136 tests verts** ; serveur compilé pour la production, démarré réellement (sauvegarde automatique au démarrage, outil en ligne de commande).
 - Défauts trouvés et corrigés pendant la phase : l'heure du récapitulatif push était lue « 08 h » en français (le récapitulatif ne serait **jamais** parti) ; chaque sauvegarde laissait des fichiers `-wal`/`-shm` à côté d'elle (désormais un fichier autonome) ; le serveur plantait au démarrage (import `web-push`, corrigé lors de l'audit).
 
-### Phase 2 — Socle client ← **prochaine étape**
+### Phase 2 — Socle client ✅ (17/11/2026)
 **Contenu** : PWA (Vite, service worker, manifeste, icônes) ; **design system** (couleurs, typographie Manrope, composants, cartes, feuilles, animations, clair/sombre) ; coquille d'application (navigation 6 rubriques, barre latérale ordinateur, bouton Scanner central) ; **sélecteur de foyer + nom du foyer actif** ; réplique IndexedDB **par foyer**, outbox, prédiction optimiste (`MemoryStore`), SSE, indicateur de synchronisation, écran des conflits/rejets, hors ligne, époque, purge d'un foyer quitté ; parcours d'accueil (inscription, connexion, créer/rejoindre un foyer, lien d'invitation) ; Dockerfile minimal pour tester sur de vrais téléphones en HTTPS.
 **Tests** : E2E inscription → foyer → invitation → second membre ; hors ligne → reconnexion sans perte ; bascule entre deux foyers sans mélange ; mobile émulé (iPhone, Android).
 **Sortie** : MULTI-*, SYNC-02/04/05/06/08/10/12, HH-02, MEM-01/02/05 « Testé et validé ».
 **Dépend de** : Phase 1.
 
-### Phase 3 — Inventaire et mouvements
+**Bilan de la phase 2** : design system (palette « lin & forêt », clair/sombre, Manrope, composants), coquille (barre latérale / onglets, bouton Scanner, sélecteur de foyer au nom synchronisé), parcours d'accueil (inscription, connexion, mot de passe oublié, invitation par lien, création de foyer en 3 étapes, rejoindre), Famille (membres, rôles, retrait, invitations avec code/lien/QR/e-mail, invitation d'une autre famille, journal), Paramètres (profil, foyer, notifications et push, thème, mes foyers, données personnelles, administration du serveur), moteur de synchronisation (réplique IndexedDB par foyer, outbox, prédiction partagée, SSE, reprise, époque, purge), PWA (précache, démarrage hors ligne, notifications), Dockerfile.
+Vérifié : **6 parcours de bout en bout** verts ; build de production ; disposition de production démarrée hors conteneur.
+Défauts trouvés et corrigés : nom du foyer dans l'en-tête non synchronisé (ni hors ligne ni en direct) ; police bloquée par la CSP (ressource intégrée en ligne).
+Limites honnêtes : WebKit (Safari iPhone) indisponible dans cet environnement de test → à vérifier sur appareil ; image Docker non construite ici (Docker Hub a refusé les téléchargements : 429).
+
+### Phase 3 — Inventaire et mouvements ← **prochaine étape**
 **Contenu** : catégories, emplacements, magasins (gestion) ; fiche produit complète (photo, conditionnement, codes, alias, variantes) ; liste d'inventaire (recherche, filtres, regroupements, statuts) ; détail produit (lots, fiabilité, consommation, historique) ; **actions rapides** (ajouter, consommer, terminé, manquant, corriger, ouvert, déplacer, jeter) avec quantités décimales/approximatives ; journal d'activité ; **annulation** ; doublons et fusion validée.
 **Sortie** : CAT-*, STK-*, MVT-* « Testé et validé » (E2E + domaine).
 **Dépend de** : Phase 2.

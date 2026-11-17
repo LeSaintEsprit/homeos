@@ -1,7 +1,10 @@
 # HOMEOS — image de production (une seule image : serveur + application web).
-FROM node:22-bookworm-slim AS build
+# Registre des images de base (par défaut Docker Hub). En cas de limite de téléchargement :
+#   docker build --build-arg REGISTRY=public.ecr.aws/docker/library/ -t homeos .
+ARG REGISTRY=
+# Image complète pour la construction : python3, make et g++ y sont déjà (module natif SQLite).
+FROM ${REGISTRY}node:22-bookworm AS build
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
@@ -15,7 +18,7 @@ RUN mkdir /prod && cp package.json package-lock.json /prod/ && mkdir -p /prod/pa
   && cp packages/server/package.json /prod/packages/server/ && cp packages/shared/package.json /prod/packages/shared/ && cp packages/web/package.json /prod/packages/web/ \
   && cd /prod && npm ci --omit=dev --no-audit --no-fund -w @homeos/server
 
-FROM node:22-bookworm-slim
+FROM ${REGISTRY}node:22-bookworm-slim
 ENV NODE_ENV=production PORT=8080 HOMEOS_DATA_DIR=/data HOMEOS_WEB_DIR=/app/web
 WORKDIR /app
 COPY --from=build /prod/node_modules ./node_modules
