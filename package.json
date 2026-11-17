@@ -1,0 +1,30 @@
+{
+  "name": "homeos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HOMEOS \u2014 gestion familiale intelligente des stocks et des courses",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "workspaces": [
+    "packages/shared",
+    "packages/server",
+    "packages/web"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @homeos/server & npm run dev -w @homeos/web",
+    "build": "npm run build -w @homeos/web && npm run build -w @homeos/server",
+    "start": "node packages/server/dist/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test --trace off",
+    "typecheck": "tsc -p packages/shared && tsc -p packages/server && tsc -p packages/web"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "^5.1.0",
+    "@types/node": "^22.20.5"
+  }
+}
