@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 17/11/2026 — fin de la phase 3 (inventaire et mouvements).
+> Dernière mise à jour : 17/11/2026 — fin de la phase 4 (scanner).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 3)** : domaine (77 tests) et serveur (59 tests) vérifiés ; 10 parcours de bout en bout (socle + inventaire et mouvements). Restent à construire dans l'interface : scanner, liste de courses et mode courses, prévisions, tableau de bord, dépenses, OCR, écrans de données.
+**Constat global (fin de phase 4)** : 140 tests unitaires/intégration (dont décodage réel de codes-barres) et 12 parcours de bout en bout. Restent à construire dans l'interface : liste de courses et mode courses, prévisions, tableau de bord, dépenses, OCR, inventaire guidé, écrans de données.
 
 ---
 
@@ -142,7 +142,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | CAT-10 | Alias et noms alternatifs | Dont libellés de tickets appris | M3§3 | P1 | — | Développé | D ✅ · C ✅ noms alternatifs dans la fiche, utilisés par la recherche | — |
 | CAT-11 | Détection des doublons probables | Sans fusion automatique | M3§3, M1§12 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (alerte à la saisie, aucune fusion automatique) | — |
 | CAT-12 | Fusion validée | Conserve l'historique, conversion vérifiée | M3§3 | P1 | CAT-11 | Développé | D ✅ · S ✅ · C ✅ « Fusionner un doublon » avec confirmation explicite — non couvert E2E | Intégration |
-| CAT-13 | Validation d'identité incertaine | Question lors du scan | M3§3, M2§1 | P0 | SCAN-05 | À développer | C ❌ | E2E |
+| CAT-13 | Validation d'identité incertaine | Question lors du scan | M3§3, M2§1 | P0 | SCAN-05 | Développé | C ✅ « Est-ce l’un de vos produits ? » (association explicite, jamais automatique) — non couvert E2E | E2E |
 | CAT-14 | Archivage / restauration | — | AUD | P1 | — | Développé | D ✅ · C ✅ archiver / restaurer | — |
 | CAT-15 | Magasin habituel | Par produit | M1§3 | P1 | STORE-01 | Développé | D ✅ · C ✅ | — |
 | CAT-16 | Commentaires | — | M1§3 | P1 | — | Développé | D ✅ · C ✅ | — |
@@ -184,24 +184,24 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| SCAN-01 | Lecture 1D et 2D | EAN, UPC, Code 128, ITF, QR, DataMatrix, DataBar (zxing-wasm) | M2§3 | P0 | C | À développer | ❌ | Images de test + appareils réels |
-| SCAN-02 | Identification GTIN | Clé de contrôle, normalisation | M2§1 | P0 | — | En développement | D ✅ · C ❌ | — |
-| SCAN-03 | Recherche Open Food / Beauty / Products Facts | Proxy serveur, cache, User-Agent, 60 req/min | M2§1 | P0 | — | En développement | D ✅ · S ✅ services.test (réponses au format réel, cache, User-Agent, bascule OBF/OPF, indisponibilité) · C ❌ | Intégration (réponses simulées) |
-| SCAN-04 | Nom, marque, photo, catégorie, format | — | M2§1 | P0 | SCAN-03 | En développement | D ✅ · S 🟡 photo · C ❌ | — |
-| SCAN-05 | Association au catalogue / produits existants | Catalogue local hors ligne | M2§1 | P0 | CAT-05 | En développement | D ✅ codes · C ❌ | E2E |
-| SCAN-06 | Produits ménagers et d'hygiène | OBF, OPF, création rapide | M2§1 | P0 | SCAN-03 | En développement | S ✅ services.test (Open Beauty Facts) · C ❌ | — |
-| SCAN-07 | Mode Réception | +1, lot créé/complété, péremption | M2§2, M2§5 | P0 | SCAN-01 | En développement | D ✅ · C ❌ | E2E |
-| SCAN-08 | Mode Consommation | −1, FEFO | M2§2, M2§5 | P0 | SCAN-01 | En développement | D ✅ · C ❌ | E2E |
-| SCAN-09 | Mode Inventaire | Comptage, écarts, confirmation | M2§2, M2§5 | P0 | INV-06 | En développement | D ✅ · C ❌ | E2E |
-| SCAN-10 | Quantité par scan modifiable | 1 par défaut | M2§2 | P0 | SCAN-01 | À développer | C ❌ | E2E |
-| SCAN-11 | Analyse GS1 | GTIN, lot, DDM, date limite, poids, Digital Link | M2§3 | P0 | — | En développement | D ✅ (analyse) · C ❌ (lecture caméra) | Codes réels |
-| SCAN-12 | Jamais de date dans un EAN classique | — | M2§3 | P0 | — | En développement | D ✅ | — |
-| SCAN-13 | Traitement immédiat, une seule question | — | M2§6 | P0 | SCAN-01 | À développer | C ❌ | E2E |
-| SCAN-14 | Confirmation discrète + Annuler | « +1 produit ajouté » | M2§6 | P0 | MVT-11 | À développer | D ✅ annulation · C ❌ | E2E |
-| SCAN-15 | Mode scan continu | — | M2§6 | P0 | SCAN-01 | À développer | C ❌ | E2E |
-| SCAN-16 | Anti-doublon de scan | Anti-rebond 2,5 s + détection d'audit | M2§7, M3§7 | P0 | — | En développement | D ✅ détection · C ❌ anti-rebond | Unitaires + E2E |
-| SCAN-17 | Erreurs, codes inconnus, non référencés | Messages clairs, création rapide | M2§7 | P0 | — | En développement | S ✅ services.test (invalide, inconnu, indisponible) · C ❌ | E2E |
-| SCAN-18 | Hors connexion | Catalogue local | M2§7 | P0 | SYNC-05 | À développer | C ❌ | E2E hors ligne |
+| SCAN-01 | Lecture 1D et 2D | EAN, UPC, Code 128, ITF, QR, DataMatrix, DataBar (zxing-wasm) | M2§3 | P0 | C | Développé | C ✅ zxing-wasm auto-hébergé (wasm précaché, hors ligne) ; décodage réel vérifié sur images EAN-13, GS1 DataMatrix, GS1-128, QR Digital Link (`packages/web/test/decode.test.ts` + import de photo dans `e2e/scanner.spec.ts`) ; caméra vérifiée avec le périphérique simulé de Chromium — à essayer sur téléphones réels | Images de test + appareils réels |
+| SCAN-02 | Identification GTIN | Clé de contrôle, normalisation | M2§1 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/scanner.spec.ts` | — |
+| SCAN-03 | Recherche Open Food / Beauty / Products Facts | Proxy serveur, cache, User-Agent, 60 req/min | M2§1 | P0 | — | Développé | D ✅ · S ✅ (format de réponse réel, cache, bascule OBF/OPF) · C ✅ fiche « Nouveau code-barres » ; service Open Food Facts injoignable au moment des essais en direct : dégradation vérifiée (saisie du nom proposée) | Intégration (réponses simulées) |
+| SCAN-04 | Nom, marque, photo, catégorie, format | — | M2§1 | P0 | SCAN-03 | Développé | D/S ✅ · C ✅ nom, marque, format, catégorie et photo pré-remplis quand la fiche existe | — |
+| SCAN-05 | Association au catalogue / produits existants | Catalogue local hors ligne | M2§1 | P0 | CAT-05 | Testé et validé | D ✅ · C ✅ `e2e/scanner.spec.ts` (code reconnu dans le catalogue local au scan suivant) | E2E |
+| SCAN-06 | Produits ménagers et d'hygiène | OBF, OPF, création rapide | M2§1 | P0 | SCAN-03 | Développé | S ✅ · C ✅ (bases Beauty/Products interrogées ; création rapide pour les produits non référencés) | — |
+| SCAN-07 | Mode Réception | +1, lot créé/complété, péremption | M2§2, M2§5 | P0 | SCAN-01 | Testé et validé | D ✅ · C ✅ `e2e/scanner.spec.ts` (+1, lot complété pour même produit/date/lot, date lue dans le code) | E2E |
+| SCAN-08 | Mode Consommation | −1, FEFO | M2§2, M2§5 | P0 | SCAN-01 | Testé et validé | D ✅ · C ✅ `e2e/scanner.spec.ts` | E2E |
+| SCAN-09 | Mode Inventaire | Comptage, écarts, confirmation | M2§2, M2§5 | P0 | INV-06 | Testé et validé | D ✅ · C ✅ `e2e/scanner.spec.ts` (comptage par emplacement, écarts, correction après validation) | E2E |
+| SCAN-10 | Quantité par scan modifiable | 1 par défaut | M2§2 | P0 | SCAN-01 | Développé | C ✅ « Par scan » : −/+ et raccourcis ½, 1, 6 — non couvert E2E | E2E |
+| SCAN-11 | Analyse GS1 | GTIN, lot, DDM, date limite, poids, Digital Link | M2§3 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/scanner.spec.ts` (photo d’un GS1 DataMatrix : date limite et n° de lot) | Codes réels |
+| SCAN-12 | Jamais de date dans un EAN classique | — | M2§3 | P0 | — | Testé et validé | D ✅ · C ✅ (un EAN classique ne crée jamais de date) | — |
+| SCAN-13 | Traitement immédiat, une seule question | — | M2§6 | P0 | SCAN-01 | Testé et validé | C ✅ `e2e/scanner.spec.ts` (une seule question : la date, seulement pour un produit habituellement daté ; « Date inconnue » possible) | E2E |
+| SCAN-14 | Confirmation discrète + Annuler | « +1 produit ajouté » | M2§6 | P0 | MVT-11 | Testé et validé | C ✅ `e2e/scanner.spec.ts` (« +1 … » / « −1 … », son et vibration, Annuler) | E2E |
+| SCAN-15 | Mode scan continu | — | M2§6 | P0 | SCAN-01 | Testé et validé | C ✅ `e2e/scanner.spec.ts` (enchaînement des scans sans quitter l’écran) | E2E |
+| SCAN-16 | Anti-doublon de scan | Anti-rebond 2,5 s + détection d'audit | M2§7, M3§7 | P0 | — | Développé | D ✅ détection d’audit · C ✅ anti-rebond caméra 2,5 s (non testable sans caméra réelle) | Unitaires + E2E |
+| SCAN-17 | Erreurs, codes inconnus, non référencés | Messages clairs, création rapide | M2§7 | P0 | — | Testé et validé | S ✅ · C ✅ `e2e/scanner.spec.ts` (code inconnu) ; code invalide et lecture impossible signalés | E2E |
+| SCAN-18 | Hors connexion | Catalogue local | M2§7 | P0 | SYNC-05 | Développé | C ✅ reconnaissance par le catalogue local (aucun appel réseau) — non couvert E2E hors ligne | E2E hors ligne |
 
 ## 12. OCR des dates
 
@@ -222,8 +222,8 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | INV-03 | Modifier quantités, emplacements, dates avant validation | — | M3§1 | P1 | — | En développement | D ✅ · C ❌ | E2E |
 | INV-04 | Pourcentage d'avancement | — | M3§1 | P1 | — | En développement | D 🟡 (fonction non testée) · C ❌ | Unitaires |
 | INV-05 | Sauvegarde partielle et reprise | Synchronisée | M3§1 | P1 | — | En développement | D ✅ · C ❌ | E2E |
-| INV-06 | Comparaison théorique / compté | Par emplacement, confirmation | M2§5, M3§7 | P0 | — | En développement | D ✅ · C ❌ | E2E |
-| INV-07 | Conflit si le stock change pendant l'inventaire | — | M3§7 | P0 | — | En développement | D ✅ · S ✅ week.test · C ❌ | Intégration |
+| INV-06 | Comparaison théorique / compté | Par emplacement, confirmation | M2§5, M3§7 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/scanner.spec.ts` | E2E |
+| INV-07 | Conflit si le stock change pendant l'inventaire | — | M3§7 | P0 | — | Développé | D ✅ · S ✅ · C ✅ avertissement si le stock a changé pendant l’inventaire | Intégration |
 | INV-08 | Produits inconnus à résoudre avant validation | — | M3§1 | P1 | — | En développement | D ✅ · C ❌ | E2E |
 
 ## 14. Liste de courses, mode courses, réception
@@ -404,7 +404,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | UX-06 | Optimisation téléphone | — | M1§11 | P0 | — | En développement | C 🟡 mobile d’abord (onglets, feuilles, cibles ≥ 44 px) — en cours | E2E mobile |
 | UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | En développement | C ✅ navigation 6 rubriques + Scanner ; Inventaire, Courses, Prévisions en construction | E2E |
 | UX-08 | Mode courses optimisé magasin | — | M1§11 | P0 | SHOP-12 | À développer | ❌ | E2E mobile |
-| UX-09 | Scanner accessible partout | — | M2 | P0 | SCAN-01 | À développer | ❌ | E2E |
+| UX-09 | Scanner accessible partout | — | M2 | P0 | SCAN-01 | Développé | C ✅ bouton Scanner (téléphone : bouton flottant ; ordinateur : barre latérale) | E2E |
 | UX-10 | Accessibilité | Contrastes, cibles ≥ 44 px | AUD | P1 | — | En développement | C 🟡 libellés désormais reliés aux champs (défaut trouvé par les tests) ; audit complet à faire | Audit axe |
 | UX-11 | Chaque bouton fonctionne | — | M1§12 | P0 | — | À développer | ❌ | E2E exhaustif |
 | UX-12 | Gestion des erreurs lisible | Messages français, pas d'écran blanc | M1§12 | P0 | — | En développement | D/S ✅ · C ✅ notifications d’erreur en français ; refus immédiats expliqués | E2E |
@@ -431,7 +431,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | TST-02 | Tests d'intégration serveur | Comptes, foyers, sync, idempotence, concurrence, conflits | M1§12 | P0 | — | Testé et validé | `server/test/*.test.ts` : 59 tests (comptes, foyers, sync, isolation, données, services, semaine) | — |
 | TST-03 | Tests d'isolation multi-foyers | Scénario A1/A2/B1/B2 | M4§8 | P0 | ISO-* | Testé et validé | = ISO-08 | — |
 | TST-04 | Semaine familiale simulée | Domaine ✅ ; pile complète (2 membres, 2 appareils, hors ligne) ❌ | M3§11 | P0 | SYNC-* | En développement | Domaine ✅ (shared/test/week.test.ts) · pile serveur ✅ (server/test/week.test.ts : 3 appareils, hors ligne, renvois) · interface ❌ | — |
-| TST-05 | Tests de bout en bout | Parcours, temps réel, hors ligne, mobile, chaque bouton | M1§12 | P0 | C | En développement | `e2e/foundations.spec.ts` (6) + `e2e/inventory.spec.ts` (4) = 10 parcours | — |
+| TST-05 | Tests de bout en bout | Parcours, temps réel, hors ligne, mobile, chaque bouton | M1§12 | P0 | C | En développement | `e2e/*.spec.ts` : 12 parcours (socle 6, inventaire 4, scanner 2) | — |
 | TST-06 | Audit global | Cohérence, simplicité, design, rapidité… | M3§11 | P0 | — | En développement | 1er audit fait (PROJECT_PLAN §1) ; à refaire à chaque phase | — |
 | DOC-01 | PROJECT_PLAN.md | — | M1§13, M5 | P0 | — | Développé | Version 2.1 (phase 1) | — |
 | DOC-02 | MASTER_SPEC.md | — | M5 | P0 | — | Développé | Créé | — |
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 74 |
-| Développé | 41 |
-| En développement | 142 |
-| À développer | 35 |
+| Testé et validé | 86 |
+| Développé | 51 |
+| En développement | 128 |
+| À développer | 27 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |

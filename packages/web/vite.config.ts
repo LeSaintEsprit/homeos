@@ -20,7 +20,7 @@ export default defineConfig({
       filename: 'sw.ts',
       registerType: 'prompt',
       injectRegister: false,
-      injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'], maximumFileSizeToCacheInBytes: 4 * 1024 * 1024 },
+      injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest,wasm}'], maximumFileSizeToCacheInBytes: 4 * 1024 * 1024 },
       manifest: {
         name: 'HOMEOS — la maison sous contrôle',
         short_name: 'HOMEOS',

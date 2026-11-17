@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.3 — 17/11/2026 — phases 1 à 3 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.4 — 17/11/2026 — phases 1 à 4 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -135,13 +135,18 @@ Vérifié : 4 nouveaux parcours de bout en bout (10 au total) + 136 tests unitai
 Défauts trouvés et corrigés : libellés de listes déroulantes non reliés à leur champ (accessibilité) ; historique d'une ouverture affiché en deux lignes contradictoires ; quantité par défaut de « 1 g » ; limites anti-abus bloquant les tests (désormais réglables, inchangées en production).
 **Dépend de** : Phase 2.
 
-### Phase 4 — Scanner universel ← **prochaine étape**
+### Phase 4 — Scanner universel ✅ (17/11/2026)
 **Contenu** : lecture caméra zxing-wasm (1D/2D, GS1) ; identification (catalogue local hors ligne → serveur → OFF/OBF/OPF) ; validation d'identité incertaine ; création rapide ; **modes Réception / Consommation / Inventaire** ; quantité par scan ; mode continu ; confirmation discrète + Annuler ; anti-rebond ; gestion des erreurs.
 **Tests** : images de codes (EAN, DataMatrix GS1, QR Digital Link) injectées dans la caméra simulée ; E2E des trois modes ; essais sur téléphones réels.
 **Sortie** : SCAN-* (hors OCR) « Testé et validé ».
+
+**Bilan de la phase 4** : page Scanner (caméra arrière en continu, lampe, son/vibration, trois modes Réception/Consommation/Inventaire, quantité par scan, « Ranger dans », magasin, saisie manuelle, photo d'un code), identification (catalogue local → serveur → Open Food/Beauty/Products Facts → création rapide avec emplacement ; association à un produit existant proposée, jamais automatique), GS1 (date, DDM, lot, poids), une seule question (la date) quand elle manque pour un produit habituellement daté, confirmation discrète avec Annuler, regroupement par lot, inventaire par emplacement avec revue des écarts (stock situé ailleurs signalé).
+Vérifié : décodage réel d'images de codes (4 formats) en test unitaire et dans le navigateur ; 2 parcours de bout en bout.
+Défauts trouvés et corrigés : produit créé au scan sans emplacement (inventaire par emplacement faussé) ; bouton flottant redondant sur la page Scanner ; ordre des champs de la création rapide ; outillage de test (dossier de données supprimé après le démarrage du serveur, rechargements trop rapides).
+Limites : caméra éprouvée avec le périphérique simulé de Chromium seulement ; Open Food Facts injoignable lors des derniers essais en direct (comportement dégradé vérifié). Sur un réseau imposant un proxy, lancer le serveur avec `NODE_USE_ENV_PROXY=1`.
 **Dépend de** : Phase 3.
 
-### Phase 5 — Liste de courses, mode courses, réception, multi-magasins
+### Phase 5 — Liste de courses, mode courses, réception, multi-magasins ← **prochaine étape**
 **Contenu** : liste collaborative complète (ajouts depuis stock/recommandations, priorités, attribution, magasins, rayons, historique, avertissement anti-doublon) ; **mode courses** (grandes cases, par magasin puis rayon, écran allumé, temps réel, prix facultatif) ; **réception** (quantités réelles, écarts, dates, prix, emplacement, reliquat) ; magasins (adresse, notes, ordre des rayons, historique, produits habituels).
 **Tests** : E2E à deux navigateurs (mise à jour instantanée, fusion, « déjà acheté par ») ; réception partielle.
 **Sortie** : SHOP-*, RCV-*, STORE-* « Testé et validé ».

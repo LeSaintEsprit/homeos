@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle, Check, ChevronDown, CloudOff, House, KeyRound, LineChart, Package, Plus, RefreshCw, ScanLine, Settings, ShoppingCart, Users, CloudCheck, CloudUpload,
 } from 'lucide-react';
@@ -136,6 +136,7 @@ export function HouseholdSwitcher({ s }: { s: SessionState }) {
 export function Shell() {
   const s = useObservable(session);
   const navigate = useNavigate();
+  const onScanner = useLocation().pathname.startsWith('/scanner');
   return (
     <div className="app">
       <aside className="sidebar" aria-label="Navigation principale">
@@ -177,7 +178,7 @@ export function Shell() {
           </NavLink>
         ))}
       </nav>
-      <button className="fab" onClick={() => navigate('/scanner')} aria-label="Scanner un produit"><ScanLine size={26} /></button>
+      {!onScanner && <button className="fab" onClick={() => navigate('/scanner')} aria-label="Scanner un produit"><ScanLine size={26} /></button>}
     </div>
   );
 }

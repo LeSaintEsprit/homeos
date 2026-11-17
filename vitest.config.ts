@@ -9,6 +9,7 @@ export default defineConfig({
   },
   test: {
     include: ['packages/*/test/**/*.test.ts'],
+    server: { deps: { inline: ['zxing-wasm'] } },
     environment: 'node',
     testTimeout: 20000,
   },

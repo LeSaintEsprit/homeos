@@ -548,3 +548,49 @@ button.list-row:hover, a.list-row:hover { background: var(--surface-2); text-dec
 .photo-pick img { width: 100%; height: 100%; object-fit: cover; }
 .swatch { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--border-strong); }
 .swatch[aria-pressed='true'] { box-shadow: 0 0 0 3px var(--primary); }
+
+/* ───────── Scanner ───────── */
+.scanner { max-width: 720px; margin: 0 auto; }
+.viewfinder {
+  position: relative;
+  margin: 12px 0;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: #0b0f0d;
+  box-shadow: var(--shadow-2);
+}
+.viewfinder video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vf-msg {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  color: #d9e2dd; text-align: center; padding: 24px; font-weight: 600;
+}
+.vf-frame {
+  position: absolute; left: 12%; right: 12%; top: 26%; bottom: 26%;
+  border-radius: 18px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.28);
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+.mode-consumption .vf-frame { border-color: #ffb4a6; }
+.mode-inventory .vf-frame { border-color: #a9c8f5; }
+.vf-mode {
+  position: absolute; top: 12px; left: 12px; padding: 5px 10px; border-radius: var(--r-full);
+  background: rgba(0, 0, 0, 0.5); color: #fff; font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.02em;
+}
+.vf-flash {
+  position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 12px 14px; border-radius: var(--r-md);
+  background: rgba(16, 70, 50, 0.92); color: #fff; display: flex; flex-direction: column; gap: 2px;
+  animation: rise-in 220ms var(--ease-spring);
+}
+.vf-flash strong { font-size: var(--fs-md); }
+.vf-flash span { font-size: var(--fs-xs); opacity: 0.85; }
+.vf-flash.warn { background: rgba(120, 78, 10, 0.92); }
+.vf-flash.error { background: rgba(140, 36, 24, 0.92); }
+.scan-controls { display: flex; flex-direction: column; gap: 12px; }
+.per-scan { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.per-scan strong { min-width: 28px; text-align: center; font-size: var(--fs-lg); }
+.scan-item .dot.ok { color: var(--success); }
+.scan-item .dot.warn { color: var(--warning); }
+.scan-item .dot.error { color: var(--danger); }
+.scan-item.undone .title { text-decoration: line-through; opacity: 0.6; }
