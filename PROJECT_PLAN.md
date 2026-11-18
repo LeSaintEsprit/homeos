@@ -292,3 +292,17 @@ Une fonctionnalité passe à **Testé et validé** lorsque : (1) toutes ses couc
 
 ## 7. Décisions en attente (voir MASTER_SPEC §16.2)
 D1 inscription plateforme · D2 e-mails sans service payant · D3 suppression d'un foyer · D4 confidentialité vis-à-vis de l'hébergeur · D5 périmètre repas/restes/tâches ménagères. Les phases 1 et suivantes peuvent démarrer avec les **propositions par défaut**, faciles à ajuster.
+D6 licence du projet (MIT proposée).
+
+---
+
+## 8. Hébergement provisoire à retirer — À FAIRE quand le serveur Oracle sera en ligne
+
+Depuis le 18/11/2026, HOMEOS tourne **provisoirement sur le PC Windows du propriétaire** (en attendant une machine gratuite Oracle). Une fois le serveur Oracle opérationnel :
+1. Sur le PC : **Paramètres → Données → Exporter** (JSON complet), puis l'**importer** sur le serveur Oracle ; vérifier les données sur l'iPhone.
+2. Retirer l'hébergement du PC (PowerShell) :
+   - `Unregister-ScheduledTask -TaskName HOMEOS -Confirm:$false` (démarrage automatique) ;
+   - arrêter le serveur : `Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object CommandLine -like '*server.js*' | ForEach-Object { Stop-Process -Id $_.ProcessId }` et le `powershell.exe` de `deploy\windows\demarrer.ps1` ;
+   - `& "C:\Program Files\Tailscale\tailscale.exe" funnel --https=443 off` (adresse publique du PC) ;
+   - garder `C:\homeos\data` tant que l'import n'est pas vérifié.
+3. Les membres rouvrent la nouvelle adresse `https://homeos.<réseau>.ts.net` et réinstallent l'application sur l'écran d'accueil.
