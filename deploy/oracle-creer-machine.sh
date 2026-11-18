@@ -41,7 +41,11 @@ case "$KEY" in tskey-auth-*) ;; *) echo "Ce n'est pas une cle Tailscale valide."
 curl -fsSL https://raw.githubusercontent.com/LeSaintEsprit/homeos/main/deploy/cloud-init.sh -o "$CI" || { echo "Telechargement impossible."; exit 1; }
 sed -i "s|COLLEZ-ICI-VOTRE-CLE-TAILSCALE|$KEY|" "$CI"
 grep -q 'TAILSCALE_AUTHKEY="tskey-auth-' "$CI" || { echo "Insertion de la cle impossible."; exit 1; }
-[ -f ~/.ssh/homeos ] || ssh-keygen -q -t ed25519 -N "" -f ~/.ssh/homeos
+# Cle SSH de depannage (RSA : Cloud Shell, en mode FIPS, refuse les cles ED25519).
+if [ ! -f ~/.ssh/homeos.pub ]; then
+  rm -f ~/.ssh/homeos
+  ssh-keygen -q -t rsa -b 4096 -N "" -f ~/.ssh/homeos || { echo "Creation de la cle SSH impossible."; rm -f "$CI"; exit 1; }
+fi
 
 lancer() { # $1 forme, $2 image, $3 configuration (facultative)
   [ -n "$2" ] || return 1
