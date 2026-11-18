@@ -47,6 +47,18 @@ Oui, si vous restez dans les offres gratuites :
    - dans la case, remplacez `COLLEZ-ICI-VOTRE-CLE-TAILSCALE` par votre clé Tailscale (en gardant les guillemets).
 8. Cliquez sur **« Create »**. La machine démarre, puis HOMEOS s'installe tout seul (**15 à 20 minutes**).
 
+### Si Oracle répond « Out of capacity » (plus de machine gratuite disponible)
+
+Les machines gratuites sont souvent complètes. Un petit programme réessaie à votre place toutes les 2 minutes :
+1. Créez d'abord le réseau : **☰ → Networking → Virtual cloud networks → Actions → Start VCN Wizard → « Create VCN with Internet Connectivity »**, nommé **homeos-reseau**.
+2. Ouvrez **Cloud Shell** : l'icône **« Developer tools »** (petit écran avec `>_` ou `</>`), en haut à droite de la console Oracle, puis **« Cloud Shell »**.
+3. Collez cette ligne et appuyez sur Entrée :
+   ```
+   bash <(curl -fsSL https://raw.githubusercontent.com/LeSaintEsprit/homeos/main/deploy/oracle-creer-machine.sh)
+   ```
+4. Collez votre clé Tailscale quand elle est demandée (elle ne s'affiche pas, c'est normal), puis appuyez sur Entrée.
+5. Laissez la fenêtre ouverte : le message « C'est parti ! » apparaît dès qu'une place se libère.
+
 ## Partie C — Ouvrir HOMEOS
 
 1. Ouvrez **login.tailscale.com/admin/machines** : la machine **homeos** apparaît (« Connected ») après quelques minutes.
