@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.8 — 18/11/2026 — phases 1 à 8 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.9 — 18/11/2026 — phases 1 à 9 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -185,11 +185,15 @@ Défaut de conception trouvé et corrigé : **un produit consommé après son co
 Limites : une date à plus de 10 ans est refusée à la saisie ; l'audit ne la repère que pour des données importées.
 **Dépend de** : Phase 4.
 
-### Phase 9 — Dépenses et budget avancé ← **prochaine étape**
+### Phase 9 — Dépenses et budget avancé ✅ (18/11/2026)
 **Contenu** : historique des achats, saisie/édition, graphiques interactifs (semaine, mois, année, catégorie, magasin), évolution des prix, comparaison par magasin, produits coûteux, budget et projection, panier moyen, dépenses inhabituelles, coût prévisionnel de la liste (connu/estimé/inconnu).
 **Sortie** : BUD-* « Testé et validé ».
 
-### Phase 10 — OCR : dates et tickets de caisse
+**Bilan de la phase 9** : page **Dépenses** (depuis Courses, l'accueil et les alertes) : budget du mois (chiffre principal, jauge, projection, reste ou dépassement, panier moyen, moyenne des 3 derniers mois, achats sans prix comptés à part), dépenses inhabituelles, coût des prochains achats (liste et recommandations), **un seul filtre de période** pour tout le reste : évolution (semaines, mois ou années selon la période, ligne de budget), par catégorie, par magasin, produits les plus coûteux, évolution du prix d'un produit (courbe, comparaison des magasins, « le moins cher »), liste des achats avec saisie, correction et suppression. Composants graphiques réutilisables (`ui/Charts.tsx`) : colonnes, barres classées, courbe, vue tableau, info-bulles au survol et au clavier ; teinte vérifiée par le script de validation dans les deux thèmes.
+Vérifié : 3 tests unitaires (période et granularité, produits suivis, devise des alertes) ; 3 parcours de bout en bout.
+Défauts trouvés et corrigés : montants « € » écrits en dur dans les alertes de dépenses (la devise est réglable par foyer) ; vert de la marque trop gris pour un graphique en clair et trop clair en sombre (teinte dédiée validée) ; **graphiques élargissant la grille sur ordinateur** (débordement à droite) ; première barre de la période comptant des jours hors filtre (chiffres discordants) ; tableau des prix illisible sur téléphone ; liste d'achats sur 12 mois non paginée.
+
+### Phase 10 — OCR : dates et tickets de caisse ← **prochaine étape**
 **Contenu** : Tesseract.js auto-hébergé (chargé à la demande, mis en cache) ; photo d'étiquette → date proposée → confirmation ; ticket : photo/import → analyse → **écran de validation** (correspondances sûres/probables/incertaines, produits inconnus, lignes à mettre en stock) → application.
 **Tests** : corpus d'étiquettes et de tickets réels (photos anonymisées) ; E2E.
 **Sortie** : OCR-*, TKT-* « Testé et validé ».

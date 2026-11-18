@@ -123,7 +123,7 @@ export class PushService {
         purchases: [...c.purchase.values()], locations: [...c.location.values()], settings: h.settings, now: iso, today,
       });
       const audit = auditHousehold(c, iso);
-      const unusual = detectUnusualSpending([...c.purchase.values()], c.product, today, h.settings.monthlyBudgetCents);
+      const unusual = detectUnusualSpending([...c.purchase.values()], c.product, today, h.settings.monthlyBudgetCents, h.currency);
       for (const { userId } of subscribed) {
         const member = [...c.member.values()].find((m) => m.userId === userId);
         const prefs = memberNotificationPrefs(member);

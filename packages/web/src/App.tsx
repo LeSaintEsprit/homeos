@@ -19,6 +19,7 @@ import { ScannerPage } from './pages/app/scanner/ScannerPage';
 import { ShoppingPage } from './pages/app/shopping/ShoppingPage';
 import { ForecastPage } from './pages/app/forecast/ForecastPage';
 import { NotificationsPage } from './pages/app/Notifications';
+import { ExpensesPage } from './pages/app/expenses/ExpensesPage';
 import { ShoppingModePage } from './pages/app/shopping/ShoppingMode';
 import { StoreDetailPage, StoresPage } from './pages/app/shopping/Stores';
 
@@ -88,6 +89,7 @@ export function App() {
           <Route path="previsions" element={<ForecastPage />} />
           <Route path="scanner" element={<ScannerPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="depenses" element={<ExpensesPage />} />
           <Route path="famille" element={<FamilyPage />} />
           <Route path="parametres" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

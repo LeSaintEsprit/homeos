@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   spendingByPeriod, budgetStatus, estimateListCost, estimateUnitPrice, priceHistory, comparePricesByStore, wasteStats, auditHousehold,
-  computeAlerts, visibleAlerts, buildDigest, analyzeHousehold, newId, DEFAULT_SETTINGS, type Purchase, type Product,
+  computeAlerts, visibleAlerts, buildDigest, analyzeHousehold, newId, DEFAULT_SETTINGS, spendingRange, productsWithPriceHistory, detectUnusualSpending, type Purchase, type Product,
 } from '@homeos/shared';
 import { Harness } from './helpers';
 
@@ -18,6 +18,27 @@ describe('dépenses', () => {
     const months = spendingByPeriod(list, '2026-11-12', 'month', 2);
     expect(months.map((m) => m.totalCents)).toEqual([700, 3500]);
     expect(spendingByPeriod(list, '2026-11-12', 'year', 1)[0].totalCents).toBe(4200);
+  });
+  it('période du filtre : bornes et granularité du graphique', () => {
+    expect(spendingRange('month', '2026-11-18')).toEqual({ preset: 'month', from: '2026-11-01', to: '2026-11-18', period: 'week', n: 4 });
+    const q = spendingRange('quarter', '2026-11-18');
+    expect([q.from, q.period, q.n]).toEqual(['2026-09-01', 'week', 12]);
+    expect(spendingRange('year', '2026-11-18')).toMatchObject({ from: '2025-12-01', period: 'month', n: 12 });
+    expect(spendingRange('all', '2026-11-18', [pu('2024-03-02', 100)])).toMatchObject({ from: '2024-01-01', period: 'year', n: 3 });
+    expect(spendingRange('all', '2026-11-18')).toMatchObject({ from: '2026-01-01', n: 1 });
+    // La première semaine affichée contient bien le début de la période.
+    const weeks = spendingByPeriod([pu('2026-11-01', 500)], '2026-11-18', 'week', 4);
+    expect(weeks[0].totalCents).toBe(500);
+  });
+  it('produits dont le prix peut être suivi (au moins deux prix enregistrés)', () => {
+    const list = [pu('2026-10-01', 100, { productId: 'a' }), pu('2026-11-01', 110, { productId: 'a' }), pu('2026-11-02', 90, { productId: 'b' }), pu('2026-11-03', null, { productId: 'b' })];
+    expect(productsWithPriceHistory(list)).toEqual([{ productId: 'a', count: 2, lastDate: '2026-11-01' }]);
+  });
+  it('dépenses inhabituelles dans la devise du foyer', () => {
+    const list = [pu('2026-11-02', 30000), pu('2026-11-03', 20000)];
+    const u = detectUnusualSpending(list, new Map(), '2026-11-10', 40000, 'CHF');
+    expect(u[0].message).toMatch(/CHF/);
+    expect(u[0].message).not.toContain('€');
   });
   it('budget : dépensé, projection au rythme réel, panier moyen', () => {
     const list = [pu('2026-11-02', 6000, { storeId: 's1' }), pu('2026-11-02', 2000, { storeId: 's1' }), pu('2026-11-09', 4000, { storeId: 's2' })];
@@ -170,7 +191,7 @@ describe('audit, gaspillage et notifications', () => {
     expect(forBob).toHaveLength(1);
     expect(forBob[0].title).toMatch(/^Alice a corrigé le stock de « Farine » à environ 2\skg/);
     // Toutes les alertes mènent à un écran existant.
-    const routes = [/^\/inventaire(\/|$|\?)/, /^\/courses(\?|$)/, /^\/previsions(\?|$)/, /^\/parametres$/];
+    const routes = [/^\/inventaire(\/|$|\?)/, /^\/courses(\?|$)/, /^\/previsions(\?|$)/, /^\/parametres$/, /^\/depenses$/];
     for (const a of alerts) if (a.link) expect(routes.some((r) => r.test(a.link!)), a.link).toBe(true);
   });
 });

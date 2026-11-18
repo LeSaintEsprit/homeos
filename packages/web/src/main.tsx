@@ -7,6 +7,7 @@ import './styles/components.css';
 import './styles/layout.css';
 import './styles/shopping.css';
 import './styles/dashboard.css';
+import './styles/charts.css';
 import './lib/theme';
 import { App } from './App';
 import { registerSW } from 'virtual:pwa-register';

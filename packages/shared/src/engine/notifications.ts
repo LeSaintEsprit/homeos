@@ -98,7 +98,7 @@ export function computeAlerts(input: AlertInput): Alert[] {
     const who = [...c.member.values()].find((m) => m.userId === a.userId)?.name ?? 'Un membre';
     out.push({ key: `act:${a.id}`, kind: 'important_change', severity: 'info', title: `${who} ${a.summary}`, body: '', at: a.at });
   }
-  for (const u of input.unusual) out.push({ key: `spend:${u.key}`, kind: 'unusual_spending', severity: 'warning', title: 'Dépense inhabituelle', body: u.message, link: '/courses?tab=historique', at: now });
+  for (const u of input.unusual) out.push({ key: `spend:${u.key}`, kind: 'unusual_spending', severity: 'warning', title: 'Dépense inhabituelle', body: u.message, link: '/depenses', at: now });
   const errors = input.audit.filter((i) => i.severity !== 'info');
   if (errors.length) {
     out.push({ key: `data_issue:${today}:${errors.length}`, kind: 'data_issue', severity: errors.some((e) => e.severity === 'error') ? 'critical' : 'warning', title: `${errors.length} incohérence${errors.length > 1 ? 's' : ''} à vérifier`, body: errors[0].message, link: '/inventaire/controle', at: now });

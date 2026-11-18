@@ -93,7 +93,7 @@ export function useAlerts(): { all: Alert[]; visible: Alert[]; badge: number } {
   const view = useView();
   const forecast = useForecast();
   const me = useMe();
-  const { settings } = useHousehold();
+  const { settings, currency } = useHousehold();
   const today = useToday();
   return useMemo(() => {
     const now = new Date().toISOString();
@@ -102,12 +102,12 @@ export function useAlerts(): { all: Alert[]; visible: Alert[]; badge: number } {
       forecast,
       collections: view,
       audit: auditHousehold(view, now),
-      unusual: detectUnusualSpending([...view.purchase.values()] as Purchase[], products, today, settings.monthlyBudgetCents),
+      unusual: detectUnusualSpending([...view.purchase.values()] as Purchase[], products, today, settings.monthlyBudgetCents, currency),
       member: me,
       now,
       today,
     });
     const visible = visibleAlerts(all, me);
     return { all, visible, badge: alertBadgeCount(visible, me?.prefs.notifReadAt) };
-  }, [view, forecast, me, settings.monthlyBudgetCents, today]);
+  }, [view, forecast, me, settings.monthlyBudgetCents, today, currency]);
 }

@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 18/11/2026 — fin de la phase 8 (inventaires guidés, contrôle de cohérence).
+> Dernière mise à jour : 18/11/2026 — fin de la phase 9 (dépenses et budget).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 8)** : 158 tests unitaires/intégration et 26 parcours de bout en bout. Restent à construire dans l'interface : dépenses et budget, OCR (dates, tickets), écrans de données (export, import, sauvegardes, restauration).
+**Constat global (fin de phase 9)** : 161 tests unitaires/intégration et 29 parcours de bout en bout. Restent à construire dans l'interface : OCR (dates, tickets de caisse), écrans de données (export, import, sauvegardes, restauration).
 
 ---
 
@@ -308,23 +308,23 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| BUD-01 | Enregistrement des achats | Produit, quantité, prix, magasin, date, membre | M1§8 | P0 | — | Développé | D ✅ · S ✅ · C ✅ achat enregistré à la réception (produit, quantité, prix facultatif, magasin, date, membre), visible dans l’historique · `e2e/shopping.spec.ts` ; écran Dépenses : phase 9 | E2E |
-| BUD-02 | Dépenses hebdomadaires | — | M1§8 | P1 | — | En développement | D ✅ · C ❌ | — |
-| BUD-03 | Dépenses mensuelles | — | M1§8 | P1 | — | En développement | D ✅ · C ❌ | — |
-| BUD-04 | Dépenses annuelles | — | M3§6 | P1 | — | En développement | D ✅ · C ❌ | — |
-| BUD-05 | Par catégorie | — | M3§6 | P1 | — | En développement | D 🟡 (non testé) · C ❌ | Unitaires |
-| BUD-06 | Par magasin | — | M3§6 | P1 | — | En développement | D 🟡 (non testé) · C ❌ | Unitaires |
-| BUD-07 | Budget mensuel | — | M1§8 | P1 | HH-08 | En développement | D ✅ · C ❌ | — |
-| BUD-08 | Budget prévisionnel / projection | Au rythme réel | M1§8 | P1 | — | En développement | D ✅ · C ❌ | — |
-| BUD-09 | Produits les plus coûteux | — | M1§8, M3§6 | P1 | — | En développement | D 🟡 (non testé) · C ❌ | Unitaires |
-| BUD-10 | Évolution des dépenses | Graphique interactif | M1§8 | P1 | UX-04 | En développement | D ✅ séries · C ❌ | — |
-| BUD-11 | Évolution des prix | — | M3§6 | P2 | — | En développement | D ✅ · C ❌ | — |
-| BUD-12 | Comparaison des prix par magasin | €/kg, €/L, €/unité | M1§8, M1§10 | P2 | — | En développement | D ✅ · C ❌ | — |
-| BUD-13 | Budget moyen et panier moyen | — | M3§6 | P2 | — | En développement | D ✅ · C ❌ | — |
-| BUD-14 | Coût estimé des prochains achats | Connu / estimé / inconnu | M3§6 | P1 | — | En développement | D ✅ · C ❌ | — |
-| BUD-15 | Aucun prix inventé | — | M1§8, M3§6 | P0 | — | En développement | D ✅ | — |
-| BUD-16 | Historique des achats | — | M1§8 | P1 | — | En développement | D ✅ données · C ❌ | E2E |
-| BUD-17 | Dépenses inhabituelles | Détection | M3§9 | P2 | — | En développement | D 🟡 (non testé) | Unitaires |
+| BUD-01 | Enregistrement des achats | Produit, quantité, prix, magasin, date, membre | M1§8 | P0 | — | Testé et validé | D ✅ · S ✅ · C ✅ à la réception des courses et saisie libre (produit facultatif, quantité, prix total facultatif, remise, magasin, date, catégorie) ; modification et suppression confirmée · `e2e/expenses.spec.ts` | E2E |
+| BUD-02 | Dépenses hebdomadaires | — | M1§8 | P1 | — | Testé et validé | D ✅ stats.test · C ✅ colonnes par semaine (périodes « Ce mois », « 3 mois »), bornées à la période du filtre · `e2e/expenses.spec.ts` | — |
+| BUD-03 | Dépenses mensuelles | — | M1§8 | P1 | — | Testé et validé | D ✅ · C ✅ colonnes par mois (« 12 mois »), ligne de budget · `e2e/expenses.spec.ts` (12 colonnes) | — |
+| BUD-04 | Dépenses annuelles | — | M3§6 | P1 | — | Testé et validé | D ✅ · C ✅ colonnes par année (« Tout », jusqu’à 10 ans) — même composant que BUD-02/03 | — |
+| BUD-05 | Par catégorie | — | M3§6 | P1 | — | Testé et validé | D ✅ · C ✅ barres classées, une teinte, valeur au bout, vue tableau (montant, part, nombre) · `e2e/expenses.spec.ts` | Unitaires |
+| BUD-06 | Par magasin | — | M3§6 | P1 | — | Testé et validé | D ✅ · C ✅ barres classées par magasin + vue tableau (part en %) · `e2e/expenses.spec.ts` · fiche magasin (phase 5) | Unitaires |
+| BUD-07 | Budget mensuel | — | M1§8 | P1 | HH-08 | Testé et validé | D ✅ · C ✅ budget défini dans Paramètres, jauge, reste ou dépassement · `e2e/expenses.spec.ts` | — |
+| BUD-08 | Budget prévisionnel / projection | Au rythme réel | M1§8 | P1 | — | Testé et validé | D ✅ · C ✅ projection fin de mois au rythme réel (à partir du 5), alerte si le budget serait dépassé · `e2e/expenses.spec.ts` | — |
+| BUD-09 | Produits les plus coûteux | — | M1§8, M3§6 | P1 | — | Testé et validé | D ✅ stats.test · C ✅ « Produits les plus coûteux » sur la période (barres classées + tableau) | Unitaires |
+| BUD-10 | Évolution des dépenses | Graphique interactif | M1§8 | P1 | UX-04 | Testé et validé | D ✅ · C ✅ graphique interactif (info-bulle au survol et au clavier, vue tableau), un seul filtre de période pour toute la page · `e2e/expenses.spec.ts` | — |
+| BUD-11 | Évolution des prix | — | M3§6 | P2 | — | Testé et validé | D ✅ · C ✅ courbe du prix payé par unité, produit au choix (≥ 2 prix enregistrés), réticule et navigation au clavier, tableau des achats · `e2e/expenses.spec.ts` | — |
+| BUD-12 | Comparaison des prix par magasin | €/kg, €/L, €/unité | M1§8, M1§10 | P2 | — | Testé et validé | D ✅ · C ✅ tableau moyen / plus bas / dernier par magasin, « le moins cher » signalé · `e2e/expenses.spec.ts` | — |
+| BUD-13 | Budget moyen et panier moyen | — | M3§6 | P2 | — | Testé et validé | D ✅ · C ✅ panier moyen (passages des 90 derniers jours), moyenne des 3 derniers mois · `e2e/expenses.spec.ts` | — |
+| BUD-14 | Coût estimé des prochains achats | Connu / estimé / inconnu | M3§6 | P1 | — | Testé et validé | D ✅ · C ✅ « Prochains achats prévus » : liste de courses et recommandations, prix estimés ou inconnus distingués | — |
+| BUD-15 | Aucun prix inventé | — | M1§8, M3§6 | P0 | — | Testé et validé | D ✅ · C ✅ achat sans prix affiché « prix inconnu », jamais estimé dans les dépenses passées, compté à part · `e2e/expenses.spec.ts` | — |
+| BUD-16 | Historique des achats | — | M1§8 | P1 | — | Testé et validé | C ✅ liste par jour sur la période (magasin, membre, origine : courses/ticket, remise), « Afficher plus » · `e2e/expenses.spec.ts` | E2E |
+| BUD-17 | Dépenses inhabituelles | Détection | M3§9 | P2 | — | Testé et validé | D ✅ stats.test (dans la devise du foyer) · C ✅ affichées sur la page Dépenses et dans les notifications · `e2e/expenses.spec.ts` | Unitaires |
 
 ## 19. Tableau de bord
 
@@ -399,7 +399,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | UX-01 | Design haut de gamme non générique | — | M1§11 | P0 | — | En développement | C 🟡 design system (lin & forêt), coquille et écrans des phases 1-2 vérifiés en captures | Revue visuelle (captures) |
 | UX-02 | Typographie, hiérarchie, couleurs, cartes, icônes | — | M1§11 | P0 | UX-01 | En développement | C 🟡 typographie Manrope, cartes, icônes Lucide — en cours | Revue |
 | UX-03 | Animations subtiles | — | M1§11 | P1 | — | À développer | ❌ | Revue |
-| UX-04 | Graphiques interactifs | — | M1§11 | P1 | — | À développer | ❌ | E2E |
+| UX-04 | Graphiques interactifs | — | M1§11 | P1 | — | Testé et validé | C ✅ `ui/Charts.tsx` : colonnes, barres classées, courbe ; teinte validée par script pour les deux thèmes, info-bulles au survol et au clavier, vue tableau sur chaque graphique · `e2e/expenses.spec.ts` | E2E |
 | UX-05 | Mode clair et sombre | — | M1§11 | P0 | — | En développement | C ✅ thème clair/sombre/auto (captures vérifiées) ; à étendre aux modules suivants | Captures |
 | UX-06 | Optimisation téléphone | — | M1§11 | P0 | — | En développement | C 🟡 mobile d’abord (onglets, feuilles, cibles ≥ 44 px) — en cours | E2E mobile |
 | UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | Testé et validé | C ✅ 6 rubriques (Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres) + Scanner + Notifications, toutes construites et parcourues en E2E | E2E |
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 163 |
-| Développé | 61 |
-| En développement | 55 |
-| À développer | 13 |
+| Testé et validé | 181 |
+| Développé | 60 |
+| En développement | 39 |
+| À développer | 12 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |

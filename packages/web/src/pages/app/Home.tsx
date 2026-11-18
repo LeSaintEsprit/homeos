@@ -184,7 +184,7 @@ function SpendWidget() {
   const pct = b.ratio != null ? Math.min(100, Math.round(b.ratio * 100)) : null;
   const over = b.budgetCents != null && b.projectedCents != null && b.projectedCents > b.budgetCents;
   return (
-    <Widget id="depenses" title="Dépenses du mois" icon={<Wallet size={19} />}>
+    <Widget id="depenses" title="Dépenses du mois" icon={<Wallet size={19} />} link="/depenses" linkLabel="Détail">
       <div className="row spread" style={{ alignItems: 'flex-end' }}>
         <div>
           <div className="num" style={{ fontSize: 'var(--fs-2xl)', fontWeight: 800 }} data-testid="spent">{formatMoney(b.spentCents, currency)}</div>

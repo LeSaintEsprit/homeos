@@ -2,6 +2,7 @@
 import type { Category, Lot, Movement, Product, Purchase, Store } from '../types';
 import { addDays, addMonths, daysInMonth, monthKey, startOfWeek } from '../time';
 import { roundQty } from '../units';
+import { formatMoney } from '../money';
 
 export type Period = 'week' | 'month' | 'year';
 
@@ -197,11 +198,12 @@ export interface UnusualSpending {
 }
 
 /** Dépenses inhabituelles : rythme mensuel > budget, semaine > 2× la moyenne, prix en forte hausse. */
-export function detectUnusualSpending(purchases: Purchase[], products: Map<string, Product>, today: string, budgetCents: number | null): UnusualSpending[] {
+export function detectUnusualSpending(purchases: Purchase[], products: Map<string, Product>, today: string, budgetCents: number | null, currency = 'EUR'): UnusualSpending[] {
+  const money = (c: number) => formatMoney(c, currency, { round: true });
   const out: UnusualSpending[] = [];
   const b = budgetStatus(purchases, today, budgetCents);
   if (budgetCents && b.projectedCents != null && b.projectedCents > budgetCents * 1.1) {
-    out.push({ key: `budget:${b.month}`, message: `Au rythme actuel, les dépenses du mois atteindraient ${(b.projectedCents / 100).toFixed(0)} € pour un budget de ${(budgetCents / 100).toFixed(0)} €.` });
+    out.push({ key: `budget:${b.month}`, message: `Au rythme actuel, les dépenses du mois atteindraient ${money(b.projectedCents)} pour un budget de ${money(budgetCents)}.` });
   }
   const weeks = spendingByPeriod(purchases, today, 'week', 9);
   const current = weeks[weeks.length - 1];
@@ -209,7 +211,7 @@ export function detectUnusualSpending(purchases: Purchase[], products: Map<strin
   if (past.length >= 4) {
     const avg = past.reduce((s, w) => s + w.totalCents, 0) / past.length;
     if (avg > 0 && current.totalCents > 2 * avg) {
-      out.push({ key: `week:${current.key}`, message: `Dépenses de la semaine (${(current.totalCents / 100).toFixed(0)} €) plus de deux fois supérieures à la moyenne (${(avg / 100).toFixed(0)} €).` });
+      out.push({ key: `week:${current.key}`, message: `Dépenses de la semaine (${money(current.totalCents)}) plus de deux fois supérieures à la moyenne (${money(avg)}).` });
     }
   }
   // Hausse de prix : dernier prix > 1,3 × médiane des précédents (≥ 3 points).
@@ -264,4 +266,57 @@ export function wasteStats(movements: Movement[], lots: Map<string, Lot>, from: 
   }
   out.byProduct = [...m.values()].sort((a, b) => b.valueCents - a.valueCents || b.count - a.count);
   return out;
+}
+
+export type RangePreset = 'month' | 'quarter' | 'year' | 'all';
+
+export const RANGE_LABELS: Record<RangePreset, string> = { month: 'Ce mois', quarter: '3 mois', year: '12 mois', all: 'Tout' };
+
+export interface SpendingRange {
+  preset: RangePreset;
+  from: string;
+  to: string;
+  /** Granularité du graphique d'évolution, déduite de la période. */
+  period: Period;
+  /** Nombre de barres (périodes) à afficher. */
+  n: number;
+}
+
+/**
+ * Période du filtre « Dépenses » : un seul choix pilote tous les graphiques et listes.
+ * La granularité suit la durée (semaines pour un mois ou un trimestre, mois pour un an, années pour tout).
+ */
+export function spendingRange(preset: RangePreset, today: string, purchases: Purchase[] = []): SpendingRange {
+  const month = monthKey(today);
+  if (preset === 'month') {
+    const from = `${month}-01`;
+    const weeks = Math.floor(daysBetweenDates(startOfWeek(from), startOfWeek(today)) / 7) + 1;
+    return { preset, from, to: today, period: 'week', n: weeks };
+  }
+  if (preset === 'quarter') {
+    const from = `${addMonths(month, -2)}-01`;
+    const weeks = Math.floor(daysBetweenDates(startOfWeek(from), startOfWeek(today)) / 7) + 1;
+    return { preset, from, to: today, period: 'week', n: weeks };
+  }
+  if (preset === 'year') return { preset, from: `${addMonths(month, -11)}-01`, to: today, period: 'month', n: 12 };
+  const first = purchases.reduce((m, p) => (p.date < m ? p.date : m), today);
+  const years = Math.min(10, Math.max(1, Number(today.slice(0, 4)) - Number(first.slice(0, 4)) + 1));
+  return { preset, from: `${Number(today.slice(0, 4)) - years + 1}-01-01`, to: today, period: 'year', n: years };
+}
+
+function daysBetweenDates(a: string, b: string): number {
+  return Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
+}
+
+/** Produits dont au moins deux prix ont été enregistrés (évolution des prix possible). */
+export function productsWithPriceHistory(purchases: Purchase[]): { productId: string; count: number; lastDate: string }[] {
+  const m = new Map<string, { productId: string; count: number; lastDate: string }>();
+  for (const p of purchases) {
+    if (!p.productId || p.totalCents == null || !(p.quantity > 0)) continue;
+    const r = m.get(p.productId) ?? { productId: p.productId, count: 0, lastDate: p.date };
+    r.count++;
+    if (p.date > r.lastDate) r.lastDate = p.date;
+    m.set(p.productId, r);
+  }
+  return [...m.values()].filter((r) => r.count >= 2).sort((a, b) => b.count - a.count || (a.lastDate < b.lastDate ? 1 : -1));
 }
