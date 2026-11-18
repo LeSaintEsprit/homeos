@@ -80,6 +80,24 @@ describe('audit, gaspillage et notifications', () => {
     h.store.put('lot', { ...h.store.get('lot', lot)!, quantity: 3 });
     expect(auditHousehold(h.collections(), h.now).some((i) => i.code === 'lot_sum_mismatch' && i.severity === 'error')).toBe(true);
   });
+  it('détecte les dates incohérentes et un inventaire laissé en suspens', () => {
+    const h = new Harness();
+    const p = h.product('Conserve', 'boite');
+    h.ok('stock.add', { productId: p, lotId: newId(), quantity: 1, expiryDate: '2026-10-01', purchaseDate: '2026-10-20' });
+    // Une date à plus de 10 ans est refusée à la saisie ; l'audit la repère si elle arrive autrement (import).
+    expect(h.exec('stock.add', { productId: p, lotId: newId(), quantity: 1, expiryDate: '2041-01-01' }).status).toBe('rejected');
+    const far = newId();
+    h.ok('stock.add', { productId: p, lotId: far, quantity: 1 });
+    h.store.put('lot', { ...h.store.get('lot', far)!, expiryDate: '2041-01-01' });
+    h.ok('inventory.start', { id: newId(), kind: 'check', title: 'Cellier', locationIds: [h.loc.cellier] });
+    h.advance(24 * 8);
+    const issues = auditHousehold(h.collections(), h.now);
+    const before = issues.find((i) => i.code === 'expiry_before_purchase')!;
+    expect(before.message).toContain('01/10/2026');
+    expect(before.message).toContain('20/10/2026');
+    expect(issues.some((i) => i.code === 'expiry_far')).toBe(true);
+    expect(issues.find((i) => i.code === 'inventory_stale')!.message).toContain('« Cellier »');
+  });
   it('valorise le gaspillage uniquement avec les prix enregistrés', () => {
     const h = new Harness();
     const p = h.product('Salade', 'piece');

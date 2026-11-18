@@ -251,7 +251,7 @@ Si la date n'est pas dans le code : proposer de **photographier l'étiquette** ;
 Assistant parcourant les espaces (Cuisine, Réfrigérateur, Congélateur, Placards, Cellier, Salle de bain, Buanderie, Garage, espaces personnalisés) ; **scan à la chaîne** ou recherche ; quantités (y compris approximatives), emplacements et dates **modifiables avant validation** ; **pourcentage d'avancement** ; **sauvegarde automatique et reprise** (session synchronisée, reprenable sur un autre appareil) ; validation finale avec récapitulatif.
 
 ### 9.2 Inventaire correctif / vérification
-Comparaison **par emplacement** du stock théorique (lots situés dans les espaces inventoriés) et du compté ; écarts listés ; correction **après confirmation** ; conflit si le stock a bougé pendant l'inventaire ; lignes de produits inconnus à résoudre avant validation ; les lots vérifiés passent au niveau de fiabilité « compté ».
+Comparaison **par emplacement** du stock théorique (lots situés dans les espaces inventoriés) et du compté ; écarts listés ; correction **après confirmation** ; conflit si le stock a bougé pendant l'inventaire — y compris un mouvement enregistré **après le comptage d'un produit** même si les chiffres coïncident : signalé (qui, combien) et non corrigé par défaut, l'utilisateur tranche ; produits enregistrés dans l'espace mais non comptés listés (« Compter » prérempli, « Absent » = 0), ceux laissés de côté ne sont jamais modifiés ; lignes de produits inconnus à résoudre avant validation ; les lots vérifiés passent au niveau de fiabilité « compté ».
 
 ---
 

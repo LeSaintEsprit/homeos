@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Minus, Package, Plus, ScanLine, Search, X } from 'lucide-react';
-import { defaultStep, formatQty, normalizeName, unitDef, type ProductInsight } from '@homeos/shared';
+import { ClipboardList, Minus, Package, Plus, ScanLine, Search, ShieldCheck, X } from 'lucide-react';
+import { auditHousehold, defaultStep, formatQty, normalizeName, unitDef, type ProductInsight } from '@homeos/shared';
 import { useCatalog, useForecast, useHousehold, photoUrl } from '../../../lib/hooks';
 import { useCan, useRun, useView } from '../../../lib/sync/react';
 import { formatShortDate } from '../../../lib/format';
@@ -129,6 +129,8 @@ export function InventoryPage() {
   }, [forecast, q, filter, group, codesByProduct, locations, categories, location, category]);
 
   const total = forecast.insights.length;
+  const openSessions = useMemo(() => [...view.inventorySession.values()].filter((x) => x.status === 'open').length, [view.inventorySession]);
+  const auditCount = useMemo(() => auditHousehold(view, new Date().toISOString()).filter((i) => i.severity !== 'info').length, [view]);
   return (
     <>
       <PageHead
@@ -136,6 +138,14 @@ export function InventoryPage() {
         eyebrow={`${total} produit${total > 1 ? 's' : ''} suivi${total > 1 ? 's' : ''}`}
         actions={canWrite && <button className="btn primary" onClick={() => navigate('/inventaire/nouveau')}><Plus size={18} /> Ajouter</button>}
       />
+      <div className="row wrap tools-row">
+        <button className="btn soft sm" onClick={() => navigate('/inventaire/inventaires')} data-testid="open-sessions">
+          <ClipboardList size={16} /> Inventaires{openSessions > 0 && <span className="count-dot">{openSessions}</span>}
+        </button>
+        <button className="btn soft sm" onClick={() => navigate('/inventaire/controle')} data-testid="open-audit">
+          <ShieldCheck size={16} /> Contrôle{auditCount > 0 && <span className="count-dot">{auditCount}</span>}
+        </button>
+      </div>
       {total === 0 ? (
         <EmptyState
           icon={<Package size={28} />}
@@ -144,6 +154,7 @@ export function InventoryPage() {
             <div className="row wrap" style={{ justifyContent: 'center' }}>
               <button className="btn primary" onClick={() => navigate('/inventaire/nouveau')}><Plus size={18} /> Ajouter un produit</button>
               <button className="btn" onClick={() => navigate('/scanner')}><ScanLine size={18} /> Scanner</button>
+              <button className="btn" onClick={() => navigate('/inventaire/inventaires')}><ClipboardList size={18} /> Inventaire initial guidé</button>
             </div>
           )}
         >

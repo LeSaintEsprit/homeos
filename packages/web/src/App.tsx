@@ -13,6 +13,8 @@ import { FamilyPage } from './pages/app/Family';
 import { SettingsPage } from './pages/app/Settings';
 import { InventoryPage } from './pages/app/inventory/InventoryPage';
 import { NewProductPage, ProductDetailPage } from './pages/app/inventory/ProductDetail';
+import { SessionPage, SessionsPage } from './pages/app/inventory/Sessions';
+import { AuditPage } from './pages/app/inventory/Audit';
 import { ScannerPage } from './pages/app/scanner/ScannerPage';
 import { ShoppingPage } from './pages/app/shopping/ShoppingPage';
 import { ForecastPage } from './pages/app/forecast/ForecastPage';
@@ -75,6 +77,9 @@ export function App() {
           <Route index element={<HomePage />} />
           <Route path="inventaire" element={<InventoryPage />} />
           <Route path="inventaire/nouveau" element={<NewProductPage />} />
+          <Route path="inventaire/inventaires" element={<SessionsPage />} />
+          <Route path="inventaire/inventaires/:id" element={<SessionPage />} />
+          <Route path="inventaire/controle" element={<AuditPage />} />
           <Route path="inventaire/:id" element={<ProductDetailPage />} />
           <Route path="courses" element={<ShoppingPage />} />
           <Route path="courses/magasin" element={<ShoppingModePage />} />

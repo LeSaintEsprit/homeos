@@ -1,4 +1,4 @@
-import type { InventoryLine, InventorySession, Lot, Product } from './types';
+import type { InventoryLine, InventorySession, Lot, Movement, Product } from './types';
 import { roundQty, toStockUnit } from './units';
 
 export const QTY_EPS = 1e-6;
@@ -88,4 +88,26 @@ export function sessionProgress(session: InventorySession): number {
   const done = session.locations.filter((l) => l.status === 'done' || l.status === 'skipped').length;
   const partial = session.locations.filter((l) => l.status === 'in_progress').length;
   return Math.round(((done + partial * 0.5) / session.locations.length) * 100);
+}
+
+/**
+ * Mouvements du produit enregistrés après son comptage (hors inventaire) dans le périmètre :
+ * le comptage ne reflète peut-être plus la réalité, l'utilisateur doit trancher.
+ */
+export function movedSinceCount(
+  session: InventorySession,
+  diff: InventoryDiff,
+  product: Product | undefined,
+  movements: Movement[],
+  lotsById: (id: string) => Lot | undefined,
+): Movement[] {
+  if (!diff.lines.length) return [];
+  const countedAt = diff.lines.reduce((min, l) => (l.countedAt < min ? l.countedAt : min), diff.lines[0].countedAt);
+  const scope = sessionScope(session);
+  return movements.filter((m) => {
+    if (m.productId !== diff.productId || m.occurredAt <= countedAt || m.revertedBy || m.type === 'revert' || m.source === 'inventory' || Math.abs(m.delta) < QTY_EPS) return false;
+    if (!scope) return true;
+    const lot = m.lotId ? lotsById(m.lotId) : undefined;
+    return lot ? lotInScope(lot, product, scope) : true;
+  });
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Archive, ArrowLeft, Barcode, Box, Check, CircleSlash, Combine, Edit3, MapPin, Minus, PackageOpen, Plus, ScanLine, Tag, Trash2, Undo2, Wrench, ShoppingCart, CalendarClock, Info,
 } from 'lucide-react';
@@ -165,7 +165,10 @@ export function ProductDetailPage() {
   const { ask, node } = useConfirm();
   const [action, setAction] = useState<{ a: StockAction; lot: Lot | null } | null>(null);
   const [editing, setEditing] = useState(false);
-  const [merging, setMerging] = useState(false);
+  const [params] = useSearchParams();
+  // Ouvert depuis le contrôle de cohérence : doublon probable proposé en premier.
+  const suggested = params.get('fusion');
+  const [merging, setMerging] = useState(!!suggested);
   const [newCode, setNewCode] = useState('');
   const [newAlias, setNewAlias] = useState('');
 
@@ -180,10 +183,10 @@ export function ProductDetailPage() {
         ? [...view.product.values()]
             .filter((p) => p.id !== id && !p.archived)
             .map((p) => ({ p, s: Math.max(similarity(p.name, product.name), normalizeName(p.family ?? '-') === normalizeName(product.family ?? '+') ? 0.6 : 0) }))
-            .sort((a, b) => b.s - a.s)
+            .sort((a, b) => (a.p.id === suggested ? -1 : b.p.id === suggested ? 1 : b.s - a.s))
             .slice(0, 12)
         : [],
-    [view.product, id, product],
+    [view.product, id, product, suggested],
   );
 
   if (!product) {
@@ -323,7 +326,7 @@ export function ProductDetailPage() {
         <div className="card pad-0 flat">
           {candidates.map(({ p, s }) => (
             <button key={p.id} className="list-row" onClick={() => void merge(p)}>
-              <span className="meta"><span className="title" style={{ display: 'block' }}>{p.name}</span><span className="sub">{p.brand ?? ''} {s >= 0.8 ? '· très proche' : s >= 0.5 ? '· proche' : ''}</span></span>
+              <span className="meta"><span className="title" style={{ display: 'block' }}>{p.name}</span><span className="sub">{p.id === suggested ? 'Doublon probable signalé par le contrôle de cohérence · ' : ''}{p.brand ?? ''} {s >= 0.8 ? '· très proche' : s >= 0.5 ? '· proche' : ''}</span></span>
               <Combine size={18} className="subtle" />
             </button>
           ))}

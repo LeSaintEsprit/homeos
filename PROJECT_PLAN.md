@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.7 — 17/11/2026 — phases 1 à 7 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.8 — 18/11/2026 — phases 1 à 8 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -175,12 +175,17 @@ Vérifié : 5 tests unitaires (tableau de bord, pastille, alertes restantes dont
 Défauts trouvés et corrigés : dates techniques (AAAA-MM-JJ) dans le journal et plusieurs messages, désormais au format français ; accord « 1 bouteille concerné » ; liens d'alertes vers des écrans inexistants ; projection « ≈ 0 € » sans aucun achat ; un test placé par erreur à l'intérieur d'un autre (donc jamais exécuté) — décelé en vérifiant l'inventaire des tests, désormais contrôlé (`playwright test --list`).
 Limites : récapitulatif push et alertes immédiates à vérifier sur téléphone réel ; dépenses inhabituelles visibles mais leur écran dédié arrive en phase 9.
 
-### Phase 8 — Inventaire initial guidé et inventaires correctifs ← **prochaine étape**
+### Phase 8 — Inventaire initial guidé et inventaires correctifs ✅ (18/11/2026)
 **Contenu** : assistant par espaces avec progression, scan à la chaîne, édition avant validation, reprise sur un autre appareil ; écran des écarts et validation ; contrôle de cohérence (écran d'anomalies avec actions).
 **Sortie** : INV-*, AUD-* « Testé et validé ».
+
+**Bilan de la phase 8** : écran **Inventaires** (en cours avec avancement, historique ; nouvel inventaire initial guidé ou de contrôle sur des espaces choisis) ; **session** : espaces avec statut, comptage à la main (recherche, nouveau produit, quantité « environ », date) ou **au scanner depuis l'espace** (scans cumulés sur une ligne, retour à la session), produits enregistrés mais non comptés (« Compter » prérempli, « Absent »), espace terminé / ignoré / rouvert, reprise par un autre membre sur son appareil ; **écarts et validation** : nouveaux produits à créer d'abord, écarts cochables, produits conformes marqués « comptés », produit modifié après son comptage signalé et décoché, conflits listés avec « Recompter », abandon. **Contrôle de cohérence** (Inventaire › Contrôle, pastille) : anomalies par gravité avec action (annuler un doublon de saisie, recompter, comparer et fusionner, reprendre un inventaire). Liens des alertes vers ces écrans.
+Vérifié : 4 nouveaux tests unitaires (produit modifié après comptage, avancement, dates incohérentes, inventaire en suspens) ; 3 parcours de bout en bout (inventaire initial à deux membres, contrôle avec scan réel, absent et modification concurrente, contrôle de cohérence).
+Défaut de conception trouvé et corrigé : **un produit consommé après son comptage pouvait être validé sans alerte** quand les chiffres coïncidaient (le stock attendu et le compté étaient égaux par hasard) — désormais détecté par les mouvements postérieurs au comptage. Ergonomie : outils de l'inventaire en icônes seules sur téléphone, devenus des boutons libellés.
+Limites : une date à plus de 10 ans est refusée à la saisie ; l'audit ne la repère que pour des données importées.
 **Dépend de** : Phase 4.
 
-### Phase 9 — Dépenses et budget avancé
+### Phase 9 — Dépenses et budget avancé ← **prochaine étape**
 **Contenu** : historique des achats, saisie/édition, graphiques interactifs (semaine, mois, année, catégorie, magasin), évolution des prix, comparaison par magasin, produits coûteux, budget et projection, panier moyen, dépenses inhabituelles, coût prévisionnel de la liste (connu/estimé/inconnu).
 **Sortie** : BUD-* « Testé et validé ».
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Camera, CameraOff, ClipboardCheck, Flashlight, ImageUp, Keyboard, Minus, PackagePlus, Plus, ScanLine, Undo2, Volume2, VolumeX } from 'lucide-react';
 import {
   computeInventoryDiff, describeCode, formatQty, newId, parseScannedCode, roundQty, type InventorySession, type Lot, type ParsedCode, type Product, type ProductCode,
@@ -47,15 +47,18 @@ function beep(ok: boolean) {
 
 export function ScannerPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  // Lancé depuis un inventaire guidé : session et espace imposés.
+  const linkedSession = params.get('inventaire');
   const engine = useEngine();
   const view = useView();
   const canWrite = useCan('stock.write');
   const { locations, stores } = useCatalog();
-  const [mode, setMode] = useState<Mode>('reception');
+  const [mode, setMode] = useState<Mode>(linkedSession ? 'inventory' : 'reception');
   const [perScan, setPerScan] = useState(1);
   const [continuous, setContinuous] = useState(true);
   const [sound, setSound] = useState(true);
-  const [locationId, setLocationId] = useState('');
+  const [locationId, setLocationId] = useState(params.get('emplacement') ?? '');
   const [storeId, setStoreId] = useState('');
   const [askDate, setAskDate] = useState(true);
   const [camera, setCamera] = useState<'off' | 'starting' | 'on' | 'denied' | 'unavailable'>('off');
@@ -68,7 +71,7 @@ export function ScannerPage() {
   const [manualOpen, setManualOpen] = useState(false);
   const [manualCode, setManualCode] = useState('');
   const [review, setReview] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(linkedSession);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const busyRef = useRef(false);
@@ -153,12 +156,14 @@ export function ScannerPage() {
           linesRef.current.clear();
         }
         const s = current().inventorySession.get(sid) as InventorySession;
-        const lineKey = `${product.id}|${parsed.expiry ?? parsed.bestBefore ?? ''}`;
-        const lineId = linesRef.current.get(lineKey) ?? newId();
+        const date = parsed.expiry ?? parsed.bestBefore;
+        // Même produit, même date, même espace : on cumule sur la ligne existante (y compris d'une session reprise).
+        const lineKey = `${product.id}|${date ?? ''}|${locationId}`;
+        const existing = s.lines.find((l) => l.productId === product.id && (l.expiryDate ?? '') === (date ?? '') && l.locationId === locationId && l.unit === product.unit);
+        const lineId = existing?.id ?? linesRef.current.get(lineKey) ?? newId();
         linesRef.current.set(lineKey, lineId);
         const prev = s.lines.find((l) => l.id === lineId);
         const total = roundQty((prev?.quantity ?? 0) + qty);
-        const date = parsed.expiry ?? parsed.bestBefore;
         const r = await engine.run('inventory.upsertLine', {
           sessionId: sid,
           line: { id: lineId, productId: product.id, code: parsed.code, quantity: total, unit: product.unit, locationId, expiryDate: date, expirySource: date ? 'gs1' : null, expiryKind: parsed.expiry ? 'dlc' : parsed.bestBefore ? 'ddm' : null, batchNumber: parsed.batch },
@@ -357,7 +362,10 @@ export function ScannerPage() {
           <button className="btn sm" onClick={() => setManualOpen(true)}><Keyboard size={16} /> Saisir un code</button>
           <button className="btn sm" onClick={() => fileRef.current?.click()}><ImageUp size={16} /> Photo d'un code</button>
           <input ref={fileRef} type="file" accept="image/*" hidden data-testid="scan-photo" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void fromPhoto(f); }} />
-          {mode === 'inventory' && session && session.lines.length > 0 && (
+          {mode === 'inventory' && session && linkedSession === session.id && (
+            <button className="btn primary sm" onClick={() => navigate(`/inventaire/inventaires/${session.id}?espace=${locationId}`)} data-testid="back-to-session"><ClipboardCheck size={16} /> Retour à l'inventaire ({session.lines.filter((l) => l.locationId === locationId).length} ligne(s) ici)</button>
+          )}
+          {mode === 'inventory' && session && linkedSession !== session.id && session.lines.length > 0 && (
             <button className="btn primary sm" onClick={() => setReview(true)}><ClipboardCheck size={16} /> Vérifier les écarts ({session.lines.length})</button>
           )}
         </div>
@@ -379,9 +387,9 @@ export function ScannerPage() {
         )}
         {mode === 'inventory' && (
           <Field label="Emplacement inventorié" hint="Seul le stock de cet emplacement est comparé au comptage.">
-            <select className="select" value={locationId} onChange={(e) => { setLocationId(e.target.value); setSessionId(null); }}>
+            <select className="select" value={locationId} onChange={(e) => { setLocationId(e.target.value); if (!linkedSession) setSessionId(null); }}>
               <option value="">Choisir…</option>
-              {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+              {locations.filter((l) => !linkedSession || !session || session.locations.length === 0 || session.locations.some((x) => x.locationId === l.id)).map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
           </Field>
         )}

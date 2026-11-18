@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { newId, computeInventoryDiff } from '@homeos/shared';
+import { newId, computeInventoryDiff, movedSinceCount, sessionProgress } from '@homeos/shared';
 import { Harness } from './helpers';
 
 let h: Harness;
@@ -397,6 +397,44 @@ describe('inventaire', () => {
     const r = h.as('user-alice').exec('inventory.apply', { sessionId: sid, decisions: [{ productId: p, expected: 2, apply: true }] });
     expect(r.conflicts).toHaveLength(1);
     expect(h.total(p)).toBe(1.5);
+  });
+
+  it("calcule l'avancement par espace (terminé ou ignoré = fait, en cours = moitié)", () => {
+    const sid = newId();
+    h.ok('inventory.start', { id: sid, kind: 'initial', title: 'Tout', locationIds: [h.loc.frigo, h.loc.placard, h.loc.cellier, h.loc.garage] });
+    expect(sessionProgress(h.store.get('inventorySession', sid)!)).toBe(0);
+    const p = h.product('Riz', 'paquet');
+    h.ok('inventory.upsertLine', { sessionId: sid, line: { id: newId(), productId: p, quantity: 1, unit: 'paquet', locationId: h.loc.placard } });
+    expect(h.store.get('inventorySession', sid)!.locations.find((l) => l.locationId === h.loc.placard)!.status).toBe('in_progress');
+    expect(sessionProgress(h.store.get('inventorySession', sid)!)).toBe(13);
+    h.ok('inventory.setLocation', { sessionId: sid, locationId: h.loc.frigo, status: 'done' });
+    h.ok('inventory.setLocation', { sessionId: sid, locationId: h.loc.garage, status: 'skipped' });
+    expect(sessionProgress(h.store.get('inventorySession', sid)!)).toBe(63);
+  });
+
+  it('signale un produit qui a bougé après son comptage, même si les chiffres coïncident', () => {
+    const lait = h.product('Lait', 'bouteille', { locationId: h.loc.frigo });
+    h.ok('stock.add', { productId: lait, lotId: newId(), quantity: 4, locationId: h.loc.frigo });
+    const autre = h.product('Pâtes', 'paquet', { locationId: h.loc.placard });
+    h.ok('stock.add', { productId: autre, lotId: newId(), quantity: 2, locationId: h.loc.placard });
+    const sid = newId();
+    h.ok('inventory.start', { id: sid, kind: 'check', title: 'Frigo', locationIds: [h.loc.frigo] });
+    h.ok('inventory.upsertLine', { sessionId: sid, line: { id: newId(), productId: lait, quantity: 3, unit: 'bouteille', locationId: h.loc.frigo } });
+    h.advance(0.1);
+    // Bob consomme une bouteille après le comptage : attendu 3, compté 3… mais le comptage est dépassé.
+    h.as('user-bob').ok('stock.consume', { productId: lait, quantity: 1 });
+    h.ok('stock.consume', { productId: autre, quantity: 1 });
+    h.as('user-alice');
+    const s = h.store.get('inventorySession', sid)!;
+    const diffs = computeInventoryDiff(s, (id) => h.store.get('product', id), (pid) => h.store.list('lot', { productId: pid }));
+    expect(diffs[0]).toMatchObject({ expected: 3, counted: 3, delta: 0 });
+    const moves = h.store.all('movement');
+    const moved = movedSinceCount(s, diffs[0], h.store.get('product', lait), moves, (id) => h.store.get('lot', id));
+    expect(moved).toHaveLength(1);
+    expect(moved[0].userId).toBe('user-bob');
+    // Les mouvements antérieurs au comptage ne comptent pas.
+    const before = movedSinceCount(s, { ...diffs[0], lines: s.lines.map((l) => ({ ...l, countedAt: h.now })) }, h.store.get('product', lait), moves, (id) => h.store.get('lot', id));
+    expect(before).toHaveLength(0);
   });
 });
 

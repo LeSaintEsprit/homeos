@@ -89,7 +89,7 @@ export function computeAlerts(input: AlertInput): Alert[] {
   }
   for (const s of c.inventorySession.values()) {
     if (s.status === 'open' && daysBetweenInstants(s.updatedAt, now) > 3) {
-      out.push({ key: `inventory_open:${s.id}`, kind: 'inventory_check', severity: 'info', title: `Inventaire « ${s.title} » en attente`, body: 'Reprenez-le ou validez-le pour mettre le stock à jour.', link: '/inventaire', at: now });
+      out.push({ key: `inventory_open:${s.id}`, kind: 'inventory_check', severity: 'info', title: `Inventaire « ${s.title} » en attente`, body: 'Reprenez-le ou validez-le pour mettre le stock à jour.', link: `/inventaire/inventaires/${s.id}`, at: now });
     }
   }
   const since = new Date(Date.parse(now) - 7 * 86_400_000).toISOString();
@@ -101,7 +101,7 @@ export function computeAlerts(input: AlertInput): Alert[] {
   for (const u of input.unusual) out.push({ key: `spend:${u.key}`, kind: 'unusual_spending', severity: 'warning', title: 'Dépense inhabituelle', body: u.message, link: '/courses?tab=historique', at: now });
   const errors = input.audit.filter((i) => i.severity !== 'info');
   if (errors.length) {
-    out.push({ key: `data_issue:${today}:${errors.length}`, kind: 'data_issue', severity: errors.some((e) => e.severity === 'error') ? 'critical' : 'warning', title: `${errors.length} incohérence${errors.length > 1 ? 's' : ''} à vérifier`, body: errors[0].message, link: '/parametres', at: now });
+    out.push({ key: `data_issue:${today}:${errors.length}`, kind: 'data_issue', severity: errors.some((e) => e.severity === 'error') ? 'critical' : 'warning', title: `${errors.length} incohérence${errors.length > 1 ? 's' : ''} à vérifier`, body: errors[0].message, link: '/inventaire/controle', at: now });
   }
   return out;
 }

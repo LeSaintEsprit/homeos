@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 17/11/2026 — fin de la phase 7 (tableau de bord, centre de notifications).
+> Dernière mise à jour : 18/11/2026 — fin de la phase 8 (inventaires guidés, contrôle de cohérence).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 7)** : 155 tests unitaires/intégration et 23 parcours de bout en bout. Restent à construire dans l'interface : inventaire guidé et contrôle de cohérence, dépenses et budget, OCR (dates, tickets), écrans de données (export, import, sauvegardes, restauration).
+**Constat global (fin de phase 8)** : 158 tests unitaires/intégration et 26 parcours de bout en bout. Restent à construire dans l'interface : dépenses et budget, OCR (dates, tickets), écrans de données (export, import, sauvegardes, restauration).
 
 ---
 
@@ -217,14 +217,14 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| INV-01 | Assistant d'inventaire initial | Par espaces | M3§1 | P1 | — | En développement | D ✅ sessions · C ❌ | E2E |
-| INV-02 | Scan à la chaîne dans l'assistant | — | M3§1 | P1 | SCAN-01 | À développer | C ❌ | E2E |
-| INV-03 | Modifier quantités, emplacements, dates avant validation | — | M3§1 | P1 | — | En développement | D ✅ · C ❌ | E2E |
-| INV-04 | Pourcentage d'avancement | — | M3§1 | P1 | — | En développement | D 🟡 (fonction non testée) · C ❌ | Unitaires |
-| INV-05 | Sauvegarde partielle et reprise | Synchronisée | M3§1 | P1 | — | En développement | D ✅ · C ❌ | E2E |
-| INV-06 | Comparaison théorique / compté | Par emplacement, confirmation | M2§5, M3§7 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/scanner.spec.ts` | E2E |
-| INV-07 | Conflit si le stock change pendant l'inventaire | — | M3§7 | P0 | — | Développé | D ✅ · S ✅ · C ✅ avertissement si le stock a changé pendant l’inventaire | Intégration |
-| INV-08 | Produits inconnus à résoudre avant validation | — | M3§1 | P1 | — | En développement | D ✅ · C ❌ | E2E |
+| INV-01 | Assistant d'inventaire initial | Par espaces | M3§1 | P1 | — | Testé et validé | D ✅ · C ✅ Inventaires › Nouvel inventaire : initial guidé (tous les espaces) ou contrôle (espaces choisis), espace par espace · `e2e/inventories.spec.ts` | E2E |
+| INV-02 | Scan à la chaîne dans l'assistant | — | M3§1 | P1 | SCAN-01 | Testé et validé | C ✅ « Scanner ici » ouvre le scanner en mode Inventaire sur la session et l’espace, scans cumulés sur une seule ligne, retour à l’inventaire · `e2e/inventories.spec.ts` (trois scans d’une vraie image de code-barres) | E2E |
+| INV-03 | Modifier quantités, emplacements, dates avant validation | — | M3§1 | P1 | — | Testé et validé | C ✅ chaque ligne modifiable ou retirable avant validation (quantité, unité, « environ », date) · `e2e/inventories.spec.ts` | E2E |
+| INV-04 | Pourcentage d'avancement | — | M3§1 | P1 | — | Testé et validé | D ✅ commands.test (`sessionProgress`) · C ✅ barre d’avancement, statut par espace (à faire, en cours, terminé, ignoré) · `e2e/inventories.spec.ts` | Unitaires |
+| INV-05 | Sauvegarde partielle et reprise | Synchronisée | M3§1 | P1 | — | Testé et validé | D ✅ · C ✅ comptage enregistré au fil de l’eau, repris par un autre membre sur son appareil, avancement vu en direct · `e2e/inventories.spec.ts` | E2E |
+| INV-06 | Comparaison théorique / compté | Par emplacement, confirmation | M2§5, M3§7 | P0 | — | Testé et validé | D ✅ · C ✅ écran « Écarts et validation » (enregistré → compté, écart), produits attendus non comptés listés, « Absent » = 0, produits laissés de côté non modifiés · `e2e/inventories.spec.ts` · `e2e/scanner.spec.ts` | E2E |
+| INV-07 | Conflit si le stock change pendant l'inventaire | — | M3§7 | P0 | — | Testé et validé | D ✅ commands.test (conflit à la validation ; `movedSinceCount`) · S ✅ · C ✅ produit modifié après son comptage signalé (qui, combien) et non corrigé par défaut ; conflits à la validation listés avec « Recompter » · `e2e/inventories.spec.ts` | Intégration |
+| INV-08 | Produits inconnus à résoudre avant validation | — | M3§1 | P1 | — | Testé et validé | D ✅ · C ✅ « Nouveaux produits à créer », validation bloquée tant qu’ils ne sont pas créés · `e2e/inventories.spec.ts` | E2E |
 
 ## 14. Liste de courses, mode courses, réception
 
@@ -367,14 +367,14 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | REL-04 | Fiabilité des prix | Connu / estimé / inconnu | M3§6 | P0 | — | Testé et validé | D ✅ · C ✅ prix connu (saisi) / « ≈ » estimé (base indiquée) / « prix inconnu », dans Courses et Prévisions · `e2e/shopping.spec.ts` · `e2e/forecast.spec.ts` | — |
 | REL-05 | Affichage clair des incertitudes | Jamais une estimation présentée comme exacte | M3§8 | P0 | C | Développé | C ✅ composants communs (`ui/Reliability.tsx`) : confiance, date estimée, prix estimé ; « ≈ » pour les quantités approximatives — à appliquer au tableau de bord (phase 7) | E2E + revue |
 | REL-06 | Moteur tenant compte de la qualité | — | M3§8 | P0 | — | En développement | D ✅ | — |
-| AUD-01 | Quantité négative, Σ mouvements ≠ lot, arithmétique | — | M3§7 | P0 | — | En développement | D ✅ · S 🟡 · C ❌ | — |
-| AUD-02 | Produit ajouté deux fois / doublons | — | M3§7 | P0 | — | En développement | D ✅ | — |
-| AUD-03 | Mouvements identiques rapprochés | — | M3§7 | P0 | — | En développement | D ✅ | — |
-| AUD-04 | Écart théorique / physique | — | M3§7 | P0 | INV-06 | En développement | D ✅ | — |
-| AUD-05 | Consommation sur stock nul | — | M3§7 | P0 | — | En développement | D ✅ | — |
-| AUD-06 | Dates incohérentes | Avant l'achat, > 10 ans, dépassée à réception | M3§7 | P1 | — | En développement | D 🟡 (non testé) | Unitaires |
+| AUD-01 | Quantité négative, Σ mouvements ≠ lot, arithmétique | — | M3§7 | P0 | — | Testé et validé | D ✅ stats.test · S ✅ contrôle nocturne · C ✅ écran Contrôle de cohérence, action « Recompter » | — |
+| AUD-02 | Produit ajouté deux fois / doublons | — | M3§7 | P0 | — | Testé et validé | D ✅ stats.test · C ✅ « Comparer et fusionner » ouvre la fusion avec le doublon proposé en premier (jamais automatique) · `e2e/inventories.spec.ts` | — |
+| AUD-03 | Mouvements identiques rapprochés | — | M3§7 | P0 | — | Testé et validé | D ✅ stats.test · C ✅ « Annuler le doublon » (mouvement compensé, historique conservé) · `e2e/inventories.spec.ts` | — |
+| AUD-04 | Écart théorique / physique | — | M3§7 | P0 | INV-06 | Testé et validé | D ✅ stats.test (consommation sur stock insuffisant) · C ✅ « Recompter » lance un inventaire de contrôle des espaces du produit | — |
+| AUD-05 | Consommation sur stock nul | — | M3§7 | P0 | — | Testé et validé | D ✅ stats.test · C ✅ même écran (anomalie « consommé alors que le stock était insuffisant ») | — |
+| AUD-06 | Dates incohérentes | Avant l'achat, > 10 ans, dépassée à réception | M3§7 | P1 | — | Testé et validé | D ✅ stats.test (date avant l’achat, à plus de 10 ans — refusée à la saisie, repérée si importée —, inventaire en suspens) · C ✅ même écran, dates au format français | Unitaires |
 | AUD-07 | Contrôle d'intégrité serveur | SQLite + règles métier | M1§12 | P0 | — | Testé et validé | S ✅ week.test (contrôle chaque soir), data.test | Intégration |
-| AUD-08 | Interface de contrôle et de correction | — | M3§7 | P1 | C | À développer | C ❌ | E2E |
+| AUD-08 | Interface de contrôle et de correction | — | M3§7 | P1 | C | Testé et validé | C ✅ écran Contrôle de cohérence (Inventaire › Contrôle, pastille du nombre d’anomalies), anomalies par gravité avec action ; rien n’est corrigé sans l’utilisateur · `e2e/inventories.spec.ts` | E2E |
 
 ## 22. Sauvegardes, export, import
 
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 149 |
-| Développé | 62 |
-| En développement | 66 |
-| À développer | 15 |
+| Testé et validé | 163 |
+| Développé | 61 |
+| En développement | 55 |
+| À développer | 13 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |
