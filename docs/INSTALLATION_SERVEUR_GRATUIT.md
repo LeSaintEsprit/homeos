@@ -8,6 +8,15 @@ Ensuite, tout s'installe tout seul.
 
 ---
 
+## Est-ce vraiment gratuit ?
+
+Oui, si vous restez dans les offres gratuites :
+- **Tailscale** : offre « Personal », gratuite pour un usage personnel.
+- **Oracle Cloud** : offre **« Always Free »**, gratuite sans limite de durée. La carte bancaire sert à vérifier votre identité ; une petite somme peut être réservée puis rendue aussitôt.
+  - Pour rester à 0 € : choisissez uniquement des éléments marqués **« Always Free-eligible »**, et ne cliquez **jamais** sur « Upgrade » / « Passer au paiement à l'utilisation ».
+  - À la création, Oracle offre aussi un **essai de 30 jours** avec des crédits. À la fin, le compte redevient simplement gratuit : rien n'est prélevé tant que vous n'avez pas demandé le passage au paiement.
+  - Oracle peut **arrêter** une machine gratuite jugée trop peu utilisée. Elle se relance alors depuis la console (bouton **Start**) et les données restent sur son disque. Par prudence, téléchargez de temps en temps une sauvegarde (Administration du serveur → Sauvegardes → Télécharger).
+
 ## Partie A — Tailscale (5 minutes)
 
 1. Allez sur **login.tailscale.com** et choisissez **« Sign in with GitHub »** (votre compte GitHub suffit).
