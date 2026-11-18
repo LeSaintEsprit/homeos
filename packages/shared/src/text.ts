@@ -14,22 +14,25 @@ export function normalizeName(s: string): string {
 }
 
 /** Distance de similarité simple (0..1) entre deux noms normalisés (bigrammes). */
+/** Bigrammes (avec bornes) d'un nom déjà normalisé, et leur nombre d'occurrences. */
+export function bigrams(norm: string): Map<string, number> {
+  const m = new Map<string, number>();
+  if (!norm) return m;
+  const t = ` ${norm} `;
+  for (let i = 0; i < t.length - 1; i++) {
+    const g = t.slice(i, i + 2);
+    m.set(g, (m.get(g) ?? 0) + 1);
+  }
+  return m;
+}
+
 export function similarity(a: string, b: string): number {
   const na = normalizeName(a);
   const nb = normalizeName(b);
   if (!na || !nb) return 0;
   if (na === nb) return 1;
-  const grams = (s: string) => {
-    const m = new Map<string, number>();
-    const t = ` ${s} `;
-    for (let i = 0; i < t.length - 1; i++) {
-      const g = t.slice(i, i + 2);
-      m.set(g, (m.get(g) ?? 0) + 1);
-    }
-    return m;
-  };
-  const ga = grams(na);
-  const gb = grams(nb);
+  const ga = bigrams(na);
+  const gb = bigrams(nb);
   let inter = 0;
   let total = 0;
   for (const [g, c] of ga) {

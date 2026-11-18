@@ -1,28 +1,43 @@
-import { useEffect, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, type ComponentType, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { activeHousehold, loadSession, session } from './lib/session';
 import { useObservable } from './lib/store';
 import { EngineProvider } from './lib/sync/react';
 import { Toasts } from './ui/Toasts';
 import { Logo } from './ui/Logo';
-import { ForgotPage, InvitationPage, LoginPage, RegisterPage, ResetPage } from './pages/auth/AuthPages';
-import { CreateHouseholdPage, JoinHouseholdPage, WelcomePage } from './pages/onboarding/Onboarding';
 import { Shell } from './pages/app/Shell';
 import { HomePage } from './pages/app/Home';
-import { FamilyPage } from './pages/app/Family';
-import { SettingsPage } from './pages/app/Settings';
 import { InventoryPage } from './pages/app/inventory/InventoryPage';
-import { NewProductPage, ProductDetailPage } from './pages/app/inventory/ProductDetail';
-import { SessionPage, SessionsPage } from './pages/app/inventory/Sessions';
-import { AuditPage } from './pages/app/inventory/Audit';
-import { ScannerPage } from './pages/app/scanner/ScannerPage';
 import { ShoppingPage } from './pages/app/shopping/ShoppingPage';
-import { ForecastPage } from './pages/app/forecast/ForecastPage';
-import { NotificationsPage } from './pages/app/Notifications';
-import { ExpensesPage } from './pages/app/expenses/ExpensesPage';
-import { ShoppingModePage } from './pages/app/shopping/ShoppingMode';
-import { ReceiptPage } from './pages/app/shopping/ReceiptPage';
-import { StoreDetailPage, StoresPage } from './pages/app/shopping/Stores';
+
+
+/** Écran chargé à la demande (préchargé par le service worker : disponible hors connexion). */
+function lazyPage<M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M & string) {
+  return lazy(async () => ({ default: (await load())[name] as ComponentType }));
+}
+const ForgotPage = lazyPage(() => import('./pages/auth/AuthPages'), 'ForgotPage');
+const InvitationPage = lazyPage(() => import('./pages/auth/AuthPages'), 'InvitationPage');
+const LoginPage = lazyPage(() => import('./pages/auth/AuthPages'), 'LoginPage');
+const RegisterPage = lazyPage(() => import('./pages/auth/AuthPages'), 'RegisterPage');
+const ResetPage = lazyPage(() => import('./pages/auth/AuthPages'), 'ResetPage');
+const CreateHouseholdPage = lazyPage(() => import('./pages/onboarding/Onboarding'), 'CreateHouseholdPage');
+const JoinHouseholdPage = lazyPage(() => import('./pages/onboarding/Onboarding'), 'JoinHouseholdPage');
+const WelcomePage = lazyPage(() => import('./pages/onboarding/Onboarding'), 'WelcomePage');
+const FamilyPage = lazyPage(() => import('./pages/app/Family'), 'FamilyPage');
+const SettingsPage = lazyPage(() => import('./pages/app/Settings'), 'SettingsPage');
+const NewProductPage = lazyPage(() => import('./pages/app/inventory/ProductDetail'), 'NewProductPage');
+const ProductDetailPage = lazyPage(() => import('./pages/app/inventory/ProductDetail'), 'ProductDetailPage');
+const SessionPage = lazyPage(() => import('./pages/app/inventory/Sessions'), 'SessionPage');
+const SessionsPage = lazyPage(() => import('./pages/app/inventory/Sessions'), 'SessionsPage');
+const AuditPage = lazyPage(() => import('./pages/app/inventory/Audit'), 'AuditPage');
+const ScannerPage = lazyPage(() => import('./pages/app/scanner/ScannerPage'), 'ScannerPage');
+const ForecastPage = lazyPage(() => import('./pages/app/forecast/ForecastPage'), 'ForecastPage');
+const NotificationsPage = lazyPage(() => import('./pages/app/Notifications'), 'NotificationsPage');
+const ExpensesPage = lazyPage(() => import('./pages/app/expenses/ExpensesPage'), 'ExpensesPage');
+const ShoppingModePage = lazyPage(() => import('./pages/app/shopping/ShoppingMode'), 'ShoppingModePage');
+const ReceiptPage = lazyPage(() => import('./pages/app/shopping/ReceiptPage'), 'ReceiptPage');
+const StoreDetailPage = lazyPage(() => import('./pages/app/shopping/Stores'), 'StoreDetailPage');
+const StoresPage = lazyPage(() => import('./pages/app/shopping/Stores'), 'StoresPage');
 
 function Splash() {
   return (
@@ -66,6 +81,7 @@ export function App() {
   }, []);
   return (
     <BrowserRouter>
+      <Suspense fallback={<Splash />}>
       <Routes>
         <Route path="/connexion" element={<PublicOnly><LoginPage /></PublicOnly>} />
         <Route path="/inscription" element={<PublicOnly><RegisterPage /></PublicOnly>} />
@@ -97,6 +113,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
+      </Suspense>
       <Toasts />
     </BrowserRouter>
   );

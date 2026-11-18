@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle, Bell, Check, ChevronDown, CloudOff, House, KeyRound, LineChart, Package, Plus, RefreshCw, ScanLine, Settings, ShoppingCart, Users, CloudCheck, CloudUpload,
@@ -203,7 +203,10 @@ export function Shell() {
           </div>
         )}
         <main className="main" id="contenu">
-          <Outlet />
+          {/* Écrans chargés à la demande : la coquille reste affichée pendant le chargement. */}
+          <Suspense fallback={<div className="page-loading" role="status" aria-label="Chargement"><span className="spinner" /></div>}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
       <nav className="tabbar" aria-label="Navigation">

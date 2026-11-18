@@ -1,6 +1,6 @@
 /** Contrôle de cohérence des données du foyer (aucune correction automatique). */
 import type { EntityCollections, Movement } from '../types';
-import { normalizeName, similarity } from '../text';
+import { bigrams, normalizeName } from '../text';
 import { daysBetween, daysBetweenInstants, frDate } from '../time';
 import { roundQty } from '../units';
 
@@ -29,7 +29,9 @@ export function auditHousehold(c: EntityCollections, now: string): AuditIssue[] 
   for (const m of c.movement.values()) {
     if (!m.lotId) continue;
     sumByLot.set(m.lotId, (sumByLot.get(m.lotId) ?? 0) + m.delta);
-    movesByLot.set(m.lotId, [...(movesByLot.get(m.lotId) ?? []), m]);
+    const ml = movesByLot.get(m.lotId);
+    if (ml) ml.push(m);
+    else movesByLot.set(m.lotId, [m]);
   }
   for (const lot of c.lot.values()) {
     if (!products.has(lot.productId)) {
@@ -65,25 +67,36 @@ export function auditHousehold(c: EntityCollections, now: string): AuditIssue[] 
     }
   }
   const recentFrom = new Date(Date.parse(now) - 30 * 86_400_000).toISOString();
+  // Doubles saisies : comparaison au sein d'un même produit seulement (un inventaire ou un ticket
+  // crée beaucoup de mouvements au même instant, sur des produits différents).
+  const recentByProduct = new Map<string, { m: Movement; t: number }[]>();
+  for (const m of moves) {
+    if (m.occurredAt < recentFrom || m.revertedBy || m.type === 'revert' || m.delta === 0) continue;
+    const l = recentByProduct.get(m.productId);
+    const e = { m, t: Date.parse(m.occurredAt) };
+    if (l) l.push(e);
+    else recentByProduct.set(m.productId, [e]);
+  }
   const seen = new Set<string>();
-  for (let i = 0; i < moves.length; i++) {
-    const a = moves[i];
-    if (a.revertedBy || a.type === 'revert' || a.delta === 0 || a.occurredAt < recentFrom) continue;
-    for (let j = i + 1; j < moves.length; j++) {
-      const b = moves[j];
-      if (daysBetweenInstants(a.occurredAt, b.occurredAt) * 86400 > 10) break;
-      if (b.revertedBy || b.opId === a.opId || b.productId !== a.productId || b.type !== a.type || b.userId !== a.userId) continue;
-      if (Math.abs(b.delta - a.delta) > AUDIT_EPS) continue;
-      const k = [a.id, b.id].sort().join('|');
-      if (seen.has(k)) continue;
-      seen.add(k);
-      issues.push({
-        code: 'duplicate_movements',
-        severity: 'warning',
-        message: `« ${name(a.productId)} » : deux mouvements identiques à quelques secondes d'intervalle (${a.type === 'consume' ? 'consommation' : a.type === 'purchase' ? 'réception' : a.type}). S'agit-il d'un double scan ?`,
-        productId: a.productId,
-        movementIds: [a.id, b.id],
-      });
+  for (const list of recentByProduct.values()) {
+    for (let i = 0; i < list.length; i++) {
+      const a = list[i].m;
+      for (let j = i + 1; j < list.length; j++) {
+        if (list[j].t - list[i].t > 10_000) break;
+        const b = list[j].m;
+        if (b.opId === a.opId || b.type !== a.type || b.userId !== a.userId) continue;
+        if (Math.abs(b.delta - a.delta) > AUDIT_EPS) continue;
+        const k = [a.id, b.id].sort().join('|');
+        if (seen.has(k)) continue;
+        seen.add(k);
+        issues.push({
+          code: 'duplicate_movements',
+          severity: 'warning',
+          message: `« ${name(a.productId)} » : deux mouvements identiques à quelques secondes d'intervalle (${a.type === 'consume' ? 'consommation' : a.type === 'purchase' ? 'réception' : a.type}). S'agit-il d'un double scan ?`,
+          productId: a.productId,
+          movementIds: [a.id, b.id],
+        });
+      }
     }
   }
   for (const m of moves) {
@@ -93,26 +106,65 @@ export function auditHousehold(c: EntityCollections, now: string): AuditIssue[] 
   }
 
   // 3. Produits en double probables (jamais fusionnés automatiquement).
+  //    Même règle qu'une comparaison deux à deux (nom identique, alias, ou ressemblance ≥ 0,9 avec
+  //    même unité et même marque), mais sans coût quadratique : prétraitement unique par produit et
+  //    index inversé des bigrammes — seules les paires partageant assez de bigrammes sont comparées.
   const active = [...products.values()].filter((p) => !p.archived);
-  const codesByProduct = new Map<string, string[]>();
-  for (const code of c.productCode.values()) codesByProduct.set(code.productId, [...(codesByProduct.get(code.productId) ?? []), code.code]);
-  for (let i = 0; i < active.length; i++) {
-    for (let j = i + 1; j < active.length; j++) {
-      const a = active[i];
-      const b = active[j];
-      const sameName = normalizeName(a.name) === normalizeName(b.name);
-      const sim = similarity(a.name, b.name);
-      const aliasHit = a.aliases.some((x) => normalizeName(x.text) === normalizeName(b.name)) || b.aliases.some((x) => normalizeName(x.text) === normalizeName(a.name));
-      if (sameName || aliasHit || (sim >= 0.9 && a.unit === b.unit && (a.brand ?? '') === (b.brand ?? ''))) {
-        issues.push({
-          code: 'possible_duplicate',
-          severity: 'info',
-          message: `« ${a.name} » et « ${b.name} » pourraient être le même produit. Vérifiez avant de fusionner.`,
-          productId: a.id,
-          otherProductId: b.id,
-        });
+  const prep = active.map((p) => {
+    const norm = normalizeName(p.name);
+    const grams = bigrams(norm);
+    let total = 0;
+    for (const c of grams.values()) total += c;
+    return { p, norm, grams, total, aliases: new Set(p.aliases.map((x) => normalizeName(x.text))) };
+  });
+  const pairs = new Set<number>();
+  const pairKey = (i: number, j: number) => i * active.length + j;
+  const flag = (i: number, j: number) => {
+    const [a, b] = i < j ? [i, j] : [j, i];
+    if (a === b || pairs.has(pairKey(a, b))) return;
+    pairs.add(pairKey(a, b));
+  };
+  // Noms identiques et alias désignant un autre produit.
+  const byNorm = new Map<string, number[]>();
+  prep.forEach((x, i) => x.norm && byNorm.set(x.norm, [...(byNorm.get(x.norm) ?? []), i]));
+  for (const list of byNorm.values()) for (let a = 0; a < list.length; a++) for (let b = a + 1; b < list.length; b++) flag(list[a], list[b]);
+  prep.forEach((x, i) => {
+    for (const al of x.aliases) for (const j of byNorm.get(al) ?? []) flag(i, j);
+  });
+  // Ressemblance (Dice sur les bigrammes ≥ 0,9).
+  const postings = new Map<string, number[]>();
+  prep.forEach((x, i) => {
+    for (const g of x.grams.keys()) {
+      const l = postings.get(g);
+      if (l) l.push(i);
+      else postings.set(g, [i]);
+    }
+  });
+  for (let i = 0; i < prep.length; i++) {
+    const xi = prep[i];
+    if (!xi.total) continue;
+    const overlap = new Map<number, number>();
+    for (const [g, ci] of xi.grams) {
+      for (const j of postings.get(g)!) {
+        if (j <= i) continue;
+        overlap.set(j, (overlap.get(j) ?? 0) + Math.min(ci, prep[j].grams.get(g)!));
       }
     }
+    for (const [j, inter] of overlap) {
+      const xj = prep[j];
+      if ((2 * inter) / (xi.total + xj.total) >= 0.9 && xi.p.unit === xj.p.unit && (xi.p.brand ?? '') === (xj.p.brand ?? '')) flag(i, j);
+    }
+  }
+  for (const k of [...pairs].sort((x, y) => x - y)) {
+    const a = active[Math.floor(k / active.length)];
+    const b = active[k % active.length];
+    issues.push({
+      code: 'possible_duplicate',
+      severity: 'info',
+      message: `« ${a.name} » et « ${b.name} » pourraient être le même produit. Vérifiez avant de fusionner.`,
+      productId: a.id,
+      otherProductId: b.id,
+    });
   }
 
   // 4. Codes-barres orphelins.
