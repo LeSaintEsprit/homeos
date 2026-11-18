@@ -2,6 +2,7 @@
 
 Ce guide s'adresse à la personne qui héberge HOMEOS pour sa famille (et éventuellement d'autres familles).
 Aucun abonnement n'est nécessaire : un ordinateur toujours allumé à la maison suffit.
+Pas de machine allumée en permanence ? Voir **[INSTALLATION_SERVEUR_GRATUIT.md](INSTALLATION_SERVEUR_GRATUIT.md)** : serveur gratuit Oracle Cloud, installé automatiquement.
 
 ---
 

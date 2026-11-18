@@ -1,0 +1,24 @@
+# HOMEOS sur un serveur en ligne (ex. Oracle Cloud « Always Free »), derrière Tailscale Funnel.
+# Utilisé par deploy/cloud-init.sh et deploy/mise-a-jour.sh ; les réglages propres au serveur sont dans deploy/.env.
+services:
+  homeos:
+    build:
+      context: ..
+      args: { REGISTRY: "mirror.gcr.io/library/" }
+    image: homeos:latest
+    container_name: homeos
+    restart: unless-stopped
+    # Joignable seulement depuis la machine elle-même : Tailscale publie l'adresse https://…ts.net.
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ../data:/data
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    environment:
+      HOMEOS_PUBLIC_URL: ${HOMEOS_PUBLIC_URL:-}
+      HOMEOS_REGISTRATION: invite
+      HOMEOS_TRUST_PROXY: "1"
+      HOMEOS_COOKIE_SECURE: "1"
+      HOMEOS_VAPID_SUBJECT: ${HOMEOS_VAPID_SUBJECT:-mailto:admin@homeos.local}

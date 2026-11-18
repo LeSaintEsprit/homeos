@@ -14,6 +14,7 @@ docker compose up -d --build
 ```
 
 Puis suivez **[docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md)** (accès HTTPS gratuit, sauvegardes, mises à jour).
+Sans machine à la maison : **[docs/INSTALLATION_SERVEUR_GRATUIT.md](docs/INSTALLATION_SERVEUR_GRATUIT.md)** (serveur gratuit Oracle Cloud, installation automatique).
 Pour la famille : **[docs/GUIDE_UTILISATEUR.md](docs/GUIDE_UTILISATEUR.md)**.
 
 ## Développement
