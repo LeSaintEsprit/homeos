@@ -11,3 +11,4 @@ coverage/
 
 e2e/.data/
 deploy/.env
+deploy/windows/reglages.ps1
