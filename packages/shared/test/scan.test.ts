@@ -84,6 +84,38 @@ CB                         5,63`;
     expect(r.lines[2]).toMatchObject({ weighed: true, quantity: 0.85, discountCents: 30, totalCents: 139 });
     expect(r.warnings.filter((w) => w.includes('total'))).toHaveLength(0);
   });
+  it('rattache une ligne « 2 x 3,89 » à l\'article dont le montant concorde, avant ou après lui', () => {
+    // Texte réellement produit par l'OCR sur un ticket rendu en image.
+    const ocr = `CARREFOUR MARKET
+
+12 AV DE LA GARE 75011 PARIS
+18/11/2026 10:42 CAISSE 3
+LAIT DEMI ECREME 1,07
+2 x 3,89
+
+CAFE MOULU ARABICA 7,78
+POMMES GOLDEN
+
+0,850 KG X 2,49 EUR/KG | 2,12
+REMISE IMMEDIATE -0,50
+PAIN DE MIE COMPLET 1,89
+TOTAL 12,36
+cB 12,36
+MERCI DE VOTRE VISITE`;
+    const r = parseReceipt(ocr, [], '2026-11-18');
+    expect(r.storeName).toBe('Carrefour');
+    expect(r.date).toBe('2026-11-18');
+    expect(r.totalCents).toBe(1236);
+    expect(r.lines.map((l) => [l.label, l.quantity, l.totalCents])).toEqual([
+      ['LAIT DEMI ECREME', 1, 107],
+      ['CAFE MOULU ARABICA', 2, 778],
+      ['POMMES GOLDEN', 0.85, 162],
+      ['PAIN DE MIE COMPLET', 1, 189],
+    ]);
+    expect(r.lines[1].unitPriceCents).toBe(389);
+    expect(r.lines[2]).toMatchObject({ weighed: true, discountCents: 50 });
+    expect(r.warnings).toHaveLength(0);
+  });
   it('signale les correspondances incertaines et reconnaît les alias appris', () => {
     const products = [
       { id: 'p1', name: 'Lait demi-écrémé', archived: false, brand: null, aliases: [] },

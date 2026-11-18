@@ -149,7 +149,7 @@ export function Shell() {
   const s = useObservable(session);
   const navigate = useNavigate();
   const path = useLocation().pathname;
-  const hideFab = path.startsWith('/scanner') || path.startsWith('/courses/magasin');
+  const hideFab = path.startsWith('/scanner') || path.startsWith('/courses/magasin') || path.startsWith('/courses/ticket');
   return (
     <div className="app">
       <aside className="sidebar" aria-label="Navigation principale">

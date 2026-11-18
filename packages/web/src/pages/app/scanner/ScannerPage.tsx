@@ -13,6 +13,7 @@ import { Segmented, Switch } from '../../../ui/Controls';
 import { Sheet } from '../../../ui/Sheet';
 import { Field } from '../../../ui/Field';
 import { IdentifySheet } from './Identify';
+import { DateFromPhoto } from './DateFromPhoto';
 
 type Mode = 'reception' | 'consumption' | 'inventory';
 
@@ -68,6 +69,7 @@ export function ScannerPage() {
   const [unknown, setUnknown] = useState<ParsedCode | null>(null);
   const [dateQ, setDateQ] = useState<{ product: Product; code: ProductCode | null; parsed: ParsedCode } | null>(null);
   const [dateValue, setDateValue] = useState('');
+  const [ocrPick, setOcrPick] = useState<{ date: string; kind: 'dlc' | 'ddm' | null } | null>(null);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualCode, setManualCode] = useState('');
   const [review, setReview] = useState(false);
@@ -99,7 +101,7 @@ export function ScannerPage() {
 
   // ── Traitement d'un produit identifié selon le mode.
   const process = useCallback(
-    async (productId: string, code: ProductCode | null, parsed: ParsedCode, dateOverride?: { date: string | null; fromUser: boolean }) => {
+    async (productId: string, code: ProductCode | null, parsed: ParsedCode, dateOverride?: { date: string | null; fromUser: boolean; ocr?: boolean; kind?: 'dlc' | 'ddm' | null }) => {
       const v = current();
       const product = v.product.get(productId) as Product | undefined;
       if (!product) return;
@@ -113,6 +115,7 @@ export function ScannerPage() {
           const cat = product.categoryId ? v.category.get(product.categoryId)?.name ?? '' : '';
           if (usuallyDated || /frais|surgel/i.test(cat)) {
             setDateValue('');
+            setOcrPick(null);
             setDateQ({ product, code, parsed });
             return;
           }
@@ -126,8 +129,8 @@ export function ScannerPage() {
           quantity: qty,
           kind: 'purchase',
           expiryDate: knownDate ?? null,
-          expirySource: knownDate ? (dateOverride?.fromUser ? 'manual' : 'gs1') : null,
-          expiryKind: knownDate ? (parsed.bestBefore && !parsed.expiry && !dateOverride ? 'ddm' : 'dlc') : null,
+          expirySource: knownDate ? (dateOverride?.ocr ? 'ocr' : dateOverride?.fromUser ? 'manual' : 'gs1') : null,
+          expiryKind: knownDate ? (dateOverride?.ocr && dateOverride.kind ? dateOverride.kind : parsed.bestBefore && !parsed.expiry && !dateOverride ? 'ddm' : 'dlc') : null,
           batchNumber: parsed.batch,
           locationId: locationId || product.locationId,
           storeId: storeId || null,
@@ -439,12 +442,13 @@ export function ScannerPage() {
         footer={
           <>
             <button className="btn" onClick={() => { const q = dateQ!; setDateQ(null); void process(q.product.id, q.code, q.parsed, { date: null, fromUser: true }); }}>Date inconnue</button>
-            <button className="btn primary" disabled={!dateValue} onClick={() => { const q = dateQ!; setDateQ(null); void process(q.product.id, q.code, q.parsed, { date: dateValue, fromUser: true }); }}>Enregistrer</button>
+            <button className="btn primary" disabled={!dateValue} data-testid="date-save" onClick={() => { const q = dateQ!; setDateQ(null); const fromOcr = ocrPick?.date === dateValue; void process(q.product.id, q.code, q.parsed, { date: dateValue, fromUser: true, ocr: fromOcr, kind: fromOcr ? ocrPick!.kind : null }); }}>Enregistrer</button>
           </>
         }
       >
         <p className="small muted">Ce code ne contient pas de date. Indiquez celle de l'emballage — ou « Date inconnue » : aucune date n'est inventée.</p>
-        <Field label="Date de péremption"><input className="input" type="date" value={dateValue} onChange={(e) => setDateValue(e.target.value)} autoFocus /></Field>
+        <Field label="Date de péremption"><input className="input" type="date" value={dateValue} onChange={(e) => setDateValue(e.target.value)} autoFocus data-testid="date-input" /></Field>
+        {dateQ && <DateFromPhoto onPick={(date, kind) => { setDateValue(date); setOcrPick({ date, kind }); }} />}
       </Sheet>
 
       <Sheet

@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 18/11/2026 — fin de la phase 9 (dépenses et budget).
+> Dernière mise à jour : 18/11/2026 — fin de la phase 10 (OCR des dates et des tickets).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 9)** : 161 tests unitaires/intégration et 29 parcours de bout en bout. Restent à construire dans l'interface : OCR (dates, tickets de caisse), écrans de données (export, import, sauvegardes, restauration).
+**Constat global (fin de phase 10)** : 162 tests unitaires/intégration et 31 parcours de bout en bout (dont une lecture OCR réelle d’images). Restent à construire dans l'interface : écrans de données (export, import, sauvegardes, restauration) ; puis notifications push sur appareils réels, validation globale et déploiement.
 
 ---
 
@@ -207,11 +207,11 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| OCR-01 | Proposition de photographier l'étiquette | Si pas de date dans le code | M2§4 | P1 | SCAN-07 | À développer | C ❌ | E2E |
-| OCR-02 | Moteur OCR local | Tesseract.js + français auto-hébergés | M2§4 | P1 | — | À développer | ❌ | Images réelles |
-| OCR-03 | Reconnaissance DLC / DDM | Mentions et formats | M2§4 | P1 | — | En développement | D ✅ (analyse du texte) | Corpus d'étiquettes |
-| OCR-04 | Affichage + confirmation obligatoire | — | M2§4 | P1 | OCR-02 | À développer | C ❌ | E2E |
-| OCR-05 | Source « reconnue et confirmée » | `expirySource = ocr` | M3§8 | P1 | — | En développement | D ✅ | — |
+| OCR-01 | Proposition de photographier l'étiquette | Si pas de date dans le code | M2§4 | P1 | SCAN-07 | Testé et validé | C ✅ « Lire la date sur une photo » dans la question de date du scanner et les fiches « Ajouter » / « Date » de l’inventaire · `e2e/ocr.spec.ts` | E2E |
+| OCR-02 | Moteur OCR local | Tesseract.js + français auto-hébergés | M2§4 | P1 | — | Testé et validé | C ✅ Tesseract.js 7 + modèle français (LSTM, 0,7 Mo) servis par HOMEOS sous /engines/ocr (aucun CDN, aucune image envoyée), chargés à la demande, hors précache, puis conservés ; fonctionne sous la politique de sécurité du serveur · `e2e/ocr.spec.ts` (lecture réelle d’images dans Chromium) ; à essayer sur téléphones réels | Images réelles |
+| OCR-03 | Reconnaissance DLC / DDM | Mentions et formats | M2§4 | P1 | — | Testé et validé | D ✅ scan.test · C ✅ DLC/DDM indiquées sur chaque proposition · `e2e/ocr.spec.ts` | Corpus d'étiquettes |
+| OCR-04 | Affichage + confirmation obligatoire | — | M2§4 | P1 | OCR-02 | Testé et validé | C ✅ dates proposées avec le texte lu ; rien n’est rempli ni enregistré sans choix puis validation · `e2e/ocr.spec.ts` | E2E |
+| OCR-05 | Source « reconnue et confirmée » | `expirySource = ocr` | M3§8 | P1 | — | Testé et validé | D ✅ · C ✅ lot marqué « date reconnue et confirmée » (redevient « saisie » si la date est retouchée) · `e2e/ocr.spec.ts` | — |
 
 ## 13. Inventaires
 
@@ -256,12 +256,12 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| TKT-01 | Photo ou import d'un ticket | — | M3§4 | P1 | OCR-02 | À développer | C ❌ | E2E |
-| TKT-02 | Lecture magasin, date, lignes, quantités, prix, total, promotions | — | M3§4 | P1 | OCR-02 | En développement | D ✅ (analyse du texte) · OCR ❌ | Corpus de tickets réels |
-| TKT-03 | Écran de validation, correspondances incertaines signalées | — | M3§4 | P1 | CAT-10 | En développement | D ✅ rapprochement · C ❌ | E2E |
-| TKT-04 | Après validation : réceptions, prix, dépenses, produits inconnus | — | M3§4 | P1 | — | En développement | D ✅ · S 🟡 · C ❌ | Intégration |
-| TKT-05 | Jamais de stock depuis un OCR non vérifié | — | M3§4 | P0 | — | En développement | D ✅ (case explicite par ligne) | E2E |
-| TKT-06 | Apprentissage des libellés par magasin | — | M3§4 | P2 | — | En développement | D ✅ · C ❌ | — |
+| TKT-01 | Photo ou import d'un ticket | — | M3§4 | P1 | OCR-02 | Testé et validé | C ✅ Courses › Ticket (aussi depuis Dépenses) : photo, import d’image ou saisie à la main · `e2e/ocr.spec.ts` | E2E |
+| TKT-02 | Lecture magasin, date, lignes, quantités, prix, total, promotions | — | M3§4 | P1 | OCR-02 | Testé et validé | D ✅ scan.test (dont le texte réellement lu, ligne de quantité avant ou après l’article rattachée seulement si le montant concorde) · C ✅ magasin, date, total, lignes, quantités, poids, remises, contrôle de la somme · `e2e/ocr.spec.ts` | Corpus de tickets réels |
+| TKT-03 | Écran de validation, correspondances incertaines signalées | — | M3§4 | P1 | CAT-10 | Testé et validé | C ✅ chaque ligne : Sûr / Probable / À vérifier / Inconnu, choix du produit, nouveau produit ou dépense seule, ligne modifiable, supprimable, ajoutable · `e2e/ocr.spec.ts` | E2E |
+| TKT-04 | Après validation : réceptions, prix, dépenses, produits inconnus | — | M3§4 | P1 | — | Testé et validé | D ✅ · S ✅ · C ✅ achats et dépenses enregistrés, lignes cochées mises en stock, produits créés, nouveau magasin créé · `e2e/ocr.spec.ts` | Intégration |
+| TKT-05 | Jamais de stock depuis un OCR non vérifié | — | M3§4 | P0 | — | Testé et validé | D ✅ · C ✅ correspondance « à vérifier » jamais mise en stock sans confirmation explicite ; rien n’est enregistré avant « Enregistrer le ticket » · `e2e/ocr.spec.ts` | E2E |
+| TKT-06 | Apprentissage des libellés par magasin | — | M3§4 | P2 | — | Testé et validé | D ✅ · C ✅ libellé associé appris pour le magasin : « Sûr » au ticket suivant · `e2e/ocr.spec.ts` | — |
 | STORE-01 | Magasins : nom, adresse, notes | — | M3§5 | P1 | — | Testé et validé | C ✅ page Magasins (création, nom, adresse, notes, couleur) · `e2e/shopping.spec.ts` | E2E |
 | STORE-02 | Historique des achats par magasin | — | M3§5 | P1 | BUD-01 | Testé et validé | D ✅ `storeSummary` (shopping.test : passages, prix inconnus exclus, panier moyen sur passages chiffrés) · C ✅ fiche magasin · `e2e/shopping.spec.ts` (achat réceptionné visible avec son prix) | E2E |
 | STORE-03 | Produits habituellement achetés par magasin | — | M3§5 | P2 | — | Développé | D ✅ `storeSummary.usual` (≥ 2 achats, shopping.test) · C ✅ « Produits habituels » avec ajout à la liste — non couvert E2E | Unitaires |
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 181 |
+| Testé et validé | 192 |
 | Développé | 60 |
-| En développement | 39 |
-| À développer | 12 |
+| En développement | 32 |
+| À développer | 8 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |

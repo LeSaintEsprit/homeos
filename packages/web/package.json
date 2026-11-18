@@ -11,12 +11,14 @@
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",
     "@homeos/shared": "1.0.0",
+    "@tesseract.js-data/fra": "^1.0.0",
     "idb": "^8.0.4",
     "lucide-react": "^1.74.0",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5",
+    "tesseract.js": "^7.0.0",
     "zxing-wasm": "^3.1.7"
   },
   "devDependencies": {

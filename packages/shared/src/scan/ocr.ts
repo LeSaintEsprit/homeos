@@ -5,6 +5,7 @@
 import { addDays, daysBetween, isDateStr } from '../time';
 import { normalizeName, similarity } from '../text';
 import type { Product, Store } from '../types';
+import { formatMoney } from '../money';
 
 export interface DateCandidate {
   date: string;
@@ -216,19 +217,24 @@ export function parseReceipt(text: string, stores: Store[], today: string): Pars
   let last: ReceiptLineParsed | null = null;
   /** Libellé seul sur sa ligne (le prix suit sur la ligne de poids/quantité). */
   let pendingLabel: string | null = null;
+  /** Ligne de détail (« 2 x 3,89 ») imprimée avant son article, selon les enseignes. */
+  let pendingDetail: { quantity: number; unitPriceCents: number; weighed: boolean } | null = null;
+  // Une ligne de détail ne se rattache qu'à l'article dont le montant concorde (quantité × prix unitaire).
+  const fits = (d: { quantity: number; unitPriceCents: number }, gross: number) => Math.abs(Math.round(d.quantity * d.unitPriceCents) - gross) <= Math.max(2, gross * 0.01);
   for (const l of rawLines) {
     const qtyM = QTY_LINE.exec(l);
     const wM = WEIGHT_LINE.exec(l);
-    if (last && (qtyM || wM) && !PRICE_END.test(l.replace(QTY_LINE, ''))) {
-      // Ligne de détail rattachée à l'article précédent (« 2 x 1,25 », « 0,532 kg x 3,99 €/kg »).
-      if (qtyM) {
-        last.quantity = Number(qtyM[1]);
-        last.unitPriceCents = cents(qtyM[2], qtyM[3]);
-      } else if (wM) {
-        last.quantity = Number(wM[1].replace(',', '.'));
-        last.weighed = true;
-        last.unitPriceCents = cents(wM[2], wM[3]);
-      }
+    if ((qtyM || wM) && !PRICE_END.test(l.replace(QTY_LINE, ''))) {
+      // Ligne de détail sans montant (« 2 x 1,25 », « 0,532 kg x 3,99 €/kg »).
+      const d = qtyM
+        ? { quantity: Number(qtyM[1]), unitPriceCents: cents(qtyM[2], qtyM[3]), weighed: false }
+        : { quantity: Number(wM![1].replace(',', '.')), unitPriceCents: cents(wM![2], wM![3]), weighed: true };
+      if (last && fits(d, last.totalCents + last.discountCents)) {
+        last.quantity = d.quantity;
+        last.unitPriceCents = d.unitPriceCents;
+        if (d.weighed) last.weighed = true;
+        pendingDetail = null;
+      } else pendingDetail = d;
       continue;
     }
     const pm = PRICE_END.exec(l);
@@ -267,6 +273,12 @@ export function parseReceipt(text: string, stores: Store[], today: string): Pars
       line.unitPriceCents = cents(wM[2], wM[3]);
       const rest = label.replace(WEIGHT_LINE, '').trim();
       line.label = usePending ?? (rest || label);
+    } else if (pendingDetail && fits(pendingDetail, value)) {
+      // Détail imprimé juste avant l'article.
+      line.quantity = pendingDetail.quantity;
+      line.unitPriceCents = pendingDetail.unitPriceCents;
+      line.weighed = pendingDetail.weighed;
+      line.label = usePending ?? label;
     } else {
       line.label = label.replace(INLINE_QTY, ' ').replace(/\s+/g, ' ').trim();
       const iq = INLINE_QTY.exec(label);
@@ -280,13 +292,14 @@ export function parseReceipt(text: string, stores: Store[], today: string): Pars
     }
     if (line.unitPriceCents == null) line.unitPriceCents = line.weighed ? null : Math.round(value / line.quantity);
     if (/\d{5,}/.test(line.label) || line.label.length < 3) line.confidence = 'low';
+    pendingDetail = null;
     out.lines.push(line);
     last = line;
   }
 
   const sum = out.lines.reduce((s, l) => s + l.totalCents, 0) - out.globalDiscountCents;
   if (out.totalCents != null && out.lines.length && Math.abs(sum - out.totalCents) > Math.max(2, out.totalCents * 0.01)) {
-    out.warnings.push(`Le total des lignes lues (${(sum / 100).toFixed(2)} €) ne correspond pas au total du ticket (${(out.totalCents / 100).toFixed(2)} €) : certaines lignes ont pu être mal lues.`);
+    out.warnings.push(`Le total des lignes lues (${formatMoney(sum)}) ne correspond pas au total du ticket (${formatMoney(out.totalCents)}) : certaines lignes ont pu être mal lues.`);
   }
   if (!out.date) out.warnings.push('Date du ticket non reconnue : vérifiez-la.');
   if (!out.lines.length) out.warnings.push("Aucune ligne d'article n'a pu être lue. Essayez une photo plus nette, bien à plat et éclairée.");

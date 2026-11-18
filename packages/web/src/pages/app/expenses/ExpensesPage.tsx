@@ -257,7 +257,10 @@ export function ExpensesPage() {
       <PageHead
         title="Dépenses"
         eyebrow={<Link to="/courses" className="row" style={{ ['--gap' as string]: '4px' }}><ArrowLeft size={14} /> Courses</Link>}
-        actions={canWrite && <button className="btn" onClick={() => setCreating(true)} data-testid="add-purchase"><Plus size={18} /> Achat</button>}
+        actions={canWrite && <>
+          <Link className="btn" to="/courses/ticket"><Receipt size={18} /> Ticket</Link>
+          <button className="btn" onClick={() => setCreating(true)} data-testid="add-purchase"><Plus size={18} /> Achat</button>
+        </>}
       />
       <BudgetBlock purchases={all} />
       {unusual.length > 0 && (

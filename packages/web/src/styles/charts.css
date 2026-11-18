@@ -58,3 +58,12 @@
 .dashboard > * { min-width: 0; }
 .viz-card { min-width: 0; }
 .viz .viz-tip { max-width: 240px; }
+/* ───────── OCR ───────── */
+.ocr-date { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+.ocr-date > .btn { align-self: flex-start; }
+.ocr-text { white-space: pre-wrap; font-size: var(--fs-xs); background: var(--surface-2); padding: 8px 10px; border-radius: 8px; max-height: 220px; overflow: auto; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 8px; }
+.receipt-line { display: flex; flex-direction: column; gap: 10px; }
+.receipt-line.needs-check { border-color: color-mix(in srgb, var(--warning) 55%, var(--border)); box-shadow: 0 0 0 2px var(--warning-soft); }
+.receipt-foot { position: sticky; bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 8px); z-index: 5; background: var(--bg-elev); padding: 10px 12px; box-shadow: var(--shadow-2); }
+@media (min-width: 900px) { .receipt-foot { bottom: 12px; } }

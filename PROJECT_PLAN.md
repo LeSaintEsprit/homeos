@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.9 — 18/11/2026 — phases 1 à 9 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.10 — 18/11/2026 — phases 1 à 10 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -193,13 +193,18 @@ Limites : une date à plus de 10 ans est refusée à la saisie ; l'audit ne la r
 Vérifié : 3 tests unitaires (période et granularité, produits suivis, devise des alertes) ; 3 parcours de bout en bout.
 Défauts trouvés et corrigés : montants « € » écrits en dur dans les alertes de dépenses (la devise est réglable par foyer) ; vert de la marque trop gris pour un graphique en clair et trop clair en sombre (teinte dédiée validée) ; **graphiques élargissant la grille sur ordinateur** (débordement à droite) ; première barre de la période comptant des jours hors filtre (chiffres discordants) ; tableau des prix illisible sur téléphone ; liste d'achats sur 12 mois non paginée.
 
-### Phase 10 — OCR : dates et tickets de caisse ← **prochaine étape**
+### Phase 10 — OCR : dates et tickets de caisse ✅ (18/11/2026)
 **Contenu** : Tesseract.js auto-hébergé (chargé à la demande, mis en cache) ; photo d'étiquette → date proposée → confirmation ; ticket : photo/import → analyse → **écran de validation** (correspondances sûres/probables/incertaines, produits inconnus, lignes à mettre en stock) → application.
 **Tests** : corpus d'étiquettes et de tickets réels (photos anonymisées) ; E2E.
 **Sortie** : OCR-*, TKT-* « Testé et validé ».
+
+**Bilan de la phase 10** : OCR **local et auto-hébergé** (Tesseract.js 7, modèle français LSTM de 0,7 Mo, cœur WebAssembly servi sous /engines/ocr, chargé à la demande, hors précache, conservé ensuite ; aucun appel à un CDN). **Dates** : « Lire la date sur une photo » dans la question de date du scanner et les fiches « Ajouter » / « Date » de l'inventaire ; dates proposées avec DLC/DDM et texte lu ; choix puis validation obligatoires ; source « reconnue et confirmée ». **Tickets** (Courses › Ticket, ou Dépenses) : photo, import ou saisie à la main → écran de validation (magasin reconnu ou nouveau, date, total, contrôle de la somme, chaque ligne modifiable avec correspondance Sûr / Probable / À vérifier / Inconnu, produit existant, nouveau produit ou dépense seule, mise en stock cochable) → achats, dépenses, stock, libellés appris par magasin.
+Vérifié : lecture réelle d'images (étiquette et ticket rendus dans le navigateur) sous la politique de sécurité du serveur, en moins d'une seconde une fois le moteur chargé ; 1 test unitaire sur le texte réellement lu ; 2 parcours de bout en bout (date confirmée ; ticket complet puis second ticket reconnu « Sûr »).
+Défauts trouvés et corrigés : **une ligne « 2 x 3,89 » imprimée avant son article était rattachée à l'article précédent** (quantité et prix unitaire faux) — rattachement désormais conditionné à la concordance des montants ; date technique et « € » en dur dans les messages des tickets ; mise en page du ticket sur téléphone (sélecteur écrasé, pied trop haut, bouton flottant superposé).
+Limites : essais sur photos réelles de téléphone (flou, pli, éclairage) à faire sur appareil ; le paquet JavaScript principal (837 Ko, 252 Ko compressé) sera découpé par écran en phase 13.
 **Dépend de** : Phases 4, 5, 9.
 
-### Phase 11 — Données : sauvegardes, export/import, restauration (interface)
+### Phase 11 — Données : sauvegardes, export/import, restauration (interface) ← **prochaine étape**
 **Contenu** : écrans Paramètres → Données (export JSON/CSV, import, contrôle d'intégrité) et Administration du serveur (sauvegardes, vérification, téléchargement, restauration complète ou par foyer).
 **Sortie** : BAK-* « Testé et validé ».
 

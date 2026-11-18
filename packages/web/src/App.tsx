@@ -21,6 +21,7 @@ import { ForecastPage } from './pages/app/forecast/ForecastPage';
 import { NotificationsPage } from './pages/app/Notifications';
 import { ExpensesPage } from './pages/app/expenses/ExpensesPage';
 import { ShoppingModePage } from './pages/app/shopping/ShoppingMode';
+import { ReceiptPage } from './pages/app/shopping/ReceiptPage';
 import { StoreDetailPage, StoresPage } from './pages/app/shopping/Stores';
 
 function Splash() {
@@ -85,6 +86,7 @@ export function App() {
           <Route path="courses" element={<ShoppingPage />} />
           <Route path="courses/magasin" element={<ShoppingModePage />} />
           <Route path="courses/magasins" element={<StoresPage />} />
+          <Route path="courses/ticket" element={<ReceiptPage />} />
           <Route path="courses/magasins/:id" element={<StoreDetailPage />} />
           <Route path="previsions" element={<ForecastPage />} />
           <Route path="scanner" element={<ScannerPage />} />

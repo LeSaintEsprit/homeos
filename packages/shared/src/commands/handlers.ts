@@ -25,6 +25,7 @@ import { DomainError } from './context';
 import type { OpPayload, OpType } from './schemas';
 import { deriveId } from '../ids';
 import { addDays, daysBetween, frDate } from '../time';
+import { formatMoney } from '../money';
 import { convert, formatQty, roundQty, toStockUnit, unitDef, type UnitCode } from '../units';
 import { deOf, normalizeName, similarity } from '../text';
 import { isActiveItem, isLotExpired, sortFefo, sumLots, effectiveExpiry } from '../domain';
@@ -1309,7 +1310,7 @@ const receiptApply: H<'receipt.apply'> = (ctx, r) => {
           storeId,
           priceCents: l.totalCents ?? null,
         },
-        { type: 'purchase', source: 'receipt', inputQty: l.quantity, inputUnit: l.unit, note: `Ticket du ${r.date}` },
+        { type: 'purchase', source: 'receipt', inputQty: l.quantity, inputUnit: l.unit, note: `Ticket du ${frDate(r.date)}` },
       );
       lotId = l.lotId;
       stocked++;
@@ -1340,7 +1341,8 @@ const receiptApply: H<'receipt.apply'> = (ctx, r) => {
   }
   const sum = r.lines.reduce((s, l) => s + (l.totalCents ?? 0), 0);
   if (r.totalCents != null && Math.abs(sum - r.totalCents) > Math.max(2, r.totalCents * 0.01)) {
-    warn(ctx, 'receipt_total_mismatch', `Le total des lignes (${(sum / 100).toFixed(2)} €) diffère du total du ticket (${(r.totalCents / 100).toFixed(2)} €).`);
+    const cur = ctx.store.get('household', ctx.householdId)?.currency ?? 'EUR';
+    warn(ctx, 'receipt_total_mismatch', `Le total des lignes (${formatMoney(sum, cur)}) diffère du total du ticket (${formatMoney(r.totalCents, cur)}).`);
   }
   put(ctx, 'receipt', {
     id: r.id,

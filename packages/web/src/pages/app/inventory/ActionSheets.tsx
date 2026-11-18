@@ -8,6 +8,7 @@ import { useCatalog, useHousehold, parseQty } from '../../../lib/hooks';
 import { useRun } from '../../../lib/sync/react';
 import { Sheet } from '../../../ui/Sheet';
 import { Field } from '../../../ui/Field';
+import { DateFromPhoto } from '../scanner/DateFromPhoto';
 import { Segmented, Switch } from '../../../ui/Controls';
 import { formatShortDate } from '../../../lib/format';
 
@@ -91,6 +92,8 @@ export function StockActionSheet({ action, product, lots, lot, onClose }: { acti
   const [lotId, setLotId] = useState('');
   const [expiry, setExpiry] = useState('');
   const [expiryKind, setExpiryKind] = useState<'dlc' | 'ddm'>('dlc');
+  /** Date choisie parmi celles lues sur une photo (source « reconnue et confirmée »). */
+  const [ocrDate, setOcrDate] = useState<string | null>(null);
   const [locationId, setLocationId] = useState('');
   const [storeId, setStoreId] = useState('');
   const [price, setPrice] = useState('');
@@ -113,6 +116,7 @@ export function StockActionSheet({ action, product, lots, lot, onClose }: { acti
     setUnit(action === 'adjust' ? product.unit : product.packUnit && product.packSize && action === 'add' ? product.packUnit : product.unit);
     setExpiry(action === 'expiry' ? (lot?.expiryDate ?? '') : '');
     setExpiryKind(lot?.expiryKind ?? 'dlc');
+    setOcrDate(null);
     setLocationId(action === 'move' ? '' : (product.locationId ?? ''));
     setStoreId(product.defaultStoreId ?? '');
     setPrice('');
@@ -158,7 +162,7 @@ export function StockActionSheet({ action, product, lots, lot, onClose }: { acti
               kind: purchase ? 'purchase' : 'add',
               expiryDate: expiry || null,
               expiryKind: expiry ? expiryKind : null,
-              expirySource: expiry ? 'manual' : null,
+              expirySource: expiry ? (expiry === ocrDate ? 'ocr' : 'manual') : null,
               locationId: locationId || null,
               priceCents: cents != null && Number.isFinite(cents) ? cents : null,
               storeId: storeId || null,
@@ -202,7 +206,7 @@ export function StockActionSheet({ action, product, lots, lot, onClose }: { acti
         break;
       case 'expiry':
         if (!target) return done(false);
-        ok = (await run('lot.update', { lotId: target.id, patch: { expiryDate: expiry || null, expiryKind: expiry ? expiryKind : null, expirySource: 'manual' } }, { success: 'Date enregistrée' })).ok;
+        ok = (await run('lot.update', { lotId: target.id, patch: { expiryDate: expiry || null, expiryKind: expiry ? expiryKind : null, expirySource: expiry && expiry === ocrDate ? 'ocr' : 'manual' } }, { success: 'Date enregistrée' })).ok;
         break;
     }
     done(ok);
@@ -267,6 +271,7 @@ export function StockActionSheet({ action, product, lots, lot, onClose }: { acti
                 <Segmented label="Type de date" value={expiryKind} onChange={setExpiryKind} options={[{ value: 'dlc', label: 'À consommer jusqu’au' }, { value: 'ddm', label: 'De préférence avant' }]} />
               </Field>
             )}
+            <div style={{ gridColumn: '1 / -1' }}><DateFromPhoto compact onPick={(d, k) => { setExpiry(d); setOcrDate(d); if (k) setExpiryKind(k); }} /></div>
             <Field label="Emplacement">
               <select className="select" value={locationId} onChange={(e) => setLocationId(e.target.value)}>
                 <option value="">—</option>
@@ -332,6 +337,7 @@ export function StockActionSheet({ action, product, lots, lot, onClose }: { acti
             <input className="input" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} autoFocus />
           </Field>
           {expiry && <Segmented label="Type de date" value={expiryKind} onChange={setExpiryKind} options={[{ value: 'dlc', label: 'À consommer jusqu’au' }, { value: 'ddm', label: 'De préférence avant' }]} />}
+          <DateFromPhoto compact onPick={(d, k) => { setExpiry(d); setOcrDate(d); if (k) setExpiryKind(k); }} />
         </>
       )}
     </Sheet>

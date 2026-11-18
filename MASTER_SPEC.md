@@ -241,7 +241,7 @@ Traitement **immédiat** si tout est connu ; sinon **une seule question** (la da
 Jamais de date inventée ; aucun mouvement sans scan dans le mode correspondant (ou action explicite) ; **anti-doublon** (même code relu en moins de 2,5 s ignoré et signalé ; `opId` unique par scan ; détection d'audit des mouvements identiques rapprochés) ; erreurs de lecture, codes invalides, inconnus et non référencés gérés avec un message clair.
 
 ### 8.7 OCR des dates (M2§4)
-Si la date n'est pas dans le code : proposer de **photographier l'étiquette** ; OCR local (Tesseract.js, français) ; reconnaissance des mentions **DLC** (« à consommer jusqu'au », « use by ») et **DDM** (« à consommer de préférence avant », « DLUO », « best before ») et des formats JJ/MM/AA(AA), JJ.MM, MM/AAAA, mois en lettres ; corrections des confusions OCR ; **affichage de la date détectée et confirmation obligatoire** ; source enregistrée « reconnue et confirmée ».
+Si la date n'est pas dans le code : proposer de **photographier l'étiquette** ; OCR local (Tesseract.js, français) ; reconnaissance des mentions **DLC** (« à consommer jusqu'au », « use by ») et **DDM** (« à consommer de préférence avant », « DLUO », « best before ») et des formats JJ/MM/AA(AA), JJ.MM, MM/AAAA, mois en lettres ; corrections des confusions OCR ; **affichage de la date détectée et confirmation obligatoire** ; source enregistrée « reconnue et confirmée ». Moteur et modèle (Tesseract.js, français, LSTM) **servis par le serveur HOMEOS du foyer** — jamais par un CDN —, chargés à la première utilisation puis conservés sur l'appareil ; la photo est lue localement et n'est envoyée nulle part.
 
 ---
 
@@ -272,7 +272,7 @@ Nom, adresse facultative, notes, couleur, ordre des rayons ; historique des acha
 ---
 
 ## 11. Tickets de caisse (M3§4)
-Photo ou import d'image → OCR → reconnaissance du **magasin, date, produits, quantités, prix unitaires, prix total, promotions/remises** (articles au poids compris) ; contrôle de cohérence (Σ lignes − remises ≈ total) ; **écran de validation** associant chaque ligne à une référence (alias appris par magasin = sûr ; nom identique = probable ; ressemblance = **incertain, signalé** ; aucun = produit inconnu à créer ou ignorer). Après validation seulement : mouvements de réception (lignes cochées), prix enregistrés, dépenses, apprentissage des libellés. **Jamais d'ajout de stock depuis un OCR non vérifié.**
+Photo ou import d'image → OCR → reconnaissance du **magasin, date, produits, quantités, prix unitaires, prix total, promotions/remises** (articles au poids compris) ; contrôle de cohérence (Σ lignes − remises ≈ total) ; **écran de validation** associant chaque ligne à une référence (alias appris par magasin = sûr ; nom identique = probable ; ressemblance = **incertain, signalé** ; aucun = produit inconnu à créer ou ignorer). Après validation seulement : mouvements de réception (lignes cochées), prix enregistrés, dépenses, apprentissage des libellés. **Jamais d'ajout de stock depuis un OCR non vérifié.** Une ligne de détail (« 2 x 3,89 », poids × prix au kilo) n'est rattachée à un article que si quantité × prix unitaire concorde avec son montant, qu'elle soit imprimée avant ou après lui. Une correspondance « à vérifier » n'est jamais mise en stock sans confirmation explicite.
 
 ---
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, History, PackageCheck, Wallet, Plus, RotateCcw, ShoppingBasket, ShoppingCart, Sparkles, Store as StoreIcon, Trash2 } from 'lucide-react';
+import { Check, History, PackageCheck, Receipt, Wallet, Plus, RotateCcw, ShoppingBasket, ShoppingCart, Sparkles, Store as StoreIcon, Trash2 } from 'lucide-react';
 import {
   checkAddToList, estimateListCost, formatQty, unitLabel, isActiveItem, newId, normalizeName, remainingToBuy, compatibleUnits, formatMoney,
   type Priority, type Product, type Purchase, type ShoppingItem, type UnitCode, type ItemCost,
@@ -367,6 +367,7 @@ export function ShoppingPage() {
         title="Courses"
         eyebrow={`${left} article${left > 1 ? 's' : ''} à acheter`}
         actions={<>
+          <button className="btn ghost" onClick={() => navigate('/courses/ticket')} aria-label="Ticket de caisse" data-testid="open-receipt"><Receipt size={18} /><span className="hide-sm">Ticket</span></button>
           <button className="btn ghost" onClick={() => navigate('/depenses')} aria-label="Dépenses" data-testid="open-expenses"><Wallet size={18} /><span className="hide-sm">Dépenses</span></button>
           <button className="btn ghost" onClick={() => navigate('/courses/magasins')} aria-label="Magasins"><StoreIcon size={18} /><span className="hide-sm">Magasins</span></button>
           {left > 0 && <button className="btn primary" onClick={() => navigate('/courses/magasin')} data-testid="start-shopping"><ShoppingBasket size={18} /> Mode courses</button>}
