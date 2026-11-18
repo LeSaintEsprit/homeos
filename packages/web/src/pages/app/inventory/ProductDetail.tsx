@@ -5,9 +5,9 @@ import {
 } from 'lucide-react';
 import {
   ADJUST_REASON_LABELS, CONFIDENCE_LABELS, MOVEMENT_LABELS, WASTE_REASON_LABELS, type WasteReason, consumptionText, formatQty, newId, normalizeName, similarity,
-  type AdjustReason, type Lot, type Movement, type Product, type ProductInsight,
+  analyzeProduct, dateInTz, type AdjustReason, type Location, type Lot, type Movement, type Product, type ProductInsight, type Purchase, type ShoppingItem,
 } from '@homeos/shared';
-import { useCatalog, useForecast, useMembers } from '../../../lib/hooks';
+import { useCatalog, useForecast, useHousehold, useMembers } from '../../../lib/hooks';
 import { useCan, useRun, useView } from '../../../lib/sync/react';
 import { formatDate, formatShortDate, relativeTime } from '../../../lib/format';
 import { Sheet } from '../../../ui/Sheet';
@@ -173,7 +173,22 @@ export function ProductDetailPage() {
   const [newAlias, setNewAlias] = useState('');
 
   const product = view.product.get(id) as Product | undefined;
-  const ins = forecast.byId.get(id);
+  const { settings } = useHousehold();
+  // Produit archivé : exclu des prévisions, mais sa fiche (lots, historique) reste consultable.
+  const ins = useMemo(() => {
+    const known = forecast.byId.get(id);
+    const p = view.product.get(id) as Product | undefined;
+    if (known || !p) return known;
+    const now = new Date().toISOString();
+    return analyzeProduct(
+      p,
+      ([...view.lot.values()] as Lot[]).filter((l) => l.productId === id),
+      ([...view.movement.values()] as Movement[]).filter((m) => m.productId === id),
+      ([...view.shoppingItem.values()] as ShoppingItem[]).filter((i) => i.productId === id),
+      ([...view.purchase.values()] as Purchase[]).filter((x) => x.productId === id),
+      { settings, now, today: dateInTz(now, settings.timezone), locations: [...view.location.values()] as Location[] },
+    );
+  }, [forecast, id, view.product, view.lot, view.movement, view.shoppingItem, view.purchase, view.location, settings]);
   const lots = useMemo(() => [...view.lot.values()].filter((l) => l.productId === id && l.quantity > 0), [view.lot, id]);
   const movements = useMemo(() => groupByAction([...view.movement.values()].filter((m) => m.productId === id)), [view.movement, id]);
   const codes = useMemo(() => [...view.productCode.values()].filter((c) => c.productId === id), [view.productCode, id]);

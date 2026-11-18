@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { LogController, type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
 import fastifyStatic from '@fastify/static';
 import { existsSync } from 'node:fs';
@@ -63,6 +63,8 @@ export function buildApp(deps: AppDeps): App {
 
   const app = Fastify({
     logger: process.env.NODE_ENV === 'test' ? false : { level: process.env.LOG_LEVEL ?? 'info' },
+    // Chaque requête n'est journalisée que sur demande (HOMEOS_LOG_REQUESTS=1) ; les erreurs le sont toujours (gestionnaire d'erreurs ci-dessous).
+    logController: new LogController({ disableRequestLogging: process.env.HOMEOS_LOG_REQUESTS !== '1' }),
     trustProxy: config.trustProxy,
     bodyLimit: 6 * 1024 * 1024,
   });

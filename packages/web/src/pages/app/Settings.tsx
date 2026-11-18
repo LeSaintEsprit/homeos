@@ -292,6 +292,11 @@ function AccountSection() {
   };
   return (
     <Section icon={<ShieldCheck size={20} />} title="Mes données personnelles">
+      <p className="small muted" data-testid="hosting-notice" style={{ margin: '0 0 10px' }}>
+        Vos données sont enregistrées sur vos appareils et sur le serveur de la personne qui héberge HOMEOS ; chaque foyer y est strictement séparé des autres.
+        Comme pour tout service sans chiffrement de bout en bout, <strong>l'hébergeur peut techniquement accéder à la base de données</strong>.
+        Rien n'est transmis à des tiers, sauf les codes-barres inconnus (recherche de la fiche produit sur Open Food Facts) et les notifications, chiffrées, via le service de votre navigateur.
+      </p>
       <a className="btn" href="/api/auth/personal-data" download><Download size={17} /> Télécharger mes données personnelles</a>
       <button className="btn danger-soft" onClick={() => void open()}><Trash2 size={17} /> Supprimer mon compte</button>
       <Sheet open={!!plan} onClose={() => setPlan(null)} title="Supprimer mon compte">
@@ -311,7 +316,7 @@ function AccountSection() {
   );
 }
 
-function ServerAdminSection() {
+export function ServerAdminSection() {
   const [users, setUsers] = useState<{ id: string; email: string; name: string; households: number; isServerAdmin: boolean }[] | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const load = () => get<{ users: typeof users }>('/api/admin/users').then((r) => setUsers(r.users)).catch(() => setUsers([]));

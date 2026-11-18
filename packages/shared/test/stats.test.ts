@@ -133,6 +133,30 @@ describe('audit, gaspillage et notifications', () => {
     expect(w.valueCents).toBe(150);
     expect(w.unvaluedCount).toBe(1);
   });
+  it('suggestion périodique : la veille des courses habituelles, une fois par période, jamais sans rythme connu', () => {
+    const run = (purchaseDate: string | null, today: string) => {
+      const h = new Harness();
+      const p = h.product('Café', 'paquet', { minQty: 2 });
+      h.ok('stock.add', { productId: p, lotId: newId(), quantity: 1 });
+      if (purchaseDate) h.ok('purchase.create', { id: newId(), name: 'Pain', quantity: 1, unit: 'piece', totalCents: 120, date: purchaseDate });
+      const c = h.collections();
+      const forecast = analyzeHousehold({
+        products: [...c.product.values()], lots: [...c.lot.values()], movements: [...c.movement.values()], items: [], purchases: [...c.purchase.values()], locations: [...c.location.values()],
+        settings: DEFAULT_SETTINGS, now: h.now, today,
+      });
+      return computeAlerts({ forecast, collections: c, audit: [], unusual: [], member: c.member.get('m-user-alice'), now: h.now, today }).filter((a) => a.key.startsWith('restock:'));
+    };
+    // Dernières courses le 27/10, rythme hebdomadaire : rappel dès le 02/11 pour le 03/11.
+    const due = run('2026-10-27', '2026-11-02');
+    expect(due).toHaveLength(1);
+    expect(due[0]).toMatchObject({ key: 'restock:2026-11-03', link: '/courses', title: 'Prochaines courses (prévues vers le 03/11/2026) : 1 produit à prévoir' });
+    expect(due[0].body).toContain('Café');
+    expect(due[0].body).toContain('sans votre accord');
+    // Courses faites la veille : pas de rappel avant la semaine suivante.
+    expect(run('2026-11-01', '2026-11-02')).toHaveLength(0);
+    // Aucun achat enregistré : aucun rythme supposé.
+    expect(run(null, '2026-11-02')).toHaveLength(0);
+  });
   it('calcule des alertes dédupliquées, filtrées par préférences, et un récapitulatif', () => {
     const h = new Harness();
     const p = h.product('Café', 'paquet', { minQty: 1 });

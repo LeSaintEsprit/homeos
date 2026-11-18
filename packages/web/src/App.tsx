@@ -25,6 +25,7 @@ const JoinHouseholdPage = lazyPage(() => import('./pages/onboarding/Onboarding')
 const WelcomePage = lazyPage(() => import('./pages/onboarding/Onboarding'), 'WelcomePage');
 const FamilyPage = lazyPage(() => import('./pages/app/Family'), 'FamilyPage');
 const SettingsPage = lazyPage(() => import('./pages/app/Settings'), 'SettingsPage');
+const AdminPage = lazyPage(() => import('./pages/app/AdminPage'), 'AdminPage');
 const NewProductPage = lazyPage(() => import('./pages/app/inventory/ProductDetail'), 'NewProductPage');
 const ProductDetailPage = lazyPage(() => import('./pages/app/inventory/ProductDetail'), 'ProductDetailPage');
 const SessionPage = lazyPage(() => import('./pages/app/inventory/Sessions'), 'SessionPage');
@@ -38,6 +39,9 @@ const ShoppingModePage = lazyPage(() => import('./pages/app/shopping/ShoppingMod
 const ReceiptPage = lazyPage(() => import('./pages/app/shopping/ReceiptPage'), 'ReceiptPage');
 const StoreDetailPage = lazyPage(() => import('./pages/app/shopping/Stores'), 'StoreDetailPage');
 const StoresPage = lazyPage(() => import('./pages/app/shopping/Stores'), 'StoresPage');
+const RecipesPage = lazyPage(() => import('./pages/app/recipes/RecipesPage'), 'RecipesPage');
+const RecipeDetailPage = lazyPage(() => import('./pages/app/recipes/RecipesPage'), 'RecipeDetailPage');
+const RecipeEditPage = lazyPage(() => import('./pages/app/recipes/RecipesPage'), 'RecipeEditPage');
 
 function Splash() {
   return (
@@ -91,6 +95,7 @@ export function App() {
         <Route path="/bienvenue" element={<RequireAuth><WelcomePage /></RequireAuth>} />
         <Route path="/foyers/nouveau" element={<RequireAuth><CreateHouseholdPage /></RequireAuth>} />
         <Route path="/foyers/rejoindre" element={<RequireAuth><JoinHouseholdPage /></RequireAuth>} />
+        <Route path="/administration" element={<RequireAuth><AdminPage /></RequireAuth>} />
         <Route element={<RequireAuth><HouseholdSpace /></RequireAuth>}>
           <Route index element={<HomePage />} />
           <Route path="inventaire" element={<InventoryPage />} />
@@ -104,6 +109,10 @@ export function App() {
           <Route path="courses/magasins" element={<StoresPage />} />
           <Route path="courses/ticket" element={<ReceiptPage />} />
           <Route path="courses/magasins/:id" element={<StoreDetailPage />} />
+          <Route path="recettes" element={<RecipesPage />} />
+          <Route path="recettes/nouvelle" element={<RecipeEditPage />} />
+          <Route path="recettes/:id" element={<RecipeDetailPage />} />
+          <Route path="recettes/:id/modifier" element={<RecipeEditPage />} />
           <Route path="previsions" element={<ForecastPage />} />
           <Route path="scanner" element={<ScannerPage />} />
           <Route path="notifications" element={<NotificationsPage />} />

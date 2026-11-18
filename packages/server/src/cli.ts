@@ -8,7 +8,9 @@ import { loadConfig } from './config';
 import { Db } from './db';
 import { createResetToken, listUsers } from './accounts';
 import { BackupManager } from './backup';
+import { dropRootPrivileges } from './privileges';
 
+dropRootPrivileges();
 const [cmd, arg] = process.argv.slice(2);
 const config = loadConfig();
 const db = new Db(config.dbPath);

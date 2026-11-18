@@ -155,6 +155,7 @@ export function ColumnChart({ data, format, formatAxis, reference }: { data: Col
                   height={PLOT_H}
                   fill="transparent"
                   tabIndex={0}
+                  role="img"
                   aria-label={`${d.label} : ${format(d.value)}${d.note ? `, ${d.note}` : ''}`}
                   onPointerEnter={() => show(d)}
                   onPointerMove={() => active !== d.key && show(d)}

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { auditHousehold } from '@homeos/shared';
 import { Client, id, makeServer, total, type TestServer } from './helpers';
+import { purgeProcessedOps } from '../src/accounts';
 
 let s: TestServer;
 afterEach(async () => s?.close());
@@ -127,6 +128,28 @@ describe('synchronisation', () => {
     const [r] = await alice.flush(hid);
     expect(r.status).toBe('rejected');
     expect(r.error!.code).toBe('too_old');
+  });
+
+  it('purge du journal d\'idempotence : seules les opérations hors délai sont oubliées, sans risque de double application', async () => {
+    const { alice, hid } = await setup();
+    const pid = id();
+    await alice.ok(hid, 'product.create', { id: pid, name: 'Riz', unit: 'paquet', initialStock: { lotId: id(), quantity: 5 } });
+    const recent = { opId: id(), type: 'stock.consume', payload: { productId: pid, quantity: 1 }, clientTime: new Date().toISOString() };
+    const old = { opId: id(), type: 'stock.consume', payload: { productId: pid, quantity: 1 }, clientTime: new Date().toISOString() };
+    await alice.req('POST', `/api/households/${hid}/sync/push`, { ops: [recent, old] });
+    // L'opération « old » a été traitée il y a 181 jours (rétention par défaut : 180 jours).
+    const longAgo = new Date(Date.now() - 181 * 86_400_000).toISOString();
+    s.db.prep('UPDATE processed_ops SET at = ? WHERE opId = ?').run(longAgo, old.opId);
+    const before = (s.db.prep('SELECT COUNT(*) AS n FROM processed_ops').get() as { n: number }).n;
+    expect(purgeProcessedOps(s.db, s.config.processedOpsDays)).toBe(1);
+    expect((s.db.prep('SELECT COUNT(*) AS n FROM processed_ops').get() as { n: number }).n).toBe(before - 1);
+    expect(s.db.prep('SELECT 1 FROM processed_ops WHERE opId = ?').get(recent.opId)).toBeTruthy();
+    // Rejeu de la récente : toujours idempotent. Rejeu de l'ancienne (horodatée d'il y a 181 jours) : refusé, jamais réappliqué.
+    const replay = (await alice.req('POST', `/api/households/${hid}/sync/push`, { ops: [recent, { ...old, clientTime: longAgo }] })).json.results;
+    expect(replay[0].status).toBe('applied');
+    expect(replay[1].status).toBe('rejected');
+    expect(replay[1].error.code).toBe('too_old');
+    expect(total(await alice.state(hid), pid)).toBe(3);
   });
 
   it('temps réel : un membre est notifié des changements d\'un autre (SSE)', async () => {

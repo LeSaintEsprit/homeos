@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Bell, CalendarClock, Home, KeyRound, LogOut, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Bell, CalendarClock, Home, KeyRound, LogOut, Server, Sparkles } from 'lucide-react';
 import { CURRENCIES, HOUSEHOLD_AVATARS } from '@homeos/shared';
 import { errorMessage, post } from '../../lib/api';
 import { applyMe, logout, refreshMe, session, setActiveHousehold, type Me } from '../../lib/session';
@@ -35,6 +35,11 @@ export function WelcomePage() {
             <span className="small muted">Avec le code ou le lien d'invitation reçu d'un membre.</span>
           </span>
         </button>
+        {s.me?.user.isServerAdmin && (
+          <button className="btn ghost sm" style={{ alignSelf: 'center' }} onClick={() => navigate('/administration')} data-testid="open-admin">
+            <Server size={16} /> Administration du serveur
+          </button>
+        )}
         <button className="btn ghost sm" style={{ alignSelf: 'center' }} onClick={() => void logout()}>
           <LogOut size={16} /> Se déconnecter
         </button>

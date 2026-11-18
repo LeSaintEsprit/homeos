@@ -4,7 +4,9 @@ import { existsSync } from 'node:fs';
 import { buildApp } from './app';
 import { purgeProcessedOps } from './accounts';
 import { loadConfig } from './config';
+import { dropRootPrivileges } from './privileges';
 
+dropRootPrivileges();
 const here = dirname(fileURLToPath(import.meta.url));
 const defaultWeb = [resolve(here, '../../web/dist'), resolve(here, '../web')].find((p) => existsSync(p)) ?? null;
 const config = loadConfig(process.env, process.env.HOMEOS_WEB_DIR ? {} : { webDir: defaultWeb });

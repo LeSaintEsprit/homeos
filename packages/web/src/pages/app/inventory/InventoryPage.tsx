@@ -1,8 +1,8 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ClipboardList, Minus, Package, Plus, ScanLine, Search, ShieldCheck, X } from 'lucide-react';
-import { auditHousehold, defaultStep, formatQty, normalizeName, unitDef, type ProductInsight } from '@homeos/shared';
-import { useCatalog, useForecast, useHousehold, photoUrl } from '../../../lib/hooks';
+import { ChefHat, ClipboardList, Minus, Package, Plus, ScanLine, Search, ShieldCheck, X } from 'lucide-react';
+import { auditHousehold, checkRecipes, defaultStep, formatQty, normalizeName, unitDef, type Lot, type Product, type ProductInsight, type Recipe, type ShoppingItem } from '@homeos/shared';
+import { useCatalog, useForecast, useHousehold, useToday, photoUrl } from '../../../lib/hooks';
 import { useCan, useRun, useView } from '../../../lib/sync/react';
 import { formatShortDate } from '../../../lib/format';
 import { EmptyState, Segmented } from '../../../ui/Controls';
@@ -129,8 +129,16 @@ export function InventoryPage() {
   }, [forecast, q, filter, group, codesByProduct, locations, categories, location, category]);
 
   const total = forecast.insights.length;
+  // Produits archivés : retrouvables (et restaurables) depuis l'inventaire, jamais perdus.
+  const archived = useMemo(() => ([...view.product.values()] as Product[]).filter((p) => p.archived).sort((a, b) => a.name.localeCompare(b.name, 'fr')), [view.product]);
   const openSessions = useMemo(() => [...view.inventorySession.values()].filter((x) => x.status === 'open').length, [view.inventorySession]);
   const auditCount = useMemo(() => auditHousehold(view, new Date().toISOString()).filter((i) => i.severity !== 'info').length, [view]);
+  const today = useToday();
+  const { tz } = useHousehold();
+  const readyRecipes = useMemo(
+    () => (view.recipe.size === 0 ? 0 : checkRecipes([...view.recipe.values()] as Recipe[], { products: [...view.product.values()] as Product[], lots: [...view.lot.values()] as Lot[], items: [...view.shoppingItem.values()] as ShoppingItem[], today, tz }).filter((c) => c.status === 'ready').length),
+    [view.recipe, view.product, view.lot, view.shoppingItem, today, tz],
+  );
   return (
     <>
       <PageHead
@@ -145,8 +153,11 @@ export function InventoryPage() {
         <button className="btn soft sm" onClick={() => navigate('/inventaire/controle')} data-testid="open-audit">
           <ShieldCheck size={16} /> Contrôle{auditCount > 0 && <span className="count-dot">{auditCount}</span>}
         </button>
+        <button className="btn soft sm" onClick={() => navigate('/recettes')} data-testid="open-recipes">
+          <ChefHat size={16} /> Recettes{readyRecipes > 0 && <span className="count-dot" aria-label={`${readyRecipes} réalisable${readyRecipes > 1 ? 's' : ''}`}>{readyRecipes}</span>}
+        </button>
       </div>
-      {total === 0 ? (
+      {total === 0 && archived.length === 0 ? (
         <EmptyState
           icon={<Package size={28} />}
           title="Votre inventaire est vide"
@@ -184,6 +195,18 @@ export function InventoryPage() {
             <span className="small subtle">{sections.reduce((s, x) => s + x.list.length, 0)} résultat(s)</span>
             <Segmented label="Regrouper par" value={group} onChange={setGroup} options={[{ value: 'location', label: 'Emplacement' }, { value: 'category', label: 'Catégorie' }]} />
           </div>
+          {archived.length > 0 && (
+            <details className="archived-list" data-testid="archived-products">
+              <summary className="small muted">{archived.length} produit{archived.length > 1 ? 's' : ''} archivé{archived.length > 1 ? 's' : ''} (masqué{archived.length > 1 ? 's' : ''} de l'inventaire et des prévisions)</summary>
+              <div className="card pad-0" style={{ marginTop: 8 }}>
+                {archived.map((p) => (
+                  <Link key={p.id} to={`/inventaire/${p.id}`} className="list-row" style={{ textDecoration: 'none' }}>
+                    <span className="meta"><span className="title" style={{ display: 'block' }}>{p.name}</span><span className="sub">Ouvrir pour le restaurer</span></span>
+                  </Link>
+                ))}
+              </div>
+            </details>
+          )}
           {sections.length === 0 && <div className="card flat muted center">Aucun produit ne correspond.</div>}
           {sections.map((s) => (
             <section key={s.key}>

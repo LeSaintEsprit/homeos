@@ -258,6 +258,15 @@ test.describe('Phase 5 — liste de courses, mode courses, réception, magasins'
     await expect(row(page, 'Farine')).toContainText('Type 55');
     await expect(row(page, 'Farine').getByTestId('shop-qty')).toHaveText('3 kg');
     await expect(row(bob, 'Farine')).toContainText('Type 55');
+    // Le conflit reste à trancher dans le volet de synchronisation : Nicolas garde sa valeur.
+    const pill = page.locator('[data-testid=sync-pill]:visible');
+    await expect(pill).toHaveAttribute('aria-label', /à vérifier/);
+    await pill.click();
+    await expect(page.getByTestId('conflict')).toContainText('votre valeur « 2 », valeur actuelle « 3 » (par Bob)');
+    await page.getByTestId('keep-mine').click();
+    await expect(row(page, 'Farine').getByTestId('shop-qty')).toHaveText('2 kg');
+    await expect(row(bob, 'Farine').getByTestId('shop-qty')).toHaveText('2 kg');
+    await expect(page.getByTestId('conflict')).toHaveCount(0);
     await ctx.close();
   });
 });

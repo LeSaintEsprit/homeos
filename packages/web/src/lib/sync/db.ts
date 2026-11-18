@@ -56,7 +56,11 @@ export type LocalDb = IDBPDatabase;
 /** Base IndexedDB d'UN foyer pour UN utilisateur : aucune donnée partagée entre foyers. */
 export async function openLocal(uid: string, hid: string): Promise<LocalDb> {
   register(uid, hid);
-  return openDB(dbName(uid, hid), VERSION, {
+  const db: LocalDb = await openDB(dbName(uid, hid), VERSION, {
+    // Une suppression (déconnexion, foyer quitté) ou une mise à niveau la réclame : on libère la base.
+    blocking() {
+      db.close();
+    },
     upgrade(db) {
       db.createObjectStore('entities', { keyPath: ['t', 'id'] });
       db.createObjectStore('meta');
@@ -65,6 +69,7 @@ export async function openLocal(uid: string, hid: string): Promise<LocalDb> {
       db.createObjectStore('issues', { keyPath: 'opId' });
     },
   });
+  return db;
 }
 
 export interface StoredEntity {

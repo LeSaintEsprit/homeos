@@ -13,7 +13,7 @@ process.env.NODE_ENV = 'test';
 export interface TestServer extends App {
   dir: string;
   mailer: MemoryMailer;
-  pushes: { endpoint: string; payload: { title: string; body: string } }[];
+  pushes: { endpoint: string; payload: { title: string; body: string; tag?: string; url?: string } }[];
   close(): Promise<void>;
 }
 

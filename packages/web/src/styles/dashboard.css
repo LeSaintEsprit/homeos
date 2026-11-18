@@ -94,3 +94,4 @@
 .data-block:first-child { border-top: 0; padding-top: 0; }
 .data-block .alert { align-self: stretch; }
 .danger-zone .strong { color: var(--danger); }
+.archived-list { margin: 8px 0 12px; } .archived-list summary { cursor: pointer; padding: 6px 4px; }

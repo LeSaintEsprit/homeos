@@ -328,7 +328,7 @@ export function HomePage() {
           <h1>{greeting()}{me ? `, ${me.name.split(' ')[0]}` : ''}</h1>
         </div>
         <div className="row">
-          <button className="btn ghost" onClick={() => setCustom(true)} data-testid="customize"><SlidersHorizontal size={18} /><span className="hide-sm">Personnaliser</span></button>
+          <button className="btn ghost" onClick={() => setCustom(true)} data-testid="customize" aria-label="Personnaliser l’accueil"><SlidersHorizontal size={18} /><span className="hide-sm">Personnaliser</span></button>
         </div>
       </div>
       {outCount > 0 && !visible.includes('indicateurs') && (

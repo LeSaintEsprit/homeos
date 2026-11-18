@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 18/11/2026 — fin de la phase 12 (notifications push).
+> Dernière mise à jour : 18/11/2026 — fin de la phase 15 (fonctionnalités avancées).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 12)** : 165 tests unitaires/intégration et 35 parcours de bout en bout. Toutes les rubriques ont leur interface. Restent : validation globale (semaine familiale complète, performances, accessibilité, découpage du code), déploiement et essais sur appareils réels.
+**Constat global (fin de phase 15)** : 180 tests unitaires/intégration et 70 parcours de bout en bout ; semaine familiale complète par l'interface, robot « chaque bouton » (24 écrans), accessibilité WCAG 2.1 AA, performances sur un gros foyer, licences contrôlées, image Docker vérifiée depuis zéro, recettes et suggestions périodiques. Restent : essais sur appareils réels (iPhone, Android, ordinateur), mise en ligne sur le serveur gratuit, et quelques finitions listées « En développement ».
 
 ---
 
@@ -23,11 +23,11 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| FND-01 | Budget 0 € | Aucune dépendance payante indispensable | M1§1, M3§12, M5§5 | P0 | — | Développé | Toutes les dépendances actuelles sont libres et gratuites ; à revérifier à chaque ajout | Revue des dépendances à chaque phase |
-| FND-02 | Open source | Technologies libres privilégiées | M1§1 | P0 | — | Développé | Fastify, SQLite, React, zod… (MIT/Apache/ISC/OFL) | Revue des licences |
+| FND-01 | Budget 0 € | Aucune dépendance payante indispensable | M1§1, M3§12, M5§5 | P0 | — | Testé et validé | Audit automatique `node scripts/check-licenses.mjs` : 170 dépendances livrées, toutes libres et gratuites ; aucun service payant ni clé requise | — |
+| FND-02 | Open source | Technologies libres privilégiées | M1§1 | P0 | — | Testé et validé | Même audit : MIT, Apache-2.0, ISC, BSD, OFL, MIT-0 uniquement (outils de test exclus de la livraison) ; licence du projet à choisir (D6) | — |
 | FND-03 | Vérification des services gratuits | Limites vérifiées avant intégration | M1§1 | P0 | — | Testé et validé | Supabase écarté (pas de sauvegarde, pause 7 j) ; OFF : 100 req/min, User-Agent, testé sur une fiche réelle ; Cloudflare Tunnel gratuit ≤ 50 utilisateurs | — |
-| FND-04 | Sans IA générative | Règles déterministes, statistiques | M1§4, M3§12, M5§5 | P0 | — | Développé | D ✅ moteur purement algorithmique | Revue de code |
-| FND-05 | Interface en français | Tous les textes en français | M1§1 | P0 | UX | En développement | D/S ✅ messages · C 🟡 écrans des phases 1-2 en français ; modules suivants à faire | E2E : aucun texte anglais |
+| FND-04 | Sans IA générative | Règles déterministes, statistiques | M1§4, M3§12, M5§5 | P0 | — | Testé et validé | Moteur purement algorithmique (règles, moyennes, médianes) ; audit des dépendances : aucune bibliothèque ni service d’IA générative ; OCR Tesseract (reconnaissance de caractères) | — |
+| FND-05 | Interface en français | Tous les textes en français | M1§1 | P0 | UX | Testé et validé | Tous les écrans en français · E2E `a11y.spec` : aucun libellé anglais courant ni texte technique sur 22 écrans, thèmes clair et sombre ; robot « chaque bouton » sur 24 écrans et leurs fenêtres | — |
 | FND-06 | PWA installable | Installation PC/iPhone/Android, cache hors ligne | M1§1, M4§7 | P0 | C | Développé | C ✅ manifeste, icônes, service worker ; démarrage sans réseau vérifié (`e2e/foundations.spec.ts`) · installation sur appareil réel non vérifiée ici | Lighthouse PWA, installation réelle |
 | FND-07 | Architecture monorepo partagée | Même logique métier client/serveur | M1§12 | P0 | — | Testé et validé | D ✅ S ✅ — logique partagée exécutée côté serveur (toutes les suites serveur) | — |
 
@@ -36,10 +36,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
 | ACC-01 | Inscription | Compte personnel (e-mail, mot de passe, nom) | M1§2, M4§1 | P0 | ACC-11 | Testé et validé | S ✅ auth.test · C ✅ `e2e/foundations.spec.ts` | Intégration + E2E |
-| ACC-02 | Connexion | Session par cookie sécurisé | M4§1 | P0 | — | Développé | S ✅ · C ✅ écran de connexion (non couvert par un test de bout en bout) | Intégration (succès, échec, limitation) |
-| ACC-03 | Déconnexion | Suppression de la session | M4§1 | P0 | — | Développé | S ✅ · C ✅ (purge des données locales à la déconnexion) — non couvert E2E | Intégration |
-| ACC-04 | Récupération du mot de passe | Lien à usage unique / SMTP facultatif / commande serveur | M4§1 | P0 | D2 | Développé | S ✅ · CLI ✅ · C ✅ écrans « mot de passe oublié » et « réinitialiser » + génération du lien (Paramètres) — non couverts E2E | Intégration (expiration, usage unique) |
-| ACC-05 | Gestion du profil | Nom, couleur, préférences | M1§2, M4§1 | P0 | — | Développé | S ✅ · C ✅ Paramètres → Mon profil — non couvert E2E | Intégration + E2E |
+| ACC-02 | Connexion | Session par cookie sécurisé | M4§1 | P0 | — | Testé et validé | S ✅ · C ✅ · E2E `accounts.spec` : connexion, mauvais mot de passe expliqué, retour sur son foyer | — |
+| ACC-03 | Déconnexion | Suppression de la session | M4§1 | P0 | — | Testé et validé | S ✅ · C ✅ · E2E : déconnexion confirmée, bases locales effacées (vérifié dans IndexedDB). Défaut corrigé : la déconnexion ne se terminait jamais (base locale encore ouverte) | — |
+| ACC-04 | Récupération du mot de passe | Lien à usage unique / SMTP facultatif / commande serveur | M4§1 | P0 | D2 | Testé et validé | S ✅ · CLI ✅ · C ✅ · E2E : page « mot de passe oublié » sans serveur d’e-mail, lien généré par l’hébergeur, nouveau mot de passe, lien à usage unique | — |
+| ACC-05 | Gestion du profil | Nom, couleur, préférences | M1§2, M4§1 | P0 | — | Testé et validé | S ✅ · C ✅ · E2E : nom affiché modifié, vu par l’autre membre | — |
 | ACC-06 | Modifier ses informations | Nom, e-mail, mot de passe (déconnexion des autres appareils) | M4§1 | P1 | — | Développé | S ✅ · C ✅ nom, e-mail (avec mot de passe), mot de passe — non couverts E2E | Intégration |
 | ACC-07 | Sessions sécurisées | HttpOnly, SameSite, Secure, glissantes 180 j, anti-CSRF | M3§10 | P0 | — | Testé et validé | S ✅ auth.test (HttpOnly, SameSite, CSRF en-tête + origine, invalidation) | Intégration (CSRF, expiration) |
 | ACC-08 | Limitation des tentatives | Connexion, inscription, invitations | M3§10 | P0 | — | Testé et validé | S ✅ auth.test (blocage après 10 échecs, même avec le bon mot de passe) | Intégration |
@@ -73,7 +73,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | MEM-05 | Accès immédiat après acceptation | Synchronisation initiale complète | M4§3 | P0 | SYNC-05 | Testé et validé | `e2e/foundations.spec.ts` : données visibles dès l’arrivée, en temps réel chez les autres | E2E |
 | MEM-06 | Trois rôles | Administrateur / Membre / Lecture seule | M4§4 | P0 | — | Testé et validé | D ✅ matrice testée (commands.test) · S ✅ households.test (contrainte base, refus de « owner ») | Unitaires + intégration |
 | MEM-07 | Droits administrateur | Foyer, invitations, retrait, rôles, tout | M4§4 | P0 | MEM-06 | Testé et validé | S ✅ · C ✅ `e2e/foundations.spec.ts` (retrait d’un membre) | Intégration |
-| MEM-08 | Droits membre | Stocks, produits, scans, liste, achats, statistiques | M4§4 | P0 | MEM-06 | En développement | D ✅ · S ✅ · C ❌ | Intégration |
+| MEM-08 | Droits membre | Stocks, produits, scans, liste, achats, statistiques | M4§4 | P0 | MEM-06 | Testé et validé | D ✅ · S ✅ · C ✅ actions réservées masquées · E2E : un membre ne voit ni restauration ni suppression du foyer ; lecture seule sans aucune action | — |
 | MEM-09 | Lecture seule | Aucune modification | M4§4 | P0 | MEM-06 | Testé et validé | D/S ✅ · C ✅ `e2e/foundations.spec.ts` (actions de modification absentes) | Intégration + E2E |
 | MEM-10 | Matrice de permissions extensible | Permissions nommées par opération | M4§4 | P0 | MEM-06 | Testé et validé | D ✅ `OP_PERMISSIONS` + `ROLE_PERMISSIONS` (commands.test) · S ✅ routes par permission | Unitaires |
 | MEM-11 | Retrait : perte immédiate des droits | API, temps réel, purge locale | M4§8 | P0 | SYNC-12 | Testé et validé | S ✅ · C ✅ `e2e/foundations.spec.ts` (accès coupé en direct, base locale supprimée) | Isolation |
@@ -90,7 +90,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | MULTI-02 | Sélecteur de foyer | Accessible partout | M4§5 | P0 | C | Testé et validé | C ✅ `e2e/foundations.spec.ts` | E2E |
 | MULTI-03 | Données exclusives du foyer actif | Réplique locale séparée par foyer | M4§5 | P0 | SYNC-05 | Testé et validé | C ✅ `e2e/foundations.spec.ts` (une base locale par foyer, aucune donnée croisée) | E2E (bascule sans mélange) |
 | MULTI-04 | Nom du foyer actif affiché | En permanence | M4§5 | P0 | C | Testé et validé | C ✅ `e2e/foundations.spec.ts` (nom synchronisé, à jour hors ligne et en direct) | E2E |
-| MULTI-05 | Aucun mélange (listes, stocks, notifications) | Y compris notifications push | M4§5 | P0 | NOTIF-* | En développement | S ✅ · C ✅ pour membres/invitations ; stocks, listes et notifications à vérifier avec leurs modules | Isolation + E2E |
+| MULTI-05 | Aucun mélange (listes, stocks, notifications) | Y compris notifications push | M4§5 | P0 | NOTIF-* | Testé et validé | S ✅ · C ✅ · E2E `multihousehold.spec` : stocks, liste, prévisions, alertes, cloche et dépenses d’un foyer jamais visibles dans l’autre ; notifications push nommées et étiquetées par foyer (services.test) | — |
 
 ## 6. Isolation et sécurité
 
@@ -105,7 +105,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | ISO-07 | Notifications isolées | Par foyer | M4§6 | P0 | NOTIF-* | Testé et validé | S ✅ isolation.test + services.test | Isolation |
 | ISO-08 | Suite de tests A1/A2/B1/B2 | 8 vérifications + API directe + falsification | M4§8 | P0 | ISO-01..07 | Testé et validé | `server/test/isolation.test.ts` (11 tests) | — |
 | ISO-09 | Cache produits sans fuite | Ne pas révéler qu'un autre foyer a scanné un code | AUD | P1 | SCAN-03 | Testé et validé | S ✅ champ retiré ; services.test vérifie son absence | Intégration |
-| ISO-10 | Transparence vis-à-vis de l'hébergeur | Information des foyers hébergés | AUD | P1 | D4 | En développement | Décision D4 consignée (MASTER_SPEC §16.2) · C ❌ (affichage aux foyers hébergés) | — |
+| ISO-10 | Transparence vis-à-vis de l'hébergeur | Information des foyers hébergés | AUD | P1 | D4 | Testé et validé | C ✅ Paramètres › Mes données personnelles : l’hébergeur peut techniquement accéder à la base, données séparées par foyer, seuls échanges extérieurs (codes-barres inconnus vers Open Food Facts, notifications chiffrées) · E2E `accounts.spec` | — |
 | ISO-11 | En-têtes de sécurité, CSP, anti-CSRF | — | M3§10 | P0 | — | Testé et validé | S ✅ auth.test (CSRF) ; en-têtes présents sur toutes les réponses | Intégration |
 
 ## 7. Synchronisation et hors ligne
@@ -118,13 +118,13 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | SYNC-04 | Temps réel | SSE + repli périodique | M1§5 | P0 | — | Testé et validé | S ✅ · C ✅ `e2e/foundations.spec.ts` (arrivée d’un membre, renommage vus en direct) | Intégration + E2E 2 membres |
 | SYNC-05 | Réplique locale + prédiction | IndexedDB par foyer, même logique métier | M1§1 | P0 | D | Testé et validé | D ✅ · C ✅ une action n’est affichée qu’après son écriture dans la base locale : rechargement immédiat sans perte (`e2e/foundations.spec.ts`) | Unitaires + E2E |
 | SYNC-06 | Hors connexion | App + données + file d'attente | M1§1, M3§10 | P0 | SYNC-05 | Testé et validé | C ✅ `e2e/foundations.spec.ts` (modification hors ligne ; ouverture de l’application sans réseau) | E2E hors ligne |
-| SYNC-07 | Conflits | Par champ, stock attendu, fusion, alias | M1§12 | P0 | — | En développement | D/S ✅ · C 🟡 conflits signalés (notifications + liste « À vérifier ») ; écran de résolution champ par champ à compléter | Concurrence serveur + E2E |
+| SYNC-07 | Conflits | Par champ, stock attendu, fusion, alias | M1§12 | P0 | — | Testé et validé | D/S ✅ · C ✅ conflit signalé, saisie en cours préservée, choix « Garder ma valeur » / « Garder l'autre » dans le volet de synchronisation · E2E `shopping.spec` | — |
 | SYNC-08 | Indicateur de synchronisation | Synchronisé / en attente / hors ligne / problème | M1§12 | P0 | SYNC-02 | Testé et validé | C ✅ `e2e/foundations.spec.ts` (état synchronisé / hors ligne) | E2E |
 | SYNC-09 | Connexions simultanées | Transactions sérialisées | M1§12 | P0 | — | Testé et validé | S ✅ sync.test (consommations simultanées), week.test | Concurrence |
-| SYNC-10 | Resynchronisation après restauration | Changement d'époque | M3§10 | P0 | BAK-04 | Développé | S ✅ · C ✅ resynchronisation complète au changement d’époque — non couverte E2E | Intégration |
+| SYNC-10 | Resynchronisation après restauration | Changement d'époque | M3§10 | P0 | BAK-04 | Testé et validé | S ✅ · C ✅ · E2E `data.spec` : restauration complète puis resynchronisation des appareils | — |
 | SYNC-11 | iPhone, Android, Windows, navigateurs | — | M4§7 | P0 | C | En développement | Chromium (ordinateur et mobile émulé) ✅ ; WebKit/Safari iPhone indisponible dans cet environnement de test : à vérifier sur appareil | E2E (WebKit, Chromium, mobile) |
 | SYNC-12 | Purge locale d'un foyer quitté | — | M4§8, AUD | P0 | MEM-11 | Testé et validé | C ✅ `e2e/foundations.spec.ts` (retrait) ; déconnexion et foyer quitté purgent aussi | E2E |
-| SYNC-13 | Rétention des opérations traitées | Purge sûre de `processed_ops` | AUD | P2 | — | Développé | S ✅ refus des opérations trop anciennes (sync.test) ; purge quotidienne écrite, non testée | Intégration |
+| SYNC-13 | Rétention des opérations traitées | Purge sûre de `processed_ops` | AUD | P2 | — | Testé et validé | S ✅ refus des opérations trop anciennes ; purge quotidienne testée (sync.test) : seules les opérations hors délai sont oubliées, et leur rejeu est refusé, jamais réappliqué | — |
 
 ## 8. Catalogue
 
@@ -134,16 +134,16 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | CAT-02 | Catégories personnalisables | 9 par défaut | M1§3 | P0 | — | Développé | D ✅ · C ✅ Paramètres → Catalogue (même composant que les emplacements, testé) | E2E |
 | CAT-03 | Emplacements personnalisables | 9 par défaut dont Cuisine | M1§3, M3§1 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (nouvel emplacement disponible dans les fiches) | E2E |
 | CAT-04 | Photo facultative | Redimensionnée côté client, isolée | M1§3 | P1 | — | Développé | S ✅ · C ✅ photo redimensionnée (640 px) puis envoyée ; affichée et mise en cache hors ligne — non couverte E2E | Intégration |
-| CAT-05 | Plusieurs codes-barres par produit | Avec format, marque, quantité par scan | M3§3 | P0 | — | Développé | D ✅ · C ✅ ajout/retrait de codes dans la fiche — non couvert E2E | — |
+| CAT-05 | Plusieurs codes-barres par produit | Avec format, marque, quantité par scan | M3§3 | P0 | — | Testé et validé | D ✅ · C ✅ · E2E `catalog.spec` : deux codes pour un produit, recherche par code | — |
 | CAT-06 | Formats d'emballage | Conditionnement (1 paquet = 500 g) | M3§3 | P0 | — | Développé | D ✅ · C ✅ « Conditionnement d’achat » + saisie dans l’unité de conditionnement | — |
 | CAT-07 | Variantes | Famille de produits | M3§3 | P2 | — | Développé | D ✅ · C ✅ champ « Famille (variantes) » ; utilisé pour proposer les doublons | E2E |
 | CAT-08 | Marques différentes | Marque par code | M3§3 | P1 | CAT-05 | En développement | D ✅ · C 🟡 marque du produit ; marque par code via le scanner (phase 4) | — |
 | CAT-09 | Produits personnalisés | Sans code-barres | M3§3 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (produits sans code-barres) | — |
-| CAT-10 | Alias et noms alternatifs | Dont libellés de tickets appris | M3§3 | P1 | — | Développé | D ✅ · C ✅ noms alternatifs dans la fiche, utilisés par la recherche | — |
+| CAT-10 | Alias et noms alternatifs | Dont libellés de tickets appris | M3§3 | P1 | — | Testé et validé | D ✅ · C ✅ · E2E : nom alternatif retrouvé par la recherche | — |
 | CAT-11 | Détection des doublons probables | Sans fusion automatique | M3§3, M1§12 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (alerte à la saisie, aucune fusion automatique) | — |
-| CAT-12 | Fusion validée | Conserve l'historique, conversion vérifiée | M3§3 | P1 | CAT-11 | Développé | D ✅ · S ✅ · C ✅ « Fusionner un doublon » avec confirmation explicite — non couvert E2E | Intégration |
+| CAT-12 | Fusion validée | Conserve l'historique, conversion vérifiée | M3§3 | P1 | CAT-11 | Testé et validé | D ✅ · S ✅ · C ✅ · E2E : fusion après confirmation, stocks additionnés, ancien nom retrouvable | — |
 | CAT-13 | Validation d'identité incertaine | Question lors du scan | M3§3, M2§1 | P0 | SCAN-05 | Développé | C ✅ « Est-ce l’un de vos produits ? » (association explicite, jamais automatique) — non couvert E2E | E2E |
-| CAT-14 | Archivage / restauration | — | AUD | P1 | — | Développé | D ✅ · C ✅ archiver / restaurer | — |
+| CAT-14 | Archivage / restauration | — | AUD | P1 | — | Testé et validé | D ✅ · C ✅ · E2E : archivé → masqué, listé dans « Produits archivés », restauré avec son stock. Défaut corrigé : la fiche d’un produit archivé avec stock plantait | — |
 | CAT-15 | Magasin habituel | Par produit | M1§3 | P1 | STORE-01 | Développé | D ✅ · C ✅ | — |
 | CAT-16 | Commentaires | — | M1§3 | P1 | — | Développé | D ✅ · C ✅ | — |
 | CAT-17 | Consommation moyenne affichée | Calculée, avec sa source | M1§3 | P0 | ENG-05 | Développé | D ✅ · C ✅ carte « Analyse » (débit, source, confiance, autonomie) — à vérifier avec historique réel (phase 6) | E2E |
@@ -161,7 +161,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | STK-06 | Quantités achetée / initiale / restante / consommée | Distinction affichée | M3§2 | P1 | — | En développement | D 🟡 · C 🟡 restante / initiale affichées par lot ; consommée et achetée à exposer | Unitaires + E2E |
 | STK-07 | FEFO | Date la plus proche, ouverts d'abord | M1§7, M2§5 | P0 | — | Testé et validé | D ✅ · C ✅ sélection automatique « date la plus proche d’abord » ou lot choisi | — |
 | STK-08 | Jamais de stock négatif | Base + domaine | M1§12, M3§7 | P0 | — | Testé et validé | D ✅ · S ✅ contrainte CHECK + sync.test (jamais négatif sous concurrence) | Intégration (tentative directe) |
-| STK-09 | Emplacement par lot, déplacement partiel | — | M1§3 | P1 | — | Développé | D ✅ · C ✅ « Déplacer » (partiel) — non couvert E2E | — |
+| STK-09 | Emplacement par lot, déplacement partiel | — | M1§3 | P1 | — | Testé et validé | D ✅ · C ✅ · E2E : déplacement partiel, lot scindé entre deux emplacements, total inchangé | — |
 
 ## 10. Mouvements et actions rapides
 
@@ -169,8 +169,8 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 |---|---|---|---|---|---|---|---|---|
 | MVT-01 | Ajouter au stock | — | M1§6 | P0 | — | Testé et validé | D/S ✅ · C ✅ stock initial et action « Ajouter » (achat facultatif, prix, magasin, date) · `e2e/inventory.spec.ts` | E2E |
 | MVT-02 | Retirer / consommer | — | M1§6 | P0 | — | Testé et validé | D/S ✅ · C ✅ `e2e/inventory.spec.ts` (feuille et « −1 » rapide) | E2E |
-| MVT-03 | Déclarer terminé | Avec ajout facultatif à la liste | M1§6 | P0 | SHOP-01 | Développé | D ✅ · C ✅ « Terminé » (+ ajout facultatif à la liste) — non couvert E2E | E2E |
-| MVT-04 | Signaler manquant | Ajout prioritaire à la liste, stock inchangé | M1§6 | P0 | SHOP-01 | Développé | D ✅ · C ✅ « Manquant » — non couvert E2E | E2E |
+| MVT-03 | Déclarer terminé | Avec ajout facultatif à la liste | M1§6 | P0 | SHOP-01 | Testé et validé | D ✅ · C ✅ · E2E : stock à zéro et article ajouté à la liste | — |
+| MVT-04 | Signaler manquant | Ajout prioritaire à la liste, stock inchangé | M1§6 | P0 | SHOP-01 | Testé et validé | D ✅ · C ✅ · E2E : stock enregistré inchangé, article en priorité haute dans la liste | — |
 | MVT-05 | Modifier une quantité | Motif obligatoire, contrôle de concurrence | M1§6 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (quantité réelle, approximative, motif) | E2E |
 | MVT-06 | Signaler ouvert | Isolement de l'unité ouverte | M1§6 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` (unité ouverte isolée) | E2E |
 | MVT-07 | Jeter / périmé | Motifs, lots périmés d'abord | M1§7 | P0 | — | Testé et validé | D ✅ · C ✅ `e2e/inventory.spec.ts` | E2E |
@@ -249,8 +249,8 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | SHOP-17 | Écran maintenu allumé | Wake Lock | M1§11 | P2 | SHOP-12 | Développé | C ✅ Screen Wake Lock pendant le mode courses, réacquis au retour sur l’onglet, indication à l’écran ; non vérifiable sans navigateur réel (Safari iOS ≥ 16.4, Chrome Android) — essai manuel à faire | Manuel |
 | RCV-01 | Proposition de mise à jour du stock après achat | — | M1§5 | P0 | SHOP-07 | Testé et validé | C ✅ bandeau « n article(s) acheté(s) à ranger », « Terminer et ranger les achats » ouvre la réception ; le stock n’est jamais modifié par une simple coche · `e2e/shopping.spec.ts` | E2E |
 | RCV-02 | Étape de réception | Quantités réelles, écarts, prix, dates, emplacement | M1§5 | P0 | — | Testé et validé | D ✅ · C ✅ quantité réellement rapportée, écart affiché, prix total facultatif, magasin, emplacement, date (saisie ou proposée d’après la conservation habituelle, marquée « estimée »), produit existant / créé / dépense seule, « Pas acheté », « Tout ranger » · `e2e/shopping.spec.ts` (partiel, écart, création du produit) | E2E |
-| RCV-03 | Reliquat d'achat partiel conservé | — | M1§5 | P0 | — | En développement | D ✅ · C ❌ | — |
-| RCV-04 | Article libre → produit suivi | — | AUD | P1 | — | En développement | D 🟡 (non testé) · C ❌ | Unitaires |
+| RCV-03 | Reliquat d'achat partiel conservé | — | M1§5 | P0 | — | Testé et validé | D ✅ · C ✅ · E2E `shopping.spec` : achat partiel, le reliquat reste à acheter | — |
+| RCV-04 | Article libre → produit suivi | — | AUD | P1 | — | Testé et validé | D ✅ · C ✅ réception d’un article libre : « créer le produit » par défaut, ou produit existant, ou dépense seule · E2E `family-week.spec` (pain) | — |
 
 ## 15. Tickets de caisse et magasins
 
@@ -396,30 +396,30 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| UX-01 | Design haut de gamme non générique | — | M1§11 | P0 | — | En développement | C 🟡 design system (lin & forêt), coquille et écrans des phases 1-2 vérifiés en captures | Revue visuelle (captures) |
-| UX-02 | Typographie, hiérarchie, couleurs, cartes, icônes | — | M1§11 | P0 | UX-01 | En développement | C 🟡 typographie Manrope, cartes, icônes Lucide — en cours | Revue |
-| UX-03 | Animations subtiles | — | M1§11 | P1 | — | À développer | ❌ | Revue |
+| UX-01 | Design haut de gamme non générique | — | M1§11 | P0 | — | Développé | C ✅ design system « lin & forêt » sur tous les écrans, revu par captures (téléphone et ordinateur, clair et sombre) à chaque phase ; avis de la famille à recueillir | Revue visuelle (captures) |
+| UX-02 | Typographie, hiérarchie, couleurs, cartes, icônes | — | M1§11 | P0 | UX-01 | Développé | C ✅ typographie Manrope, hiérarchie, cartes, icônes Lucide, couleurs validées (contrastes WCAG AA, palette des graphiques vérifiée) ; avis de la famille à recueillir | Revue |
+| UX-03 | Animations subtiles | — | M1§11 | P1 | — | Développé | C ✅ animations discrètes (apparition, montée des fenêtres, toasts, chargement) ; désactivées si l’appareil demande moins d’animations | Revue |
 | UX-04 | Graphiques interactifs | — | M1§11 | P1 | — | Testé et validé | C ✅ `ui/Charts.tsx` : colonnes, barres classées, courbe ; teinte validée par script pour les deux thèmes, info-bulles au survol et au clavier, vue tableau sur chaque graphique · `e2e/expenses.spec.ts` | E2E |
-| UX-05 | Mode clair et sombre | — | M1§11 | P0 | — | En développement | C ✅ thème clair/sombre/auto (captures vérifiées) ; à étendre aux modules suivants | Captures |
-| UX-06 | Optimisation téléphone | — | M1§11 | P0 | — | En développement | C 🟡 mobile d’abord (onglets, feuilles, cibles ≥ 44 px) — en cours | E2E mobile |
+| UX-05 | Mode clair et sombre | — | M1§11 | P0 | — | Testé et validé | C ✅ thème clair/sombre/auto ; tous les écrans audités dans les deux thèmes (contrastes WCAG AA, axe) | — |
+| UX-06 | Optimisation téléphone | — | M1§11 | P0 | — | Testé et validé | C ✅ tous les parcours de bout en bout s’exécutent sur un téléphone émulé (Pixel 7) ; débordements corrigés (en-têtes, barre d’ajout, onglets) | — |
 | UX-07 | Navigation 6 rubriques | Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres | M1§11 | P0 | — | Testé et validé | C ✅ 6 rubriques (Accueil, Inventaire, Courses, Prévisions, Famille, Paramètres) + Scanner + Notifications, toutes construites et parcourues en E2E | E2E |
 | UX-08 | Mode courses optimisé magasin | — | M1§11 | P0 | SHOP-12 | Testé et validé | Voir SHOP-12 · `e2e/shopping.spec.ts` | E2E mobile |
 | UX-09 | Scanner accessible partout | — | M2 | P0 | SCAN-01 | Développé | C ✅ bouton Scanner (téléphone : bouton flottant ; ordinateur : barre latérale) | E2E |
-| UX-10 | Accessibilité | Contrastes, cibles ≥ 44 px | AUD | P1 | — | En développement | C 🟡 libellés désormais reliés aux champs (défaut trouvé par les tests) ; audit complet à faire | Audit axe |
-| UX-11 | Chaque bouton fonctionne | — | M1§12 | P0 | — | À développer | ❌ | E2E exhaustif |
-| UX-12 | Gestion des erreurs lisible | Messages français, pas d'écran blanc | M1§12 | P0 | — | En développement | D/S ✅ · C ✅ notifications d’erreur en français ; refus immédiats expliqués | E2E |
+| UX-10 | Accessibilité | Contrastes, cibles ≥ 44 px | AUD | P1 | — | Testé et validé | C ✅ audit axe-core WCAG 2.1 A/AA sur 22 écrans + fenêtres, thèmes clair et sombre : aucune violation grave. Défauts corrigés : contrastes (texte secondaire, avertissement, succès, danger, accent), boutons-icônes sans nom, nom accessible du sélecteur de foyer | — |
+| UX-11 | Chaque bouton fonctionne | — | M1§12 | P0 | — | Testé et validé | E2E `buttons.spec` : 24 écrans (dont recettes), chaque bouton, onglet et lien interne actionné, puis chaque bouton des fenêtres ouvertes — plus de 800 actions, aucune erreur JavaScript, aucun écran d’erreur, aucun texte technique | — |
+| UX-12 | Gestion des erreurs lisible | Messages français, pas d'écran blanc | M1§12 | P0 | — | Testé et validé | D/S ✅ · C ✅ messages en français, refus expliqués, écran de secours (« Vos données ne sont pas affectées ») au lieu d’un écran blanc · E2E (mauvais mot de passe, conflit, lien expiré) | — |
 
 ## 24. Fonctionnalités avancées
 
 | ID | Fonctionnalité | Description | Origine | Prio | Dépendances | État | Avancement réel | Tests nécessaires |
 |---|---|---|---|---|---|---|---|---|
-| ADV-01 | Recettes | Ingrédients liés aux produits | M1§10 | P3 | CAT-01 | En développement | D 🟡 (créer/cuisiner, non testé) · C ❌ | Unitaires + E2E |
-| ADV-02 | Recettes réalisables avec le stock | — | M1§10 | P3 | ADV-01 | À développer | ❌ | Unitaires |
-| ADV-03 | Ingrédients manquants → liste | — | M1§10 | P3 | ADV-01 | À développer | ❌ | Unitaires |
+| ADV-01 | Recettes | Ingrédients liés aux produits | M1§10 | P3 | CAT-01 | Testé et validé | D ✅ créer, modifier, archiver, cuisiner (déduction FEFO, annulable) · C ✅ Inventaire › Recettes : liste, fiche (parts ajustables), saisie avec produits proposés depuis l’inventaire · recipes.test + E2E `recipes.spec` (2 parcours) + robot « chaque bouton » | — |
+| ADV-02 | Recettes réalisables avec le stock | — | M1§10 | P3 | ADV-01 | Testé et validé | D ✅ `checkRecipe` : stock réel par ingrédient, unités converties, lots périmés exclus (DDM dépassée utilisable), rapprochement par nom/nom alternatif, ingrédient non suivi « à vérifier » (jamais supposé présent), classement réalisables puis anti-gaspillage · C ✅ statuts, filtres « Réalisables » et « Anti-gaspi » · unitaires + E2E | — |
+| ADV-03 | Ingrédients manquants → liste | — | M1§10 | P3 | ADV-01 | Testé et validé | D ✅ manquants arrondis à l’achat, déduction de ce qui est déjà dans la liste · C ✅ « Ajouter N manquants à la liste » (source « recette », commentaire), bouton désactivé une fois couverts · unitaires + E2E | — |
 | ADV-04 | Planification des repas | — | M1§10 | P4 | ADV-01, D5 | Reporté | À spécifier (D5) | — |
 | ADV-05 | Gestion des restes | — | M1§10 | P4 | D5 | Reporté | À spécifier (D5) | — |
 | ADV-06 | Tâches ménagères | — | M1§10 | P4 | D5 | Reporté | À spécifier (D5) | — |
-| ADV-07 | Suggestions périodiques de réapprovisionnement | À partir de la cadence | M1§10 | P3 | ENG-06 | À développer | D ✅ cadence · ❌ suggestions | Unitaires |
+| ADV-07 | Suggestions périodiques de réapprovisionnement | À partir de la cadence | M1§10 | P3 | ENG-06 | Testé et validé | D ✅ rythme des courses (dernier achat + intervalle du foyer) → rappel « Prochaines courses : N produits à prévoir » la veille, un par période, jamais sans achat enregistré, jamais d’ajout automatique · C ✅ cloche, centre de notifications, récapitulatifs push (canaux existants) ; « Tout ajouter » depuis Courses · unitaires | — |
 | ADV-08 | Chiffrement de bout en bout | Confidentialité vis-à-vis de l'hébergeur | AUD (D4) | P4 | D4 | Reporté | Incompatible avec le moteur côté serveur | — |
 | ADV-09 | PostgreSQL + RLS (option) | Pour de grandes instances | M4§6 (C8) | P4 | — | Reporté | — | — |
 
@@ -430,15 +430,15 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | TST-01 | Tests unitaires du domaine | — | M1§12 | P0 | — | Testé et validé | 76 tests verts (unités, commandes, moteur, GS1, OCR, statistiques, audit, notifications, semaine) | — |
 | TST-02 | Tests d'intégration serveur | Comptes, foyers, sync, idempotence, concurrence, conflits | M1§12 | P0 | — | Testé et validé | `server/test/*.test.ts` : 59 tests (comptes, foyers, sync, isolation, données, services, semaine) | — |
 | TST-03 | Tests d'isolation multi-foyers | Scénario A1/A2/B1/B2 | M4§8 | P0 | ISO-* | Testé et validé | = ISO-08 | — |
-| TST-04 | Semaine familiale simulée | Domaine ✅ ; pile complète (2 membres, 2 appareils, hors ligne) ❌ | M3§11 | P0 | SYNC-* | En développement | Domaine ✅ (shared/test/week.test.ts) · pile serveur ✅ (server/test/week.test.ts : 3 appareils, hors ligne, renvois) · interface ❌ | — |
-| TST-05 | Tests de bout en bout | Parcours, temps réel, hors ligne, mobile, chaque bouton | M1§12 | P0 | C | En développement | `e2e/*.spec.ts` : 12 parcours (socle 6, inventaire 4, scanner 2) | — |
-| TST-06 | Audit global | Cohérence, simplicité, design, rapidité… | M3§11 | P0 | — | En développement | 1er audit fait (PROJECT_PLAN §1) ; à refaire à chaque phase | — |
-| DOC-01 | PROJECT_PLAN.md | — | M1§13, M5 | P0 | — | Développé | Version 2.1 (phase 1) | — |
+| TST-04 | Semaine familiale simulée | Domaine ✅ ; pile complète (2 membres, 2 appareils, hors ligne) ❌ | M3§11 | P0 | SYNC-* | Testé et validé | Domaine ✅ · pile serveur ✅ · interface ✅ `family-week.spec` : 2 membres, 2 appareils, inventaire guidé, liste partagée, coupure réseau, courses avec prix, péremption, contrôle de cohérence, journal | — |
+| TST-05 | Tests de bout en bout | Parcours, temps réel, hors ligne, mobile, chaque bouton | M1§12 | P0 | C | Testé et validé | `e2e/*.spec.ts` : 70 parcours en 18 fichiers (téléphone émulé), dont 3 sur instances fraîches lancées par les tests | — |
+| TST-06 | Audit global | Cohérence, simplicité, design, rapidité… | M3§11 | P0 | — | Testé et validé | Audit global de la phase 13 (PROJECT_PLAN, bilan) ; performances mesurées sur 1 000 produits / 50 000 mouvements | — |
+| DOC-01 | PROJECT_PLAN.md | — | M1§13, M5 | P0 | — | Développé | Version 2.15 (fin de la phase 15) | — |
 | DOC-02 | MASTER_SPEC.md | — | M5 | P0 | — | Développé | Créé | — |
 | DOC-03 | FEATURE_TRACKER.md | — | M5 | P0 | — | Développé | Ce document | — |
-| DOC-04 | Guide de déploiement gratuit | Docker, Raspberry Pi/NAS, Tailscale/Cloudflare | M1§1 | P0 | DEP-01 | À développer | ❌ | Installation réelle |
-| DOC-05 | Guide utilisateur | Pour transmettre l'application à d'autres familles | M4§9 | P1 | — | À développer | ❌ | — |
-| DEP-01 | Image Docker / compose | — | M1§1 | P0 | — | Développé | Dockerfile + docker-compose écrits ; construction de l’image impossible ici (Docker Hub : 429 trop de requêtes) ; disposition de production vérifiée hors conteneur (dépendances de production seules, démarrage, application servie) | Démarrage du conteneur |
+| DOC-04 | Guide de déploiement gratuit | Docker, Raspberry Pi/NAS, Tailscale/Cloudflare | M1§1 | P0 | DEP-01 | Développé | `docs/DEPLOIEMENT.md` : matériel, Docker (étapes exécutées réellement, miroir mirror.gcr.io en cas de limite Docker Hub), réglages, accès HTTPS gratuit (Tailscale, Funnel ; Cloudflare Tunnel = domaine payant ; tunnels rapides sans temps réel), sauvegardes hors machine, restauration, mise à jour, commandes. Étapes Tailscale/Cloudflare non exécutables ici | Installation réelle |
+| DOC-05 | Guide utilisateur | Pour transmettre l'application à d'autres familles | M4§9 | P1 | — | Développé | `docs/GUIDE_UTILISATEUR.md` : installation sur téléphone, rôles, premier inventaire, gestes, scanner, courses, prévisions, dépenses, hors ligne et conflits, données ; libellés vérifiés dans le code de l’interface | — |
+| DEP-01 | Image Docker / compose | — | M1§1 | P0 | — | Testé et validé | Image construite réellement (98 Mo compressée) et lancée depuis zéro : installation neuve (dossier de données absent → créé et confié au compte non privilégié ; défaut trouvé et corrigé : le premier démarrage plantait), parcours navigateur (premier compte, foyer, produit), inscription sans invitation refusée, commandes d’administration (y compris lancées en root, sans fichier root laissé), redémarrage sans perte, sonde de santé « healthy », `docker compose up` ; journaux limités (rotation, requêtes journalisées seulement sur demande) | — |
 | DEP-02 | Script de réinitialisation de mot de passe | Côté serveur | M4§1 | P1 | D2 | Testé et validé | CLI `lien-reinitialisation`, `utilisateurs`, `sauvegarde` exécutée réellement | — |
 
 ---
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 200 |
-| Développé | 60 |
-| En développement | 25 |
-| À développer | 7 |
+| Testé et validé | 236 |
+| Développé | 48 |
+| En développement | 8 |
+| À développer | 0 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |

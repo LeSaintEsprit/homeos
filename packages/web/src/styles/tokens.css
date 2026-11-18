@@ -12,20 +12,21 @@
   --border-strong: #d4cdbe;
   --text: #17201b;
   --text-2: #4a544e;
-  --text-3: #7a827c;
+  /* Contrastes vérifiés (WCAG AA ≥ 4,5:1) sur les fonds clairs et les fonds pâles des badges. */
+  --text-3: #666d68;
   --text-on-primary: #ffffff;
 
   --primary: #1f6f54;
   --primary-strong: #175a44;
   --primary-soft: #e3efe8;
   --primary-ring: rgba(31, 111, 84, 0.28);
-  --accent: #c2702b;
+  --accent: #9b5922;
   --accent-soft: #f7eadb;
-  --danger: #bf3f2c;
+  --danger: #b93d2a;
   --danger-soft: #fbe6e1;
-  --warning: #a86c12;
+  --warning: #956010;
   --warning-soft: #faefd6;
-  --success: #2c8456;
+  --success: #28784e;
   --success-soft: #e0f1e6;
   --info: #2d5fa5;
   --info-soft: #e3ebf7;

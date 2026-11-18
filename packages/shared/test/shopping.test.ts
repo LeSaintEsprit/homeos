@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupByAisle, itemsForStore, moveAisle, storeSummary, newId, type Category, type Purchase, type ShoppingItem, type Store } from '@homeos/shared';
+import { groupByAisle, itemsForStore, moveAisle, nextShoppingTrip, storeSummary, newId, type Category, type Purchase, type ShoppingItem, type Store } from '@homeos/shared';
 
 const cat = (id: string, sort: number): Category => ({ id, householdId: 'h', version: 1, name: id, icon: 'box', color: '#000', sort, archived: false }) as unknown as Category;
 const store = (categoryOrder: string[]): Store => ({ id: 's1', householdId: 'h', version: 1, name: 'Marché', address: null, notes: null, categoryOrder, color: '#000', sort: 0, archived: false });
@@ -65,5 +65,12 @@ describe('historique par magasin', () => {
     expect(s.avgBasketCents).toBe(1500);
     expect(s.usual).toEqual([{ productId: 'lait', name: 'Lait', count: 3, lastDate: '2026-11-12' }]);
     expect(storeSummary('vide', list)).toMatchObject({ visits: 0, lastVisit: null, avgBasketCents: null, usual: [] });
+  });
+});
+
+describe('rythme des courses', () => {
+  it('prochaine sortie = dernier achat (passé) + intervalle du foyer', () => {
+    expect(nextShoppingTrip([{ date: '2026-10-20' }, { date: '2026-10-27' }, { date: '2026-12-01' }], 7, '2026-11-02')).toEqual({ lastTrip: '2026-10-27', nextTrip: '2026-11-03' });
+    expect(nextShoppingTrip([], 7, '2026-11-02')).toEqual({ lastTrip: null, nextTrip: null });
   });
 });

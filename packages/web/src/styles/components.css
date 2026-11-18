@@ -598,3 +598,8 @@ body:has(.shop-mode) .toasts { top: calc(var(--safe-top) + 12px); bottom: auto; 
 .scan-item .dot.error { color: var(--danger); }
 .scan-item.undone .title { text-decoration: line-through; opacity: 0.6; }
 .btn.wrap { white-space: normal; height: auto; min-height: 48px; padding-block: 10px; flex-wrap: wrap; row-gap: 2px; }
+
+/* Texte et icônes d'état (toujours accompagnés d'un libellé ou d'un nom accessible). */
+.success-text { color: var(--success); }
+.warning-text { color: var(--warning); }
+.danger-text { color: var(--danger); }

@@ -3,15 +3,16 @@ import { NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'reac
 import {
   AlertTriangle, Bell, Check, ChevronDown, CloudOff, House, KeyRound, LineChart, Package, Plus, RefreshCw, ScanLine, Settings, ShoppingCart, Users, CloudCheck, CloudUpload,
 } from 'lucide-react';
-import { ROLE_LABELS } from '@homeos/shared';
+import { ROLE_LABELS, type FieldConflict, type Member } from '@homeos/shared';
 import { activeHousehold, session, setActiveHousehold, type SessionState } from '../../lib/session';
 import { useObservable } from '../../lib/store';
-import { useEngine, useSync } from '../../lib/sync/react';
+import { useEngine, useRun, useSync } from '../../lib/sync/react';
 import { relativeTime } from '../../lib/format';
 import { useAlerts } from '../../lib/hooks';
 import { HouseholdAvatar } from '../../ui/Avatar';
 import { Logo } from '../../ui/Logo';
 import { Sheet } from '../../ui/Sheet';
+import { ErrorBoundary } from '../../ui/ErrorBoundary';
 
 const NAV = [
   { to: '/', label: 'Accueil', icon: House, end: true },
@@ -21,10 +22,33 @@ const NAV = [
   { to: '/famille', label: 'Famille', icon: Users },
 ];
 
+const display = (v: unknown) => (v == null || v === '' ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v));
+
+/**
+ * Opération qui réapplique la valeur de l'utilisateur après un conflit, en partant de la
+ * version actuelle (il a vu la valeur concurrente : ce n'est plus un écrasement à l'aveugle).
+ */
+function reapplyOp(c: FieldConflict): { type: 'product.update' | 'shopping.update' | 'household.update'; build: (base: number) => Record<string, unknown> } | null {
+  if (c.entityType === 'product') return { type: 'product.update', build: (base) => ({ id: c.entityId, patch: { [c.field]: c.mine }, baseVersion: base }) };
+  if (c.entityType === 'shoppingItem') return { type: 'shopping.update', build: (base) => ({ itemId: c.entityId, patch: { [c.field]: c.mine }, baseVersion: base }) };
+  if (c.entityType === 'household') {
+    const patch = c.field.startsWith('settings.') ? { settings: { [c.field.slice(9)]: c.mine } } : { [c.field]: c.mine };
+    return { type: 'household.update', build: (base) => ({ patch, baseVersion: base }) };
+  }
+  return null;
+}
+
 export function SyncIndicator({ compact = false }: { compact?: boolean }) {
   const st = useSync();
   const engine = useEngine();
+  const run = useRun();
   const [open, setOpen] = useState(false);
+  const memberName = (uid: string) => ([...st.view.member.values()] as Member[]).find((m) => m.userId === uid)?.name ?? 'un autre membre';
+  const keepMine = async (opId: string, c: FieldConflict) => {
+    const r = reapplyOp(c)!;
+    const out = await run(r.type, r.build(engine.confirmedVersion(c.entityType, c.entityId)) as never, { success: `${c.label} : votre valeur est rétablie` });
+    if (out.ok) await engine.dismissIssue(opId);
+  };
   const cls = st.status === 'synced' ? 'ok' : st.status === 'offline' ? 'offline' : st.status === 'error' || st.issues.length ? 'error' : st.status === 'loading' ? '' : 'pending';
   const label =
     st.status === 'offline'
@@ -67,12 +91,18 @@ export function SyncIndicator({ compact = false }: { compact?: boolean }) {
                 <span className="grow">
                   {i.message}
                   {i.conflicts.map((c) => (
-                    <span key={c.field} className="xsmall" style={{ display: 'block', fontWeight: 600 }}>
-                      {c.label} : votre valeur « {String(c.mine)} », valeur actuelle « {String(c.theirs)} ».
+                    <span key={c.field} className="xsmall" style={{ display: 'block', fontWeight: 600 }} data-testid="conflict">
+                      {c.label} : votre valeur « {display(c.mine)} », valeur actuelle « {display(c.theirs)} »{c.theirsBy ? ` (par ${memberName(c.theirsBy)})` : ''}.
+                      {reapplyOp(c) && (
+                        <span className="row wrap" style={{ ['--gap' as string]: '6px', marginTop: 6 }}>
+                          <button className="btn sm" onClick={() => void keepMine(i.opId, c)} data-testid="keep-mine">Garder ma valeur</button>
+                          <button className="btn ghost sm" onClick={() => void engine.dismissIssue(i.opId)} data-testid="keep-theirs">Garder l'autre</button>
+                        </span>
+                      )}
                     </span>
                   ))}
                 </span>
-                <button className="btn sm" onClick={() => void engine.dismissIssue(i.opId)}>OK</button>
+                {!i.conflicts.some(reapplyOp) && <button className="btn sm" onClick={() => void engine.dismissIssue(i.opId)}>OK</button>}
               </div>
             ))}
           </div>
@@ -101,11 +131,12 @@ export function HouseholdSwitcher({ s }: { s: SessionState }) {
   };
   return (
     <>
-      <button className="hh-switch" onClick={() => setOpen(true)} aria-label={`Foyer actif : ${active.name}. Changer de foyer`} data-testid="household-switcher">
+      <button className="hh-switch" onClick={() => setOpen(true)} data-testid="household-switcher">
         <HouseholdAvatar avatar={active.avatar} size={36} />
         <span style={{ minWidth: 0 }}>
-          <span className="hh-label" style={{ display: 'block' }}>Foyer</span>
+          <span className="hh-label" style={{ display: 'block' }}>Foyer</span>{' '}
           <span className="hh-name" style={{ display: 'block' }} data-testid="active-household">{active.name}</span>
+          <span className="sr-only">, changer de foyer</span>
         </span>
         <ChevronDown size={18} className="subtle" />
       </button>
@@ -205,7 +236,9 @@ export function Shell() {
         <main className="main" id="contenu">
           {/* Écrans chargés à la demande : la coquille reste affichée pendant le chargement. */}
           <Suspense fallback={<div className="page-loading" role="status" aria-label="Chargement"><span className="spinner" /></div>}>
-            <Outlet />
+            <ErrorBoundary resetKey={path}>
+              <Outlet />
+            </ErrorBoundary>
           </Suspense>
         </main>
       </div>

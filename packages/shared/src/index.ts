@@ -8,6 +8,7 @@ export * from './defaults';
 export * from './domain';
 export * from './inventory';
 export * from './shopping';
+export * from './recipes';
 export * from './dashboard';
 export * from './memoryStore';
 export * from './commands/context';

@@ -1,6 +1,7 @@
 /** Organisation de la liste de courses par magasin et par rayon, bilan par magasin. */
 import type { Category, Purchase, ShoppingItem, Store } from './types';
 import { isActiveItem } from './domain';
+import { addDays } from './time';
 
 export interface AisleGroup {
   /** Identifiant de catégorie (rayon), '' pour les articles sans rayon. */
@@ -118,4 +119,14 @@ export function storeSummary(storeId: string, purchases: Purchase[], usualMin = 
     usual: [...usual.values()].filter((u) => u.count >= usualMin).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'fr')).slice(0, 15),
     recent: list.slice(0, 30),
   };
+}
+
+/**
+ * Rythme des courses : dernière sortie (jour du dernier achat enregistré) et prochaine sortie attendue
+ * (dernière + intervalle habituel du foyer). Sans aucun achat, pas de rythme connu : rien n'est supposé.
+ */
+export function nextShoppingTrip(purchases: Pick<Purchase, 'date'>[], intervalDays: number, today: string): { lastTrip: string | null; nextTrip: string | null } {
+  let last: string | null = null;
+  for (const p of purchases) if (p.date <= today && (!last || p.date > last)) last = p.date;
+  return { lastTrip: last, nextTrip: last ? addDays(last, Math.max(1, intervalDays)) : null };
 }

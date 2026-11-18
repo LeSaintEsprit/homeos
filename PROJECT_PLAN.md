@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.12 — 18/11/2026 — phases 1 à 12 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.15 — 18/11/2026 — phases 1 à 15 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -221,18 +221,39 @@ Vérifié : 2 tests serveur (foyer nommé et lien ; deux foyers → deux récapi
 Défauts trouvés et corrigés : **le récapitulatif d'un foyer remplaçait celui d'un autre** sur le téléphone (même étiquette « digest ») ; notifications sans nom de foyer et ouvrant le foyer actif quel qu'il soit. Découverte d'outillage : le Chromium allégé des tests refuse toute notification — le test push utilise le Chromium complet.
 Limites : l'abonnement réel passe par le service push du navigateur (Google, Mozilla, Apple), injoignable ici : **à essayer sur iPhone (application installée sur l'écran d'accueil, iOS 16.4 ou plus), Android et ordinateur** avec le bouton de test.
 
-### Phase 13 — Validation globale ← **prochaine étape**
+### Phase 13 — Validation globale ✅ (18/11/2026)
 **Contenu** : E2E exhaustif (chaque bouton) ; **semaine familiale sur la pile complète** (2 membres, 2 appareils, hors ligne partiel) ; isolation de bout en bout ; performances (1 000 produits, 50 000 mouvements) ; accessibilité ; revue visuelle (captures clair/sombre, mobile/ordinateur) ; **audit global** (MASTER_SPEC §19).
 **Sortie** : TST-* « Testé et validé ».
 
-### Phase 14 — Déploiement et documentation
+**Bilan de la phase 13** :
+- **Semaine familiale sur la pile complète, par l'interface** (`family-week.spec`) : deux membres sur deux appareils, inventaire guidé du réfrigérateur, liste partagée en temps réel, consommations simultanées dont une hors ligne (rien perdu, rien compté deux fois), proposition du moteur, mode courses, réception avec prix, alerte de péremption traitée, contrôle de cohérence « aucune anomalie », journal attribué.
+- **Chaque bouton** (`buttons.spec`) : un robot actionne chaque bouton de 22 écrans, puis chaque bouton des fenêtres ouvertes (hors confirmations irréversibles, couvertes par leurs parcours) ; échec en cas d'erreur JavaScript, d'écran d'erreur ou de texte technique.
+- **Parcours ajoutés** : catalogue (codes multiples, nom alternatif, fusion, archivage/restauration), gestes du quotidien (terminé, manquant, déplacement partiel), comptes (connexion, mauvais mot de passe, déconnexion, profil vu des autres, mot de passe oublié, lien de réinitialisation à usage unique), deux foyers d'un même compte sans aucun mélange (stocks, liste, prévisions, alertes, cloche, dépenses), résolution d'un conflit, persistance immédiate d'une action après rechargement.
+- **Accessibilité** : axe-core (WCAG 2.1 A/AA) sur 22 écrans, une fiche ouverte, le mode courses et les pages publiques, en thèmes clair et sombre : aucune violation grave ; aucun texte technique affiché.
+- **Performances** (1 000 produits, 2 000 lots, 50 000 mouvements, 5 000 achats) : analyse complète ≈ 0,14 s, contrôle de cohérence ≈ 0,2 s (au lieu de 4,5 s), alertes (analyse + contrôle) ≈ 0,3 s, première synchronisation serveur ≈ 1 s (mesures sur la machine de test). Paquet initial ramené de 837 Ko à ≈ 550 Ko (écrans chargés à la demande).
+- **Licences** : `scripts/check-licenses.mjs` — 170 dépendances livrées, toutes libres et gratuites.
+- **Rétention** : purge du journal d'idempotence testée (seules les opérations hors délai sont oubliées ; leur rejeu est refusé).
+Vérifié : 172 tests unitaires/intégration ; 45 parcours de bout en bout (téléphone émulé), tous verts sur une exécution complète.
+Défauts trouvés et corrigés : **la fiche d'un produit archivé ayant encore du stock plantait** (écran blanc) et les produits archivés n'étaient plus accessibles nulle part ; **la déconnexion ne se terminait jamais** (suppression de la base locale bloquée par la connexion ouverte) ; **l'hébergeur sans foyer ne pouvait pas atteindre l'administration** ; **le contrôle de cohérence prenait 4,5 s** sur un gros foyer (comparaison de toutes les paires) — index inversé, résultat identique prouvé par un test d'équivalence ; contrastes insuffisants en thème clair (texte secondaire, avertissement, succès, danger, accent) ; boutons-icônes sans nom accessible ; nom accessible du sélecteur de foyer différent du texte visible ; un test imbriqué dans un autre qui ne s'exécutait jamais ; écran de secours ajouté autour de chaque écran (plus d'écran blanc possible).
+Limites : WebKit/Safari (iPhone) indisponible dans cet environnement ; installation PWA, caméra, OCR sur photos réelles et notifications push **à essayer sur appareils réels** ; revue visuelle faite par captures sur téléphone émulé et ordinateur.
+
+### Phase 14 — Déploiement et documentation ✅ (18/11/2026, accès distant à essayer chez l'hébergeur)
 **Contenu** : image Docker finale, `docker-compose`, guide d'hébergement gratuit (Raspberry Pi/NAS/PC + Tailscale ou Cloudflare Tunnel), sauvegardes hors machine, mise à jour, guide utilisateur pour transmettre HOMEOS à d'autres familles.
 **Sortie** : DEP-*, DOC-* « Testé et validé » (installation réelle depuis zéro).
 
-### Phase 15 — Fonctionnalités avancées (P3)
+**Bilan de la phase 14** : `docs/DEPLOIEMENT.md` (hébergement gratuit : Docker, réglages, HTTPS par Tailscale ou Tailscale Funnel sans nom de domaine, Cloudflare Tunnel avec domaine, sauvegardes hors machine, restauration, mise à jour, commandes) ; `docs/GUIDE_UTILISATEUR.md` (pour les familles) ; `README.md`.
+Vérifié : **image construite et lancée depuis zéro** (98 Mo compressée), installation neuve, parcours complet dans un navigateur contre le conteneur, inscription sans invitation refusée, commandes d'administration, redémarrage sans perte, sonde de santé, `docker compose up` réel.
+Défauts trouvés et corrigés : **le premier démarrage plantait** (dossier de données créé par Docker au nom de root, illisible pour le serveur) — script de démarrage qui confie le dossier au compte non privilégié puis abandonne les droits root ; une commande d'administration lancée par `docker exec` (root) aurait pu laisser des fichiers inutilisables par le serveur — elle abandonne désormais ses droits ; journal Docker sans limite (chaque requête journalisée) — requêtes journalisées seulement sur demande, rotation 3 × 10 Mo ; sonde de santé figée sur le port 8080 ; Docker Hub et le miroir d'Amazon refusent souvent les téléchargements — miroir Google (`mirror.gcr.io`) documenté et vérifié ; construction possible derrière un proxy d'entreprise (certificat fourni en secret de construction).
+Limites : l'accès distant (Tailscale, Cloudflare) et l'installation sur Raspberry Pi (ARM) sont à faire chez l'hébergeur ; les guides restent à relire par une famille.
+
+### Phase 15 — Fonctionnalités avancées (P3) ✅ (18/11/2026)
 Recettes (réalisables avec le stock, ingrédients manquants → liste, cuisiner), suggestions périodiques de réapprovisionnement, produits habituels par magasin.
 
-### Phase 16 — Futur (P4, à spécifier — D5)
+**Bilan de la phase 15** : **Inventaire › Recettes** — liste classée (réalisables, puis anti-gaspillage : recettes utilisant des produits à consommer dans les 3 jours), fiche avec parts ajustables et état de chaque ingrédient (en stock, insuffisant avec la quantité manquante dans l'unité de la recette, manquant, « à vérifier » s'il n'est pas suivi), « Ajouter N manquants à la liste » (déduction faite de la liste, arrondi à l'achat), « Cuisiner » (confirmation détaillée, déduction FEFO, annulable), saisie avec les produits de l'inventaire proposés à la frappe. **Suggestion périodique** : la veille de la prochaine sortie habituelle (dernier achat + intervalle du foyer), un rappel « Prochaines courses : N produits à prévoir » par période, dans la cloche et les récapitulatifs push. Les produits habituels par magasin existaient déjà (phase 5). **Transparence vis-à-vis de l'hébergeur** (D4) affichée à chaque membre dans Paramètres.
+Vérifié : 6 tests unitaires des recettes (unités, parts, périmés, DDM, liste déjà fournie, cuisiner + invariants, classement) ; 2 tests de la suggestion périodique ; 2 parcours de bout en bout (création depuis l'inventaire avec produits proposés, faisabilité, parts, manquants vers la liste une seule fois, réalisable après achat, cuisiner et stock vérifié ; modification et archivage) ; recettes incluses dans le robot « chaque bouton » ; captures clair/sombre.
+Défauts trouvés et corrigés : badge « Il manque 1 ingrédient » qui écrasait le nom de la recette sur téléphone (badge court dans la liste) ; « 4 unités Œufs » → « 4 Œufs » ; quantités manquantes affichées en unité de stock (« 0,05 kg ») au lieu de l'unité de la recette (« 50 g »).
+
+### Phase 16 — Futur (P4, à spécifier — D5) ← prochaine étape, sur décision
 Planification des repas, gestion des restes, tâches ménagères, chiffrement de bout en bout (D4), option PostgreSQL/RLS.
 
 ---

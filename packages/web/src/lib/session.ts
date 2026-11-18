@@ -91,9 +91,10 @@ export async function logout() {
   } catch {
     /* hors ligne : on nettoie quand même l'appareil */
   }
-  if (s.me) for (const hid of knownLocalHouseholds(s.me.user.id)) await deleteLocalHousehold(s.me.user.id, hid);
+  // D'abord quitter la session (le moteur de synchronisation se ferme), puis effacer l'appareil.
   localStorage.removeItem(ME_KEY);
   session.set({ status: 'anon', offline: false, me: null, activeId: null });
+  if (s.me) for (const hid of knownLocalHouseholds(s.me.user.id)) await deleteLocalHousehold(s.me.user.id, hid);
 }
 
 export function activeHousehold(s: SessionState): HouseholdRef | null {

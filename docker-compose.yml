@@ -1,20 +1,33 @@
 services:
   homeos:
-    build: .
+    build:
+      context: .
+      # En cas de « 429 Too Many Requests » de Docker Hub : décommentez la ligne suivante.
+      # args: { REGISTRY: "mirror.gcr.io/library/" }
     image: homeos:latest
     container_name: homeos
     restart: unless-stopped
     ports:
+      # Avec Tailscale ou Cloudflare Tunnel sur la même machine, préférez "127.0.0.1:8080:8080"
+      # (HOMEOS n'est alors pas joignable en clair depuis le réseau local).
       - "8080:8080"
     volumes:
       - ./data:/data
+    # Journaux limités à 3 × 10 Mo.
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
     environment:
-      # Adresse publique (liens d'invitation et de réinitialisation), ex. https://homeos.exemple.fr
+      # Adresse publique (liens d'invitation et de réinitialisation), ex. https://maison.votre-reseau.ts.net
       HOMEOS_PUBLIC_URL: ""
       # invite (par défaut) | open | closed
       HOMEOS_REGISTRATION: invite
-      # Derrière un proxy HTTPS (Cloudflare Tunnel, Caddy…) : 1
+      # Derrière un relais HTTPS (Tailscale, Cloudflare Tunnel, Caddy…) : 1
       HOMEOS_TRUST_PROXY: "1"
+      # Une fois l'accès HTTPS en place : 1 (cookies de session uniquement en HTTPS)
+      HOMEOS_COOKIE_SECURE: ""
+      # Contact transmis aux services de notification des navigateurs
+      # HOMEOS_VAPID_SUBJECT: "mailto:vous@exemple.fr"
       # Facultatif : envoi d'e-mails avec votre propre boîte (invitations, mot de passe oublié)
       # HOMEOS_SMTP_URL: "smtps://utilisateur:motdepasse@smtp.exemple.fr:465"
       # HOMEOS_MAIL_FROM: "HOMEOS <homeos@exemple.fr>"

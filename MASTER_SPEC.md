@@ -3,7 +3,7 @@
 > **Document de référence officiel du projet.** Tout ce que HOMEOS doit pouvoir faire est décrit ici.
 > État réel de chaque fonctionnalité : `FEATURE_TRACKER.md`. Organisation et étapes : `PROJECT_PLAN.md`.
 >
-> Version 1.0 — 17/11/2026 — consolidation des messages M1 à M5.
+> Version 1.0 — 17/11/2026 — consolidation des messages M1 à M5. Mise à jour 18/11/2026 — fin de la phase 15 (fonctionnalités avancées).
 
 ---
 
@@ -58,7 +58,7 @@ Objectifs mesurables : faire gagner du temps, éviter les oublis, réduire le ga
 
 | # | Règle | Origine |
 |---|---|---|
-| R1 | Budget de développement : **0 €**. Aucune dépendance payante indispensable, aucun abonnement. | M1§1, M3§12, M5§5 |
+| R1 | Budget de développement : **0 €**. Aucune dépendance payante indispensable, aucun abonnement. Vérifié par `node scripts/check-licenses.mjs` (toute dépendance livrée doit avoir une licence libre et gratuite). | M1§1, M3§12, M5§5 |
 | R2 | Technologies **open source** privilégiées ; limites des services gratuits **vérifiées avant intégration**. | M1§1 |
 | R3 | **Aucune IA générative.** Fonctions « intelligentes » = règles déterministes, statistiques, algorithmes classiques, données réelles. | M1§4, M3§12, M5§5 |
 | R4 | Interface **en français**. | M1§1 |
@@ -129,7 +129,8 @@ Chaque enregistrement métier porte `householdId` : produits, codes-barres, lots
 ## 5. Comptes, foyers, membres et autorisations
 
 ### 5.1 Comptes utilisateurs (M4§1)
-- Inscription (e-mail, mot de passe ≥ 8 caractères, nom), connexion, déconnexion.
+- Inscription (e-mail, mot de passe ≥ 8 caractères, nom), connexion, déconnexion. La **déconnexion efface les données locales** de l'appareil (bases de tous les foyers) ; elle aboutit même si une base est encore ouverte dans un autre onglet.
+- L'**administrateur du serveur** (premier compte) accède à l'administration (comptes, sauvegardes, liens de réinitialisation) même s'il n'appartient à aucun foyer.
 - **Récupération du mot de passe** : décision D2 (§16.2) — SMTP facultatif en libre-service, sinon lien à usage unique généré par l'administrateur du serveur ou par une commande sur le serveur.
 - Profil : nom, couleur, préférences ; modification des informations personnelles (nom, e-mail, mot de passe — le changement de mot de passe déconnecte les autres appareils).
 - Mots de passe hachés (scrypt + sel), sessions par cookie `HttpOnly`/`SameSite=Lax`/`Secure` (HTTPS), limitation des tentatives.
@@ -185,6 +186,7 @@ Catégories par défaut : Alimentation, Boissons, Produits frais, Produits surge
 
 ### 7.2 Fiche produit (M1§3, M3§3)
 Nom ; marque ; famille (variantes) ; alias et noms alternatifs ; catégorie ; photo facultative ; unité de stock ; conditionnement (ex. 1 paquet = 500 g) ; seuil minimal ; quantité idéale ; emplacement par défaut ; magasin habituel ; conservation après ouverture ; conservation habituelle (suggestion uniquement) ; consommation estimée manuelle (facultative, étiquetée comme telle) ; suivi du réapprovisionnement ; commentaires ; **plusieurs codes-barres** (chacun avec son format, sa marque et la quantité qu'il représente). Affichés depuis les données : quantité disponible, lots, dates, prix enregistrés, **consommation moyenne calculée**, historique des mouvements.
+**Archivage** : un produit archivé disparaît de l'inventaire et des prévisions, reste consultable (fiche, stock éventuel, historique) depuis « Produits archivés » et peut être restauré à l'identique.
 
 ### 7.3 Lots (M1§3, M3§2)
 Chaque entrée de stock crée un **lot** : quantité restante (≥ 0), quantité initiale, date de péremption et sa **source**, type **DLC/DDM**, numéro de lot, date d'achat, ouverture, emplacement, prix unitaire, magasin, **source et fiabilité de la quantité** (comptée, scannée, reçue, saisie, approximative), date du dernier comptage. Quantités distinguées : **achetée** (achat), **initiale** (lot), **restante** (lot), **consommée** (Σ sorties du lot).
@@ -339,7 +341,7 @@ Détection (sans correction automatique) : quantité négative ; Σ mouvements �
 - Idempotence par `opId` (résultat enregistré dans la même transaction que les écritures) ; ordre des opérations d'un appareil conservé.
 - Une opération restée hors ligne **plus de 150 jours** est refusée (message explicite) ; le journal d'idempotence est conservé 180 jours : une opération ne peut donc jamais être appliquée deux fois.
 - Pull incrémental paginé (curseur `seq`), temps réel par SSE, repli au retour au premier plan / en ligne / toutes les 60 s ; **époque** (`epoch`) : resynchronisation complète après restauration.
-- Conflits : deltas commutatifs ; correction de stock avec quantité attendue ; versions par champ (fusion des champs non concurrents, choix utilisateur pour les autres) ; fusion des doublons de liste avec alias d'identifiant ; « déjà acheté par X ».
+- Conflits : deltas commutatifs ; correction de stock avec quantité attendue ; versions par champ (fusion des champs non concurrents, choix utilisateur pour les autres) ; fusion des doublons de liste avec alias d'identifiant ; « déjà acheté par X ». Un conflit se **tranche dans le volet de synchronisation** : « Garder ma valeur » (réenvoyée, attribuée à son auteur) ou « Garder l'autre ».
 - Résultats : appliqué, appliqué avec avertissements, conflit, rejeté — tous visibles.
 - **Saisie en cours protégée** : une modification reçue en arrière-plan (confirmation du serveur, action d'un autre membre) ne réinitialise jamais un formulaire ouvert ; la version de référence servant à détecter les conflits est celle affichée à l'ouverture du formulaire.
 - Plateformes : iPhone (Safari, PWA installée), Android (Chrome), Windows (Edge/Chrome), navigateurs récents.
@@ -363,7 +365,9 @@ Détection (sans correction automatique) : quantité négative ; Σ mouvements �
 - Mode courses spécialement optimisé pour le magasin ; scanner fluide (§8.5).
 - Formulaires minimaux, questions uniquement nécessaires, valeurs par défaut intelligentes, annulation possible, messages d'erreur clairs en français.
 - Dates affichées au format français (« 19/11/2026 », « 19 nov. ») partout, y compris dans le journal et les messages ; jamais de date technique (AAAA-MM-JJ).
-- Accessibilité : contrastes suffisants, cibles tactiles ≥ 44 px, textes lisibles.
+- Accessibilité : **WCAG 2.1 AA** (contrastes, noms accessibles, libellés reliés aux champs), cibles tactiles ≥ 44 px, textes lisibles — vérifié automatiquement sur tous les écrans, thèmes clair et sombre.
+- **Jamais d'écran blanc** : si un écran rencontre une erreur inattendue, un message clair (« Vos données ne sont pas affectées ») et un bouton Recharger s'affichent ; jamais de texte technique (valeur manquante, objet brut, date ISO).
+- **Rapidité** : écrans chargés à la demande ; sur un foyer de 1 000 produits et 50 000 mouvements, analyse complète et contrôle de cohérence < 0,6 s chacun, première synchronisation ≈ 1 s.
 - Les notifications éphémères ne masquent jamais une action : quand une fiche ou le mode courses est ouvert, elles s'affichent en haut de l'écran.
 - **Chaque bouton fonctionne** ; chaque modification est enregistrée (vérifié par tests E2E).
 
@@ -404,6 +408,12 @@ Règles complémentaires découlant de D1/D2 :
 ## 17. Fonctionnalités avancées (M1§10)
 Recettes (ingrédients liés aux produits, portions) ; **recettes réalisables avec le stock** ; **ingrédients manquants → liste** ; « cuisiner » (déduction des ingrédients du stock, FEFO) ; planification des repas ; gestion des restes ; gestion des produits ouverts (déjà au cœur, §7.5) ; tâches ménagères ; comparaison des prix (§13.2) ; plusieurs magasins (§10.4) ; plusieurs foyers (§4) ; **suggestions de réapprovisionnement périodiques** (cadence d'achat). Ces modules **ne doivent pas compromettre** les fonctionnalités principales : chacun est un type d'entité + des commandes, sans toucher au cœur.
 
+**Règles retenues (phase 15)** :
+- **Faisabilité** : chaque ingrédient est comparé au stock réel, unités converties ; un lot dont la date limite de consommation est dépassée ne compte pas (une date « de préférence avant » dépassée, si) ; un ingrédient non lié est rapproché par nom exact ou nom alternatif, sinon il est « à vérifier » et **jamais supposé présent**. Statuts : réalisable / il manque N ingrédients (les facultatifs ne comptent pas). Classement : réalisables, puis recettes utilisant des produits à consommer dans les 3 jours (anti-gaspillage).
+- **Manquants → liste** : uniquement les ingrédients obligatoires, arrondis à l'unité d'achat, **déduction faite de ce qui est déjà dans la liste** ; ajout sur action explicite.
+- **Cuisiner** : confirmation détaillée, déduction FEFO, annulable.
+- **Suggestion périodique** : la veille de la prochaine sortie habituelle (dernier achat enregistré + intervalle du foyer), un rappel « Prochaines courses : N produits à prévoir » par période, dans la cloche et les récapitulatifs ; aucun rythme supposé sans achat enregistré ; rien n'est ajouté à la liste sans accord.
+
 ---
 
 ## 18. Modèle de données (référence)
@@ -422,7 +432,8 @@ Invariants (vérifiés par le contrôle d'intégrité et les tests) : quantités
 - **Intégration (serveur)** : comptes, sessions, limitation ; foyers, invitations, rôles, retrait ; push/pull, idempotence (rejeu), concurrence, ordre hors ligne, alias ; export/import ; sauvegarde → restauration ; push ; proxy codes-barres (simulé).
 - **Isolation multi-foyers** : scénario A1/A2/B1/B2 complet (§6.3).
 - **Semaine familiale simulée** : réception, ajouts, consommation, ouvertures, modifications, liste, achat, mise à jour du stock, péremption, inventaire correctif — **au niveau domaine et sur la pile complète** (deux membres, deux appareils, hors ligne partiel), invariants vérifiés chaque jour.
-- **Bout en bout (Playwright)** : parcours complet ; deux membres en temps réel ; hors ligne puis reconnexion ; mobile (iPhone/Android émulés) ; changement de foyer sans mélange ; chaque bouton.
+- **Bout en bout (Playwright)** : parcours complet ; deux membres en temps réel ; hors ligne puis reconnexion ; mobile (iPhone/Android émulés) ; changement de foyer sans mélange ; **chaque bouton** (robot qui actionne chaque bouton de chaque écran et des fenêtres ouvertes) ; accessibilité (axe-core, WCAG 2.1 AA).
+- **Performances** : foyer volumineux (1 000 produits, 50 000 mouvements, 5 000 achats) avec seuils de temps vérifiés.
 - **Audit global** périodique : cohérence, simplicité, design, rapidité, scanner, lots, synchronisation, calculs, recommandations, conservation des données.
 
 ---

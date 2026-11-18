@@ -6,8 +6,9 @@ import type { Activity, EntityCollections, Member, NotificationKind, Notificatio
 import type { HouseholdForecast } from './engine';
 import type { AuditIssue } from './audit';
 import type { UnusualSpending } from './stats';
-import { DEFAULT_NOTIFICATION_PREFS } from '../defaults';
-import { daysBetweenInstants } from '../time';
+import { DEFAULT_NOTIFICATION_PREFS, DEFAULT_SETTINGS } from '../defaults';
+import { addDays, daysBetweenInstants, frDate } from '../time';
+import { nextShoppingTrip } from '../shopping';
 import { formatQty } from '../units';
 
 export type AlertSeverity = 'critical' | 'warning' | 'info';
@@ -82,6 +83,25 @@ export function computeAlerts(input: AlertInput): Alert[] {
   const urgent = forecast.recommendations.filter((r) => r.urgency === 'now');
   if (urgent.length) {
     out.push({ key: `to_buy:${today}:${urgent.length}`, kind: 'to_buy', severity: 'info', title: `${urgent.length} produit${urgent.length > 1 ? 's' : ''} à acheter`, body: urgent.slice(0, 3).map((r) => r.explanation).join(' '), link: '/previsions', at: now });
+  }
+  // Suggestion périodique : la veille de la prochaine sortie habituelle (et jusqu'aux courses suivantes),
+  // tout ce qui est à prévoir — y compris les achats habituels — en un seul rappel par période.
+  const settings = [...c.household.values()][0]?.settings ?? DEFAULT_SETTINGS;
+  const { nextTrip } = nextShoppingTrip([...c.purchase.values()], settings.shoppingIntervalDays, today);
+  if (nextTrip && today >= addDays(nextTrip, -1) && forecast.recommendations.length) {
+    const recos = forecast.recommendations;
+    const names = recos.slice(0, 5).map((r) => c.product.get(r.productId)?.name).filter(Boolean) as string[];
+    const regular = recos.filter((r) => r.reason === 'regular').length;
+    const when = nextTrip > today ? ` (prévues vers le ${frDate(nextTrip)})` : '';
+    out.push({
+      key: `restock:${nextTrip}`,
+      kind: 'to_buy',
+      severity: 'info',
+      title: `Prochaines courses${when} : ${recos.length} produit${recos.length > 1 ? 's' : ''} à prévoir`,
+      body: `${names.join(', ')}${recos.length > names.length ? '…' : ''}${regular ? ` — dont ${regular} achat${regular > 1 ? 's' : ''} habituel${regular > 1 ? 's' : ''}` : ''}. Rien n'est ajouté à la liste sans votre accord.`,
+      link: '/courses',
+      at: now,
+    });
   }
   const waiting = [...c.shoppingItem.values()].filter((i) => i.status === 'purchased' && i.purchasedAt && daysBetweenInstants(i.purchasedAt, now) > 0.5);
   if (waiting.length) {
