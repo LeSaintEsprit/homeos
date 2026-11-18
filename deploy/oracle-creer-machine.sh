@@ -49,7 +49,8 @@ fi
 
 lancer() { # $1 forme, $2 image, $3 configuration (facultative)
   [ -n "$2" ] || return 1
-  local args=(compute instance launch -c "$T" --availability-domain "$AD" --shape "$1" --image-id "$2"
+  # --no-retry : reponse immediate (sinon la CLI reessaie en silence jusqu a 10 minutes) ; la boucle ci-dessous gere les essais.
+  local args=(--no-retry compute instance launch -c "$T" --availability-domain "$AD" --shape "$1" --image-id "$2"
     --subnet-id "$SUBNET" --assign-public-ip true --display-name "$NAME"
     --ssh-authorized-keys-file "$HOME/.ssh/homeos.pub" --user-data-file "$CI")
   [ -n "${3:-}" ] && args+=(--shape-config "$3")
