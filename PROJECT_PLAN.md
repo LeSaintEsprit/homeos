@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.11 — 18/11/2026 — phases 1 à 11 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.12 — 18/11/2026 — phases 1 à 12 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -212,11 +212,16 @@ Limites : essais sur photos réelles de téléphone (flou, pli, éclairage) à f
 Vérifié : 2 tests d'intégration serveur (foyer supprimé récupéré par l'hébergeur sans qu'il y entre ; foyer orphelin récupéré avec l'hébergeur comme administrateur, signalé) ; 3 parcours de bout en bout, dont un sur une **instance fraîche lancée par le test** (le premier compte est l'hébergeur) : sauvegarde, téléchargement, restauration complète et resynchronisation des appareils.
 Défauts trouvés et corrigés : **la suppression d'un foyer n'avait pas d'écran** (décision D3 non livrée) ; un foyer supprimé par erreur n'était récupérable qu'en restaurant toute l'instance (donc en ramenant en arrière toutes les familles) ; **l'aide de test « inviter un membre » créait en fait des administrateurs** (le sélecteur trouvait « membres » dans la description du rôle Administrateur) — corrigée et vérifiée, les 34 parcours repassent avec de vrais rôles Membre.
 
-### Phase 12 — Notifications push et récapitulatifs ← **prochaine étape**
+### Phase 12 — Notifications push et récapitulatifs ✅ (18/11/2026, essais sur appareils réels à faire)
 **Contenu** : abonnement Web Push (service worker), préférences de récapitulatif, alertes immédiates facultatives, test sur iPhone (PWA installée), Android, Windows.
 **Sortie** : NOTIF-12/13 « Testé et validé ».
 
-### Phase 13 — Validation globale
+**Bilan de la phase 12** : notifications qui **nomment le foyer**, étiquette propre à chaque foyer, lien qui ouvre l'application **sur ce foyer** (`?foyer=`, ignoré si l'on n'en est pas membre) ; bouton « Envoyer une notification de test » dans Paramètres.
+Vérifié : 2 tests serveur (foyer nommé et lien ; deux foyers → deux récapitulatifs distincts) ; 1 parcours de bout en bout où un message push est livré au service worker par le protocole de débogage de Chromium (affichage, remplacement par étiquette, lien vers le bon foyer, foyer étranger ignoré).
+Défauts trouvés et corrigés : **le récapitulatif d'un foyer remplaçait celui d'un autre** sur le téléphone (même étiquette « digest ») ; notifications sans nom de foyer et ouvrant le foyer actif quel qu'il soit. Découverte d'outillage : le Chromium allégé des tests refuse toute notification — le test push utilise le Chromium complet.
+Limites : l'abonnement réel passe par le service push du navigateur (Google, Mozilla, Apple), injoignable ici : **à essayer sur iPhone (application installée sur l'écran d'accueil, iOS 16.4 ou plus), Android et ordinateur** avec le bouton de test.
+
+### Phase 13 — Validation globale ← **prochaine étape**
 **Contenu** : E2E exhaustif (chaque bouton) ; **semaine familiale sur la pile complète** (2 membres, 2 appareils, hors ligne partiel) ; isolation de bout en bout ; performances (1 000 produits, 50 000 mouvements) ; accessibilité ; revue visuelle (captures clair/sombre, mobile/ordinateur) ; **audit global** (MASTER_SPEC §19).
 **Sortie** : TST-* « Testé et validé ».
 

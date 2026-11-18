@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 18/11/2026 — fin de la phase 11 (écrans de données).
+> Dernière mise à jour : 18/11/2026 — fin de la phase 12 (notifications push).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 11)** : 164 tests unitaires/intégration et 34 parcours de bout en bout. Toutes les rubriques ont leur interface. Restent : notifications push sur appareils réels, validation globale (semaine familiale complète, performances, accessibilité) et déploiement.
+**Constat global (fin de phase 12)** : 165 tests unitaires/intégration et 35 parcours de bout en bout. Toutes les rubriques ont leur interface. Restent : validation globale (semaine familiale complète, performances, accessibilité, découpage du code), déploiement et essais sur appareils réels.
 
 ---
 
@@ -353,8 +353,8 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | NOTIF-09 | Inventaires à vérifier | — | M3§9 | P1 | REL-01 | Testé et validé | D ✅ stats.test (stock approximatif ou à vérifier) · C ✅ même affichage | Unitaires |
 | NOTIF-10 | Personnalisation par membre | Types, alertes masquées | M3§9 | P1 | — | Testé et validé | D ✅ · C ✅ types désactivables dans Paramètres (lien direct depuis le centre), masquage d’une alerte, « Tout masquer », « Tout réafficher » · `e2e/dashboard.spec.ts` | E2E |
 | NOTIF-11 | Déduplication | Clé stable, journal d'envoi | M3§9 | P1 | — | Testé et validé | D ✅ clés stables (une alerte masquée revient si la situation change) · S ✅ services.test · C ✅ · `e2e/dashboard.spec.ts` | Intégration |
-| NOTIF-12 | Récapitulatif quotidien / hebdomadaire | Web Push à l'heure choisie | M3§9 | P2 | NOTIF-13 | Développé | S ✅ services.test (heure choisie, préférences, anti-doublon) · C ✅ choix quotidien/hebdomadaire/aucun et heure dans Paramètres ; réception sur téléphone réel à vérifier | Intégration (envoi simulé) |
-| NOTIF-13 | Web Push | VAPID local, iPhone (PWA installée), Android, PC | M3§9 | P2 | FND-06 | En développement | S ✅ · C 🟡 service worker (réception, clic) + abonnement dans Paramètres ; essais sur appareils réels à faire | Manuel sur appareils |
+| NOTIF-12 | Récapitulatif quotidien / hebdomadaire | Web Push à l'heure choisie | M3§9 | P2 | NOTIF-13 | Testé et validé | S ✅ services.test (heure choisie, préférences, une fois par jour, **un récapitulatif par foyer** sans remplacement mutuel, foyer nommé, lien vers le foyer) · C ✅ réglages dans Paramètres, notification de test · `e2e/push.spec.ts` (affichage sur l’appareil) ; réception sur téléphone réel à confirmer par l’utilisateur | Intégration (envoi simulé) |
+| NOTIF-13 | Web Push | VAPID local, iPhone (PWA installée), Android, PC | M3§9 | P2 | FND-06 | Développé | S ✅ VAPID local, abonnement, envoi, anti-doublon, nettoyage des abonnements expirés · C ✅ service worker : message → notification (titre avec le foyer, étiquette, lien), clic → ouverture sur le bon foyer · `e2e/push.spec.ts` (livraison par le protocole de débogage de Chromium) · bouton « Envoyer une notification de test » ; abonnement réel impossible ici (service push du navigateur injoignable) : **à vérifier sur iPhone (PWA installée, iOS ≥ 16.4), Android et ordinateur** | Manuel sur appareils |
 | NOTIF-14 | Fil d'activité partagé du foyer | « Notifications partagées » | M1§2 | P1 | MVT-10 | Testé et validé | D ✅ · C ✅ onglet « Activité du foyer » et journal de la page Famille · `e2e/dashboard.spec.ts` | E2E |
 
 ## 21. Niveaux de fiabilité et cohérence
@@ -447,9 +447,9 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 199 |
+| Testé et validé | 200 |
 | Développé | 60 |
-| En développement | 26 |
+| En développement | 25 |
 | À développer | 7 |
 | À spécifier | 0 |
 | Reporté | 5 |

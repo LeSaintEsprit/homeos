@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle, Bell, Check, ChevronDown, CloudOff, House, KeyRound, LineChart, Package, Plus, RefreshCw, ScanLine, Settings, ShoppingCart, Users, CloudCheck, CloudUpload,
 } from 'lucide-react';
@@ -145,8 +145,30 @@ export function BellButton() {
   );
 }
 
+/**
+ * Lien ouvert depuis une notification : `?foyer=<id>` bascule sur ce foyer (si l'on en est
+ * membre) avant d'afficher la page, puis le paramètre est retiré de l'adresse.
+ */
+function useHouseholdFromLink(s: SessionState) {
+  const [params, setParams] = useSearchParams();
+  const engine = useEngine();
+  const target = params.get('foyer');
+  useEffect(() => {
+    if (!target || !s.me) return;
+    const known = s.me.households.some((h) => h.id === target);
+    if (known && target !== s.activeId) {
+      void engine.drain().catch(() => undefined).then(() => setActiveHousehold(target));
+      return;
+    }
+    const next = new URLSearchParams(params);
+    next.delete('foyer');
+    setParams(next, { replace: true });
+  }, [target, s.activeId]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
 export function Shell() {
   const s = useObservable(session);
+  useHouseholdFromLink(s);
   const navigate = useNavigate();
   const path = useLocation().pathname;
   const hideFab = path.startsWith('/scanner') || path.startsWith('/courses/magasin') || path.startsWith('/courses/ticket');

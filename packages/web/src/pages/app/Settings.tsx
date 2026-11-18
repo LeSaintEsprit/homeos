@@ -219,6 +219,11 @@ function NotificationSection() {
         </div>
         {push === 'on' || push === 'off' ? <Switch label="Notifications push" checked={push === 'on'} onChange={(v) => void (v ? enablePush() : disablePush())} /> : null}
       </div>
+      {push === 'on' && (
+        <button className="btn sm" style={{ alignSelf: 'flex-start' }} onClick={() => void post<{ sent: number }>('/api/push/test').then((r) => toast(r.sent ? 'Notification de test envoyée : elle doit apparaître dans quelques secondes.' : 'Aucun appareil abonné n’a pu être joint.', r.sent ? 'success' : 'warning')).catch((e) => toast(errorMessage(e), 'error'))} data-testid="push-test">
+          <Bell size={15} /> Envoyer une notification de test
+        </button>
+      )}
       <Field label="Récapitulatif">
         <Segmented label="Récapitulatif" value={prefs.digest} onChange={(v) => save({ digest: v })} options={[{ value: 'daily', label: 'Quotidien' }, { value: 'weekly', label: 'Hebdo (lundi)' }, { value: 'off', label: 'Aucun' }]} />
       </Field>

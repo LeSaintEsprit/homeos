@@ -116,10 +116,25 @@ describe('notifications push', () => {
     expect(await s.push.runDigests(at)).toBe(2);
     expect(s.pushes.map((p) => p.endpoint).sort()).toEqual(['https://push.example/a', 'https://push.example/b']);
     expect(s.pushes[0].payload.title).toContain('point du jour');
+    expect(s.pushes[0].payload.title).toContain('Maison');
+    expect(s.pushes[0].payload.url).toBe(`/notifications?foyer=${hid}`);
+    expect(s.pushes[0].payload.tag).toBe(`digest-${hid}`);
     expect(s.pushes[0].payload.body).toContain('Café');
     expect(await s.push.runDigests(new Date('2026-11-17T08:20:00Z'))).toBe(0);
     expect(await s.push.runDigests(new Date('2026-11-17T09:05:00Z'))).toBe(0);
     expect(await s.push.runDigests(new Date('2026-11-18T08:05:00Z'))).toBe(2);
+  });
+
+  it('deux foyers : un récapitulatif par foyer, sans que l\'un remplace l\'autre sur le téléphone', async () => {
+    const { a, hid } = await household();
+    const h2 = await a.createHousehold('Chalet', { timezone: 'UTC' });
+    await a.ok(h2, 'product.create', { id: id(), name: 'Bois', unit: 'piece', minQty: 5, initialStock: { lotId: id(), quantity: 1 } });
+    s.pushes.length = 0;
+    await s.push.runDigests(new Date('2026-11-17T08:05:00Z'));
+    const mine = s.pushes.filter((p) => p.endpoint === 'https://push.example/a');
+    expect(mine.map((p) => p.payload.tag).sort()).toEqual([`digest-${h2}`, `digest-${hid}`].sort());
+    expect(mine.find((p) => p.payload.tag === `digest-${h2}`)!.payload.body).toContain('Bois');
+    expect(mine.find((p) => p.payload.tag === `digest-${h2}`)!.payload.body).not.toContain('Café');
   });
 
   it('préférences : types désactivés, récapitulatif désactivé', async () => {
@@ -138,5 +153,7 @@ describe('notifications push', () => {
     await new Promise((r) => setTimeout(r, 20));
     expect(s.pushes.map((x) => x.endpoint)).toEqual(['https://push.example/a']);
     expect(s.pushes[0].payload.body).toBe('B a signalé « Café » manquant');
+    expect(s.pushes[0].payload.title).toBe('HOMEOS · Maison');
+    expect(s.pushes[0].payload.url).toBe(`/notifications?foyer=${hid}`);
   });
 });

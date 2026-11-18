@@ -89,13 +89,15 @@ export class PushService {
   async notifyImportant(householdId: string, acts: Activity[]) {
     if (!acts.length) return;
     const members = (this.db.prep('SELECT userId, name, prefs FROM members WHERE householdId = ? AND active = 1').all(householdId) as { userId: string; name: string; prefs: string }[]);
+    const hname = (this.db.prep('SELECT name FROM households WHERE id = ?').get(householdId) as { name: string } | undefined)?.name ?? '';
     for (const a of acts) {
       const actor = members.find((m) => m.userId === a.userId)?.name ?? 'Un membre';
       for (const m of members) {
         if (m.userId === a.userId) continue;
         const prefs = memberNotificationPrefs({ prefs: JSON.parse(m.prefs || '{}') } as Member);
         if (!prefs.pushImportant || prefs.muted.includes('important_change')) continue;
-        await this.sendOnce(m.userId, `act:${a.id}`, { title: 'HOMEOS', body: `${actor} ${a.summary}`, url: '/famille', tag: `act-${a.id}` });
+        // Le foyer est nommé et le clic ouvre l'application sur CE foyer (comptes multi-foyers).
+        await this.sendOnce(m.userId, `act:${a.id}`, { title: `HOMEOS · ${hname}`, body: `${actor} ${a.summary}`, url: `/notifications?foyer=${householdId}`, tag: `act-${a.id}` });
       }
     }
   }
@@ -133,7 +135,8 @@ export class PushService {
         const digest = buildDigest(alerts, prefs.digest);
         if (!digest) continue;
         const key = prefs.digest === 'daily' ? `digest:${id}:${today}` : `digest-w:${id}:${today}`;
-        count += await this.sendOnce(userId, key, { title: digest.title, body: digest.body, url: '/', tag: 'digest' });
+        // Étiquette propre au foyer : le récapitulatif d'un foyer ne remplace jamais celui d'un autre.
+        count += await this.sendOnce(userId, key, { title: `${digest.title} · ${h.name}`, body: digest.body, url: `/notifications?foyer=${id}`, tag: `digest-${id}` });
       }
     }
     // Purge du journal d'envoi (> 60 jours).
