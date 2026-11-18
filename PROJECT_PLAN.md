@@ -3,7 +3,7 @@
 > Organisation, état des lieux et étapes du développement.
 > Exigences : `MASTER_SPEC.md` (référence). État de chaque fonctionnalité : `FEATURE_TRACKER.md`.
 >
-> Version 2.10 — 18/11/2026 — phases 1 à 10 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
+> Version 2.11 — 18/11/2026 — phases 1 à 11 terminées. (v2.0 : consolidation M1–M5 et audit du code.) (v1.0 : plan initial ; v1.1 : analyse d'impact du scanner et des enrichissements, intégrée à MASTER_SPEC.)
 
 ---
 
@@ -204,11 +204,15 @@ Défauts trouvés et corrigés : **une ligne « 2 x 3,89 » imprimée avant son 
 Limites : essais sur photos réelles de téléphone (flou, pli, éclairage) à faire sur appareil ; le paquet JavaScript principal (837 Ko, 252 Ko compressé) sera découpé par écran en phase 13.
 **Dépend de** : Phases 4, 5, 9.
 
-### Phase 11 — Données : sauvegardes, export/import, restauration (interface) ← **prochaine étape**
+### Phase 11 — Données : sauvegardes, export/import, restauration (interface) ✅ (18/11/2026)
 **Contenu** : écrans Paramètres → Données (export JSON/CSV, import, contrôle d'intégrité) et Administration du serveur (sauvegardes, vérification, téléchargement, restauration complète ou par foyer).
 **Sortie** : BAK-* « Testé et validé ».
 
-### Phase 12 — Notifications push et récapitulatifs
+**Bilan de la phase 11** : **Paramètres › Données** : contrôle d'intégrité côté serveur, export complet JSON (avec ou sans photos) et CSV (inventaire, achats, mouvements), import comme nouveau foyer, retour à une version précédente (sauvegarde du serveur → nouveau foyer, l'original intact), suppression du foyer (nom exact, sauvegarde préalable) — restauration et suppression réservées aux administrateurs du foyer. **Administration** (hébergeur) : sauvegardes vérifiées (création, téléchargement, détail), « Foyers… » pour récupérer **un seul foyer** d'une sauvegarde sans toucher aux autres familles (nouvelle route serveur), « Tout restaurer » avec confirmation.
+Vérifié : 2 tests d'intégration serveur (foyer supprimé récupéré par l'hébergeur sans qu'il y entre ; foyer orphelin récupéré avec l'hébergeur comme administrateur, signalé) ; 3 parcours de bout en bout, dont un sur une **instance fraîche lancée par le test** (le premier compte est l'hébergeur) : sauvegarde, téléchargement, restauration complète et resynchronisation des appareils.
+Défauts trouvés et corrigés : **la suppression d'un foyer n'avait pas d'écran** (décision D3 non livrée) ; un foyer supprimé par erreur n'était récupérable qu'en restaurant toute l'instance (donc en ramenant en arrière toutes les familles) ; **l'aide de test « inviter un membre » créait en fait des administrateurs** (le sélecteur trouvait « membres » dans la description du rôle Administrateur) — corrigée et vérifiée, les 34 parcours repassent avec de vrais rôles Membre.
+
+### Phase 12 — Notifications push et récapitulatifs ← **prochaine étape**
 **Contenu** : abonnement Web Push (service worker), préférences de récapitulatif, alertes immédiates facultatives, test sur iPhone (PWA installée), Android, Windows.
 **Sortie** : NOTIF-12/13 « Testé et validé ».
 

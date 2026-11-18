@@ -110,6 +110,44 @@ describe('sauvegardes', () => {
     expect(JSON.stringify([...restored.product.values()])).not.toContain('Lait');
   });
 
+  it("foyer supprimé par erreur : l'hébergeur le récupère seul, sans toucher aux autres ni y entrer", async () => {
+    const { admin, sister, A, B } = await seeded();
+    const b = (await admin.req('POST', '/api/admin/backups')).json.backup;
+    await admin.ok(A, 'product.create', { id: id(), name: 'Après la sauvegarde', unit: 'piece' });
+    // La sœur supprime son foyer (sauvegarde automatique juste avant).
+    expect((await sister.req('DELETE', `/api/households/${B}`, { confirmName: 'Maison B' })).status).toBe(200);
+    expect((await sister.req('GET', `/api/households/${B}/backups`)).status).toBe(404);
+    // Réservé à l'hébergeur.
+    expect((await sister.req('GET', `/api/admin/backups/${b.name}/households`)).status).toBe(403);
+    const list = (await admin.req('GET', `/api/admin/backups/${b.name}/households`)).json.households;
+    expect(list.map((h: { name: string; existsNow: boolean }) => [h.name, h.existsNow])).toEqual([['Maison A', true], ['Maison B', false]]);
+    const r = await admin.req('POST', `/api/admin/backups/${b.name}/households/${B}/restore`);
+    expect(r.status).toBe(200);
+    expect(r.json.issues.filter((i: { severity: string }) => i.severity === 'error')).toHaveLength(0);
+    // La sœur retrouve son foyer et son rôle ; l'hébergeur n'en est pas membre.
+    const me = (await sister.req('GET', '/api/auth/me')).json;
+    const back = me.households.find((h: { id: string }) => h.id === r.json.householdId);
+    expect(back.name).toMatch(/^Maison B \(restauré du /);
+    expect(back.role).toBe('admin');
+    expect((await sister.state(r.json.householdId)).product.size).toBe(1);
+    expect((await admin.req('GET', `/api/households/${r.json.householdId}`)).status).toBe(404);
+    // La Maison A garde sa modification postérieure à la sauvegarde.
+    expect((await snapshot(admin, A)).products.map((p) => p[0])).toContain('Après la sauvegarde');
+  });
+
+  it("foyer sans administrateur actif : l'hébergeur en devient administrateur, et c'est signalé", async () => {
+    const { admin, sister, B } = await seeded();
+    const b = (await admin.req('POST', '/api/admin/backups')).json.backup;
+    // Le seul membre supprime son compte (et donc son foyer, dont il était seul membre).
+    const plan = (await sister.req('GET', '/api/auth/account/deletion-plan')).json;
+    expect(plan.soleHouseholds.map((h: { id: string }) => h.id)).toContain(B);
+    expect((await sister.req('POST', '/api/auth/account/delete', { password: 'motdepasse-solide', confirm: 'SUPPRIMER', deleteSoleHouseholds: true })).status).toBe(200);
+    const r = await admin.req('POST', `/api/admin/backups/${b.name}/households/${B}/restore`);
+    expect(r.status).toBe(200);
+    expect(r.json.issues[0].message).toMatch(/l'hébergeur en a été nommé administrateur/);
+    expect((await admin.req('GET', `/api/households/${r.json.householdId}`)).status).toBe(200);
+  });
+
   it('rotation : 14 quotidiennes, 12 mensuelles, sauvegardes manuelles conservées 30 jours', async () => {
     s = makeServer({ backupKeepDaily: 3, backupKeepMonthly: 2 });
     const mk = (name: string, reason: string, createdAt: string) => {

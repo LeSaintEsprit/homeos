@@ -88,3 +88,9 @@
 .diff-row .neg { color: var(--danger); }
 .diff-row .pos { color: var(--success); }
 .tools-row { --gap: 8px; margin: -8px 0 14px; }
+
+/* ───────── Données ───────── */
+.data-block { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; padding-top: 14px; border-top: 1px solid var(--border); }
+.data-block:first-child { border-top: 0; padding-top: 0; }
+.data-block .alert { align-self: stretch; }
+.danger-zone .strong { color: var(--danger); }

@@ -1,7 +1,7 @@
 # HOMEOS — Matrice de traçabilité (FEATURE_TRACKER)
 
 > État **réel et vérifié** de chaque fonctionnalité. Référence fonctionnelle : `MASTER_SPEC.md`. Organisation : `PROJECT_PLAN.md`.
-> Dernière mise à jour : 18/11/2026 — fin de la phase 10 (OCR des dates et des tickets).
+> Dernière mise à jour : 18/11/2026 — fin de la phase 11 (écrans de données).
 
 ## Légende
 
@@ -15,7 +15,7 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 **Priorités** : P0 Indispensable · P1 Importante · P2 Complémentaire · P3 Avancée · P4 Future.
 **Origine** : M1 cahier initial · M2 scanner · M3 enrichissement · M4 multi-foyers · M5 consolidation · AUD constat de l'audit.
 
-**Constat global (fin de phase 10)** : 162 tests unitaires/intégration et 31 parcours de bout en bout (dont une lecture OCR réelle d’images). Restent à construire dans l'interface : écrans de données (export, import, sauvegardes, restauration) ; puis notifications push sur appareils réels, validation globale et déploiement.
+**Constat global (fin de phase 11)** : 164 tests unitaires/intégration et 34 parcours de bout en bout. Toutes les rubriques ont leur interface. Restent : notifications push sur appareils réels, validation globale (semaine familiale complète, performances, accessibilité) et déploiement.
 
 ---
 
@@ -59,8 +59,8 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | HH-06 | Préférences de notifications à la création | Récapitulatif, types | M4§2 | P1 | NOTIF-10 | Développé | S ✅ · C ✅ étape « notifications » de l’assistant | E2E |
 | HH-07 | Créateur = administrateur | Automatique | M4§2 | P0 | MEM-06 | Testé et validé | S ✅ · C ✅ `e2e/foundations.spec.ts` (le créateur administre et invite) | Intégration |
 | HH-08 | Paramètres du foyer | Modification avec détection de conflit | M1§2 | P0 | MEM-06 | Testé et validé | D/S ✅ · C ✅ `e2e/foundations.spec.ts` (modification hors ligne puis synchronisée) | Intégration + E2E |
-| HH-09 | Suppression d'un foyer | Double confirmation + sauvegarde préalable | AUD | P1 | BAK-01 | En développement | S ✅ households.test (administrateur, confirmation, sauvegarde préalable, purge complète) · C ❌ | Intégration |
-| HH-10 | Nombre illimité de foyers | Une instance, plusieurs familles | M4 | P0 | ISO-* | En développement | S ✅ isolation.test · C ❌ | Tests d'isolation |
+| HH-09 | Suppression d'un foyer | Double confirmation + sauvegarde préalable | AUD | P1 | BAK-01 | Testé et validé | S ✅ households.test · C ✅ Paramètres › Données : nom exact exigé, sauvegarde préalable, bascule sur un autre foyer ; récupérable seul par l’hébergeur (data.test) · `e2e/data.spec.ts` | Intégration |
+| HH-10 | Nombre illimité de foyers | Une instance, plusieurs familles | M4 | P0 | ISO-* | Testé et validé | S ✅ isolation.test · C ✅ création, import et restauration créent autant de foyers que voulu, sélecteur de foyer · `e2e/data.spec.ts` · `e2e/foundations.spec.ts` | Tests d'isolation |
 
 ## 4. Membres, invitations, rôles
 
@@ -383,13 +383,13 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 | BAK-01 | Sauvegardes automatiques | Quotidiennes + avant opérations sensibles | M1§12, M3§10 | P0 | — | Testé et validé | S ✅ sauvegarde automatique créée au démarrage réel ; data.test | Intégration |
 | BAK-02 | Versions et rotation | 14 jours + 12 mois | M3§10 | P0 | BAK-01 | Testé et validé | S ✅ data.test (rotation) | Unitaires (rotation) |
 | BAK-03 | Vérification de chaque sauvegarde | integrity_check, FK, lecture | M3§10 | P0 | BAK-01 | Testé et validé | S ✅ data.test (fichier corrompu détecté ; un seul fichier autonome) | Intégration (fichier corrompu) |
-| BAK-04 | Restauration complète | Sauvegarde préalable, nouvelle époque | M3§10 | P0 | BAK-03 | Testé et validé | S ✅ data.test (restauration complète réservée à l’hébergeur, sauvegarde préalable, nouvelle époque) | Intégration |
-| BAK-05 | Restauration d'un seul foyer | Sans affecter les autres familles | M4, C7 | P0 | BAK-03 | En développement | S ✅ data.test (un foyer restauré, l’autre intact) · C ❌ | Intégration |
-| BAK-06 | Export complet JSON | Avec photos | M1§12, M3§10 | P0 | — | En développement | S ✅ data.test (aller-retour, photos) · C ❌ | Aller-retour |
-| BAK-07 | Export CSV | Inventaire, achats, mouvements | M1§12 | P1 | — | En développement | S ✅ data.test (BOM, séparateur « ; ») · C ❌ | Intégration |
-| BAK-08 | Import complet | Nouveau foyer, identifiants régénérés | M1§12, M3§10 | P0 | — | En développement | S ✅ data.test + isolation.test (identifiants régénérés) · C ❌ | Aller-retour |
+| BAK-04 | Restauration complète | Sauvegarde préalable, nouvelle époque | M3§10 | P0 | BAK-03 | Testé et validé | S ✅ data.test · C ✅ « Tout restaurer » (hébergeur), confirmation RESTAURER, sauvegarde de sécurité, resynchronisation des appareils · `e2e/data.spec.ts` | Intégration |
+| BAK-05 | Restauration d'un seul foyer | Sans affecter les autres familles | M4, C7 | P0 | BAK-03 | Testé et validé | S ✅ data.test (par un administrateur du foyer ; par l’hébergeur pour un foyer supprimé, sans y entrer sauf foyer orphelin) · C ✅ « Revenir à une version précédente » et « Foyers… » · `e2e/data.spec.ts` | Intégration |
+| BAK-06 | Export complet JSON | Avec photos | M1§12, M3§10 | P0 | — | Testé et validé | S ✅ data.test · C ✅ export complet avec ou sans photos, fichier téléchargé et relu · `e2e/data.spec.ts` | Aller-retour |
+| BAK-07 | Export CSV | Inventaire, achats, mouvements | M1§12 | P1 | — | Testé et validé | S ✅ data.test · C ✅ inventaire, achats, mouvements · `e2e/data.spec.ts` | Intégration |
+| BAK-08 | Import complet | Nouveau foyer, identifiants régénérés | M1§12, M3§10 | P0 | — | Testé et validé | S ✅ data.test + isolation.test · C ✅ import d’un fichier → nouveau foyer actif, l’original intact · `e2e/data.spec.ts` | Aller-retour |
 | BAK-09 | Preuve de restauration | Sauvegarde → restauration → données identiques | M3§10 | P0 | BAK-04 | Testé et validé | S ✅ data.test « PREUVE : sauvegarde → modifications → restauration → données identiques » | — |
-| BAK-10 | Interface sauvegardes / export / import | — | M1§12 | P1 | C | À développer | C ❌ | E2E |
+| BAK-10 | Interface sauvegardes / export / import | — | M1§12 | P1 | C | Testé et validé | C ✅ Paramètres › Données (intégrité, export, import, version précédente, suppression) et Administration (sauvegardes vérifiées, création, téléchargement, foyers d’une sauvegarde, restauration complète) ; droits respectés (membre : ni restauration ni suppression) · `e2e/data.spec.ts` | E2E |
 | BAK-11 | Export ≠ sauvegarde automatique | Les deux existent et sont distingués | M3§10 | P0 | — | Testé et validé | Documenté (MASTER_SPEC §14.2) ; sauvegardes automatiques et exports distincts et testés | — |
 
 ## 23. Design et expérience utilisateur
@@ -447,10 +447,10 @@ Règle (R11) : une fonctionnalité visible par l'utilisateur n'est « Testée et
 
 | Statut | Nombre |
 |---|---|
-| Testé et validé | 192 |
+| Testé et validé | 199 |
 | Développé | 60 |
-| En développement | 32 |
-| À développer | 8 |
+| En développement | 26 |
+| À développer | 7 |
 | À spécifier | 0 |
 | Reporté | 5 |
 | Bloqué | 0 |

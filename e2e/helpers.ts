@@ -26,7 +26,9 @@ export async function createHousehold(page: Page, name: string) {
 export async function inviteCode(page: Page, role: 'Administrateur' | 'Membre' | 'Lecture seule' = 'Membre'): Promise<string> {
   await page.goto('/famille');
   await page.click('button:has-text("Inviter")');
-  await page.click(`.option-card:has-text("${role}")`);
+  // Titre exact de la carte : la description d'« Administrateur » contient aussi « membres ».
+  await page.locator('.option-card').filter({ has: page.locator('.strong', { hasText: new RegExp(`^${role}$`) }) }).click();
+  await expect(page.locator('.option-card[aria-pressed=true] .strong')).toHaveText(role);
   await page.click('button:has-text("Créer l’invitation")');
   const code = (await page.getByTestId('invite-code').textContent())!.trim();
   await page.click('button:has-text("Terminé")');

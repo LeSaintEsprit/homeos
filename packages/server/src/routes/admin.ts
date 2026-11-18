@@ -3,6 +3,8 @@ import { createReadStream } from 'node:fs';
 import { z } from 'zod';
 import { HttpError } from '../households';
 import { createResetToken, listUsers } from '../accounts';
+import { extractHousehold, householdsInBackup } from '../backup';
+import { importHousehold } from '../exportImport';
 import { baseUrl, emailSchema, parse, requireServerAdmin, type Services } from '../http';
 
 /** Administration de l'instance (hébergeur) : sauvegardes, comptes. */
@@ -44,6 +46,44 @@ export function adminRoutes(app: FastifyInstance, s: Services) {
     } catch (e) {
       throw new HttpError(400, 'restore_failed', (e as Error).message);
     }
+  });
+
+  /** Foyers contenus dans une sauvegarde (pour en récupérer un seul). */
+  app.get('/api/admin/backups/:name/households', async (req) => {
+    requireServerAdmin(req);
+    let p: string;
+    try {
+      p = s.backups.path((req.params as { name: string }).name);
+    } catch (e) {
+      throw new HttpError(404, 'not_found', (e as Error).message);
+    }
+    const current = new Set((db.prep('SELECT id FROM households').all() as { id: string }[]).map((r) => r.id));
+    return { households: householdsInBackup(p).map((h) => ({ ...h, existsNow: current.has(h.id) })) };
+  });
+
+  /**
+   * Récupère UN foyer d'une sauvegarde comme nouveau foyer (ex. foyer supprimé par erreur),
+   * sans toucher aux autres familles. Les membres dont le compte existe toujours retrouvent l'accès ;
+   * l'hébergeur n'en devient pas membre s'il ne l'était pas.
+   */
+  app.post('/api/admin/backups/:name/households/:hid/restore', async (req) => {
+    const u = requireServerAdmin(req);
+    const { name, hid: householdId } = req.params as { name: string; hid: string };
+    let p: string;
+    try {
+      p = s.backups.path(name);
+    } catch (e) {
+      throw new HttpError(404, 'not_found', (e as Error).message);
+    }
+    const file = extractHousehold(p, householdId);
+    if (!file) throw new HttpError(404, 'not_found', 'Ce foyer ne figure pas dans cette sauvegarde.');
+    const info = s.backups.list().find((b) => b.name === name);
+    await s.backups.create('pre-import');
+    const date = new Date(info?.createdAt ?? Date.now()).toLocaleDateString('fr-FR');
+    const wasMember = (file.entities.member ?? []).some((m) => (m as { userId: string; active: boolean }).userId === u.id && (m as { active: boolean }).active);
+    const report = importHousehold(db, file, u, { name: `${file.householdName} (restauré du ${date})`, keepMembers: true, importerJoins: wasMember });
+    s.bus.changed(report.householdId, db.currentSeq());
+    return { ...report, name: `${file.householdName} (restauré du ${date})` };
   });
 
   app.get('/api/admin/users', async (req) => {

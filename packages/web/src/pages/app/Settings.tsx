@@ -16,6 +16,7 @@ import { Sheet } from '../../ui/Sheet';
 import { HouseholdAvatar } from '../../ui/Avatar';
 import { useConfirm } from '../../ui/Confirm';
 import { PageHead } from './Shell';
+import { DataSection, ServerBackups } from './settings/DataSection';
 import { CatalogSection } from './inventory/CatalogSection';
 
 function Section({ icon, title, children, id }: { icon: ReactNode; title: string; children: ReactNode; id?: string }) {
@@ -330,6 +331,7 @@ function ServerAdminSection() {
           ))}
         </div>
       </div>
+      <ServerBackups />
       <Sheet open={!!link} onClose={() => setLink(null)} title="Lien de réinitialisation">
         <p className="muted small">Transmettez ce lien à la personne concernée : il est valable 24 heures et ne fonctionne qu'une fois.</p>
         <textarea className="textarea" readOnly value={link ?? ''} onFocus={(e) => e.currentTarget.select()} />
@@ -362,6 +364,7 @@ export function SettingsPage() {
       <ProfileSection />
       <HouseholdSection />
       <CatalogSection />
+      <DataSection />
       <NotificationSection />
       <Section icon={<Palette size={20} />} title="Apparence">
         <Segmented<ThemePref>

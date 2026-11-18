@@ -218,3 +218,20 @@ export function backupsContaining(manager: BackupManager, householdId: string): 
   }
   return out;
 }
+
+/** Foyers présents dans une sauvegarde (nom, nombre de membres et de produits) — pour l'hébergeur. */
+export function householdsInBackup(path: string): { id: string; name: string; members: number; products: number }[] {
+  const db = new Database(path, { readonly: true, fileMustExist: true });
+  try {
+    return db
+      .prepare(
+        `SELECT h.id, h.name,
+                (SELECT COUNT(*) FROM members m WHERE m.householdId = h.id AND m.active = 1) AS members,
+                (SELECT COUNT(*) FROM products p WHERE p.householdId = h.id AND p.archived = 0) AS products
+           FROM households h ORDER BY h.name`,
+      )
+      .all() as { id: string; name: string; members: number; products: number }[];
+  } finally {
+    db.close();
+  }
+}

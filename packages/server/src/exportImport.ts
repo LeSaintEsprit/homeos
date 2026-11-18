@@ -114,6 +114,12 @@ export interface ImportOptions {
    * existe toujours retrouvent leur appartenance et leur rôle.
    */
   keepMembers?: boolean;
+  /**
+   * L'importateur devient administrateur du nouveau foyer (défaut). À `false` (hébergeur
+   * restaurant le foyer d'une autre famille), il n'y entre que s'il n'y aurait sinon aucun
+   * administrateur actif.
+   */
+  importerJoins?: boolean;
 }
 
 export function importHousehold(db: Db, file: unknown, user: { id: string; name: string; email: string }, opts: ImportOptions = {}): ImportReport {
@@ -129,6 +135,8 @@ export function importHousehold(db: Db, file: unknown, user: { id: string; name:
   for (const t of ENTITY_TYPES) for (const e of (ents[t] ?? []) as AnyEntity[]) if (t !== 'household') map.set(e.id, randomUUID());
   for (const p of f.photos ?? []) map.set(p.id, randomUUID());
   const counts: Record<string, number> = {};
+  const joins = opts.importerJoins !== false;
+  const issues: { severity: string; message: string }[] = [];
   db.tx(() => {
     const store = new SqlStore(db, newHh, user.id);
     const order: EntityType[] = ['household', 'member', 'category', 'location', 'store', 'product', 'productCode', 'lot', 'movement', 'shoppingItem', 'purchase', 'receipt', 'inventorySession', 'activity', 'recipe'];
@@ -143,7 +151,7 @@ export function importHousehold(db: Db, file: unknown, user: { id: string; name:
           next.createdBy = next.createdBy ?? user.id;
         }
         if (t === 'member') {
-          const isMe = next.userId === user.id;
+          const isMe = next.userId === user.id && joins;
           if (next.role === 'owner') next.role = 'admin'; // exports antérieurs à la refonte des rôles
           const accountExists = !!db.prep('SELECT 1 FROM users WHERE id = ?').get(next.userId);
           next.active = isMe || (!!opts.keepMembers && !!next.active && accountExists);
@@ -154,7 +162,14 @@ export function importHousehold(db: Db, file: unknown, user: { id: string; name:
       counts[t] = list.length;
     }
     const me = db.prep('SELECT id FROM members WHERE householdId = ? AND userId = ?').get(newHh, user.id);
-    if (!me) {
+    const activeAdmin = db.prep("SELECT 1 FROM members WHERE householdId = ? AND active = 1 AND role = 'admin'").get(newHh);
+    if (!joins && !activeAdmin) {
+      issues.push({ severity: 'warning', message: "Aucun administrateur actif n'aurait eu accès à ce foyer : l'hébergeur en a été nommé administrateur. Invitez la famille puis retirez-vous." });
+    }
+    if (me && !joins && !activeAdmin) {
+      const m = store.get('member', (me as { id: string }).id)!;
+      store.put('member', { ...m, active: true, role: 'admin' });
+    } else if (!me && (joins || !activeAdmin)) {
       store.put('member', {
         id: randomUUID(), householdId: newHh, version: 0, userId: user.id, name: user.name, email: user.email, role: 'admin', color: '#1F7A64', active: true,
         joinedAt: new Date().toISOString(), prefs: {},
@@ -166,7 +181,7 @@ export function importHousehold(db: Db, file: unknown, user: { id: string; name:
     const fk = db.raw.pragma('foreign_key_check') as unknown[];
     if (fk.length) throw new HttpError(400, 'invalid_file', `Export incohérent : ${fk.length} référence(s) cassée(s). Import annulé.`);
   });
-  return { householdId: newHh, counts, issues: integrityReport(db, newHh).map((i) => ({ severity: i.severity, message: i.message })) };
+  return { householdId: newHh, counts, issues: [...issues, ...integrityReport(db, newHh).map((i) => ({ severity: i.severity, message: i.message }))] };
 }
 
 export function collectionsOf(db: Db, householdId: string): EntityCollections {
